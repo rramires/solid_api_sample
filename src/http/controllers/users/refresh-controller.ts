@@ -1,4 +1,4 @@
-import { FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyReply,FastifyRequest } from 'fastify'
 
 export async function refreshController(request: FastifyRequest, reply: FastifyReply) {
 	// Check if valid request cookie exists

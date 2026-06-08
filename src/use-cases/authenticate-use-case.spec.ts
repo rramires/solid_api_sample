@@ -1,9 +1,11 @@
-import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
-import { expect, describe, it } from 'vitest'
-import { AuthenticateUseCase } from './authenticate-use-case'
 import { hash } from 'bcryptjs'
-import { InvalidCredentialsError } from './errors/invalid-credentials-error'
+import { describe, expect, it } from 'vitest'
 import { beforeEach } from 'vitest'
+
+import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
+
+import { AuthenticateUseCase } from './authenticate-use-case'
+import { InvalidCredentialsError } from './errors/invalid-credentials-error'
 
 let usersRepository: InMemoryUsersRepository
 const newUser = {

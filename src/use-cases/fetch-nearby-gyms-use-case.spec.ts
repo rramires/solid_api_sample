@@ -1,7 +1,9 @@
-import { beforeEach, expect, describe, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+
 import { InMemoryGymsRepository } from '@/repositories/in-memory/in-memory-gyms-repository'
-import { FetchNearbyGymsUseCase } from './fetch-nearby-gyms-use-case'
 import getTestCoordinates from '@/utils/tests/get-test-coordinates'
+
+import { FetchNearbyGymsUseCase } from './fetch-nearby-gyms-use-case'
 
 let gymsRepository: InMemoryGymsRepository
 let sut: FetchNearbyGymsUseCase

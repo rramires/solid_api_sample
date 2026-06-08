@@ -1,5 +1,6 @@
-import { Role } from '@/prisma-client/enums'
 import { FastifyReply, FastifyRequest } from 'fastify'
+
+import { Role } from '@/prisma-client/enums'
 
 function verifyUserRole(roleToVerify: Role) {
 	// This middleware checks if the user has the required role

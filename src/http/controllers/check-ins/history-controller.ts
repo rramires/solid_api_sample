@@ -1,6 +1,7 @@
-import { makeFetchCheckInsHistoryUseCase } from '@/use-cases/factories/make-fetch-check-ins-history-use-case'
-import { FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyReply,FastifyRequest } from 'fastify'
 import { z } from 'zod'
+
+import { makeFetchCheckInsHistoryUseCase } from '@/use-cases/factories/make-fetch-check-ins-history-use-case'
 
 export async function historyController(request: FastifyRequest, reply: FastifyReply) {
 	const { sub: userId } = request.user

@@ -1,5 +1,6 @@
-import { describe, beforeAll, afterAll, it, expect, vi } from 'vitest'
 import request from 'supertest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
 import { app } from '@/app'
 import createAndAuthUser from '@/utils/tests/create-and-auth-user'
 import getTestCoordinates from '@/utils/tests/get-test-coordinates'

@@ -1,7 +1,8 @@
+import { prisma } from '@/lib/prisma'
 import { Gym, Prisma } from '@/prisma-client'
 import { GymCreateInput } from '@/prisma-client/models'
+
 import { IFindManyNearbyParams, IGymsRepository } from '../i-gyms-repository'
-import { prisma } from '@/lib/prisma'
 
 const PAGE_SIZE = 20
 const DISTANCE_IN_KILOMETERS = 10

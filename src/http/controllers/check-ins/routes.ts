@@ -1,11 +1,13 @@
 import { FastifyInstance } from 'fastify'
+
 import { verifyJwtMiddleware } from '@/http/middlewares/verify-jwt-middleware'
-import { checkInController } from './check-in-controller'
-import { validateController } from './validate-controller'
-import { historyController } from './history-controller'
-import { metricsController } from './metrics-controller'
 import { verifyUserRole } from '@/http/middlewares/verify-user-role'
 import { Role } from '@/prisma-client'
+
+import { checkInController } from './check-in-controller'
+import { historyController } from './history-controller'
+import { metricsController } from './metrics-controller'
+import { validateController } from './validate-controller'
 
 export async function checkInsRoutes(app: FastifyInstance) {
 	/**

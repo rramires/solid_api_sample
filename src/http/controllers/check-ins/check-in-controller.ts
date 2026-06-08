@@ -1,6 +1,7 @@
-import { makeCheckInUseCase } from '@/use-cases/factories/make-check-in-use-case'
-import { FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyReply,FastifyRequest } from 'fastify'
 import { z } from 'zod'
+
+import { makeCheckInUseCase } from '@/use-cases/factories/make-check-in-use-case'
 
 export async function checkInController(request: FastifyRequest, reply: FastifyReply) {
 	const { sub: userId } = request.user

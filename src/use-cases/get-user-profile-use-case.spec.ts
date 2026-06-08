@@ -1,10 +1,12 @@
-import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
-import { expect, describe, it } from 'vitest'
-import { GetUserProfileUseCase } from './get-user-profile-use-case'
 import { hash } from 'bcryptjs'
+import { describe, expect, it } from 'vitest'
 import { beforeEach } from 'vitest'
+
 import { User } from '@/prisma-client'
+import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
+
 import { ResourceNotFoundError } from './errors/resource-not-found-error'
+import { GetUserProfileUseCase } from './get-user-profile-use-case'
 
 let usersRepository: InMemoryUsersRepository
 const newUser = {

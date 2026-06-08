@@ -1,5 +1,7 @@
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+
 import { env } from '@/env'
+
 import { PrismaClient } from '../prisma-client'
 
 function createAdapter() {

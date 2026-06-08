@@ -1,9 +1,10 @@
+import dayjs from 'dayjs'
+
 import { prisma } from '@/lib/prisma'
 import { CheckIn } from '@/prisma-client'
 import { CheckInUncheckedCreateInput } from '@/prisma-client/models'
-import { ICheckInsRepository } from '../i-check-ins-repository'
 
-import dayjs from 'dayjs'
+import { ICheckInsRepository } from '../i-check-ins-repository'
 
 const PAGE_SIZE = 20
 

@@ -1,6 +1,7 @@
 // https://github.com/fastify/fastify-jwt?tab=readme-ov-file#typescript-1
-import { Role } from '@/prisma-client'
 import '@fastify/jwt'
+
+import { Role } from '@/prisma-client'
 
 declare module '@fastify/jwt' {
 	export interface FastifyJWT {

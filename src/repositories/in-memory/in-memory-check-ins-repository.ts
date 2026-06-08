@@ -1,7 +1,10 @@
-import { CheckIn, Prisma } from '@/prisma-client'
-import { ICheckInsRepository } from '../i-check-ins-repository'
 import { randomUUID } from 'node:crypto'
+
 import dayjs from 'dayjs'
+
+import { CheckIn, Prisma } from '@/prisma-client'
+
+import { ICheckInsRepository } from '../i-check-ins-repository'
 
 const PAGE_SIZE = 20
 

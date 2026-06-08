@@ -1,6 +1,8 @@
-import { Prisma, User } from '@/prisma-client'
-import { IUsersRepository } from '../i-users-repository'
 import { randomUUID } from 'node:crypto'
+
+import { Prisma, User } from '@/prisma-client'
+
+import { IUsersRepository } from '../i-users-repository'
 
 export class InMemoryUsersRepository implements IUsersRepository {
 	// in-memory mock database

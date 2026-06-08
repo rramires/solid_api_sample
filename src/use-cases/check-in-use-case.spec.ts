@@ -1,10 +1,12 @@
-import { beforeEach, afterEach, expect, describe, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { InMemoryCheckInsRepository } from '@/repositories/in-memory/in-memory-check-ins-repository'
 import { InMemoryGymsRepository } from '@/repositories/in-memory/in-memory-gyms-repository'
-import { CheckInUseCase } from './check-in-use-case'
-import { MaxDistanceError } from './errors/max-distance.error'
-import { MaxCheckInsReachedError } from './errors/max-check-ins-reached-error'
 import getTestCoordinates from '@/utils/tests/get-test-coordinates'
+
+import { CheckInUseCase } from './check-in-use-case'
+import { MaxCheckInsReachedError } from './errors/max-check-ins-reached-error'
+import { MaxDistanceError } from './errors/max-distance.error'
 
 let checkInsRepository: InMemoryCheckInsRepository
 let gymsRepository: InMemoryGymsRepository

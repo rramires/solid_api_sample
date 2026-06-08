@@ -1,8 +1,10 @@
-import { Gym, Prisma } from '@/prisma-client'
-import { IGymsRepository, IFindManyNearbyParams } from '../i-gyms-repository'
-import { GymCreateInput } from '@/prisma-client/models'
 import { randomUUID } from 'node:crypto'
+
+import { Gym, Prisma } from '@/prisma-client'
+import { GymCreateInput } from '@/prisma-client/models'
 import { getDistanceBetweenCoordinates } from '@/utils/get-distance-between-coordinates'
+
+import { IFindManyNearbyParams,IGymsRepository } from '../i-gyms-repository'
 
 const PAGE_SIZE = 20
 const DISTANCE_IN_KILOMETERS = 10

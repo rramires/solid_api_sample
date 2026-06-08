@@ -1,8 +1,10 @@
-import { expect, describe, it } from 'vitest'
-import { InMemoryGymsRepository } from '@/repositories/in-memory/in-memory-gyms-repository'
+import { describe, expect, it } from 'vitest'
 import { beforeEach } from 'vitest'
-import { CreateGymUseCase } from './create-gym-use-case'
+
+import { InMemoryGymsRepository } from '@/repositories/in-memory/in-memory-gyms-repository'
 import getTestCoordinates from '@/utils/tests/get-test-coordinates'
+
+import { CreateGymUseCase } from './create-gym-use-case'
 
 // get test position
 const { coordinates } = getTestCoordinates()
