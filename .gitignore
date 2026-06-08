@@ -1,5 +1,6 @@
-# Build Folder
+# Build / Compile Folders
 build
+dist
 
 # Dependencies
 node_modules

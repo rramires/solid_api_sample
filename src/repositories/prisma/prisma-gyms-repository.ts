@@ -43,7 +43,11 @@ export class PrismaGymsRepository implements IGymsRepository {
                         WHERE ( 6371 * acos( cos( radians(${latitude}) ) * 
                                 cos( radians( latitude ) ) * cos( radians( longitude ) - 
                                 radians(${longitude}) ) + sin( radians(${latitude}) ) * 
-                                sin( radians( latitude ) ) ) ) <= ${DISTANCE_IN_KILOMETERS}`,
+                                sin( radians( latitude ) ) ) ) <= ${DISTANCE_IN_KILOMETERS}
+                        ORDER BY ( 6371 * acos( cos( radians(${latitude}) ) * 
+                                cos( radians( latitude ) ) * cos( radians( longitude ) - 
+                                radians(${longitude}) ) + sin( radians(${latitude}) ) * 
+                                sin( radians( latitude ) ) ) ) ASC`,
 		)
 		return gyms
 	}
