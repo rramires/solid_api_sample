@@ -1,9 +1,10 @@
+name: solid_api_sample
+
 services:
-  gympass-pg:
-    image: bitnami/postgresql
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRESQL_USERNAME=docker
-      - POSTGRESQL_PASSWORD=docker123
-      - POSTGRESQL_DATABASE=gympass-db
+    solid_api_mysql:
+        image: mysql:8
+        ports:
+            - 3306:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: docker123
+            MYSQL_DATABASE: gympass-db

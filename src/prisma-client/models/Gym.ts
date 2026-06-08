@@ -239,6 +239,7 @@ export type GymOrderByWithRelationInput = {
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
   checkIns?: Prisma.CheckInOrderByRelationAggregateInput
+  _relevance?: Prisma.GymOrderByRelevanceInput
 }
 
 export type GymWhereUniqueInput = Prisma.AtLeast<{
@@ -350,6 +351,12 @@ export type GymUncheckedUpdateManyInput = {
 export type GymScalarRelationFilter = {
   is?: Prisma.GymWhereInput
   isNot?: Prisma.GymWhereInput
+}
+
+export type GymOrderByRelevanceInput = {
+  fields: Prisma.GymOrderByRelevanceFieldEnum | Prisma.GymOrderByRelevanceFieldEnum[]
+  sort: Prisma.SortOrder
+  search: string
 }
 
 export type GymCountOrderByAggregateInput = {
@@ -509,23 +516,7 @@ export type GymSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   _count?: boolean | Prisma.GymCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["gym"]>
 
-export type GymSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  title?: boolean
-  description?: boolean
-  phone?: boolean
-  latitude?: boolean
-  longitude?: boolean
-}, ExtArgs["result"]["gym"]>
 
-export type GymSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  title?: boolean
-  description?: boolean
-  phone?: boolean
-  latitude?: boolean
-  longitude?: boolean
-}, ExtArgs["result"]["gym"]>
 
 export type GymSelectScalar = {
   id?: boolean
@@ -541,8 +532,6 @@ export type GymInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   checkIns?: boolean | Prisma.Gym$checkInsArgs<ExtArgs>
   _count?: boolean | Prisma.GymCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type GymIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type GymIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $GymPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Gym"
@@ -674,30 +663,6 @@ export interface GymDelegate<ExtArgs extends runtime.Types.Extensions.InternalAr
   createMany<T extends GymCreateManyArgs>(args?: Prisma.SelectSubset<T, GymCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many Gyms and returns the data saved in the database.
-   * @param {GymCreateManyAndReturnArgs} args - Arguments to create many Gyms.
-   * @example
-   * // Create many Gyms
-   * const gym = await prisma.gym.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many Gyms and only return the `id`
-   * const gymWithIdOnly = await prisma.gym.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends GymCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, GymCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GymPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a Gym.
    * @param {GymDeleteArgs} args - Arguments to delete one Gym.
    * @example
@@ -760,36 +725,6 @@ export interface GymDelegate<ExtArgs extends runtime.Types.Extensions.InternalAr
    * 
    */
   updateMany<T extends GymUpdateManyArgs>(args: Prisma.SelectSubset<T, GymUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more Gyms and returns the data updated in the database.
-   * @param {GymUpdateManyAndReturnArgs} args - Arguments to update many Gyms.
-   * @example
-   * // Update many Gyms
-   * const gym = await prisma.gym.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more Gyms and only return the `id`
-   * const gymWithIdOnly = await prisma.gym.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends GymUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, GymUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GymPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Gym.
@@ -1224,25 +1159,6 @@ export type GymCreateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 }
 
 /**
- * Gym createManyAndReturn
- */
-export type GymCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Gym
-   */
-  select?: Prisma.GymSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Gym
-   */
-  omit?: Prisma.GymOmit<ExtArgs> | null
-  /**
-   * The data used to create many Gyms.
-   */
-  data: Prisma.GymCreateManyInput | Prisma.GymCreateManyInput[]
-  skipDuplicates?: boolean
-}
-
-/**
  * Gym update
  */
 export type GymUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1272,32 +1188,6 @@ export type GymUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs 
  * Gym updateMany
  */
 export type GymUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * The data used to update Gyms.
-   */
-  data: Prisma.XOR<Prisma.GymUpdateManyMutationInput, Prisma.GymUncheckedUpdateManyInput>
-  /**
-   * Filter which Gyms to update
-   */
-  where?: Prisma.GymWhereInput
-  /**
-   * Limit how many Gyms to update.
-   */
-  limit?: number
-}
-
-/**
- * Gym updateManyAndReturn
- */
-export type GymUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Gym
-   */
-  select?: Prisma.GymSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the Gym
-   */
-  omit?: Prisma.GymOmit<ExtArgs> | null
   /**
    * The data used to update Gyms.
    */

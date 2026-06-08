@@ -194,6 +194,7 @@ export type CheckInOrderByWithRelationInput = {
   gym_id?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   gyn?: Prisma.GymOrderByWithRelationInput
+  _relevance?: Prisma.CheckInOrderByRelevanceInput
 }
 
 export type CheckInWhereUniqueInput = Prisma.AtLeast<{
@@ -293,6 +294,12 @@ export type CheckInListRelationFilter = {
 
 export type CheckInOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type CheckInOrderByRelevanceInput = {
+  fields: Prisma.CheckInOrderByRelevanceFieldEnum | Prisma.CheckInOrderByRelevanceFieldEnum[]
+  sort: Prisma.SortOrder
+  search: string
 }
 
 export type CheckInCountOrderByAggregateInput = {
@@ -566,25 +573,7 @@ export type CheckInSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   gyn?: boolean | Prisma.GymDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["checkIn"]>
 
-export type CheckInSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  created_at?: boolean
-  validated_at?: boolean
-  user_id?: boolean
-  gym_id?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  gyn?: boolean | Prisma.GymDefaultArgs<ExtArgs>
-}, ExtArgs["result"]["checkIn"]>
 
-export type CheckInSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
-  id?: boolean
-  created_at?: boolean
-  validated_at?: boolean
-  user_id?: boolean
-  gym_id?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  gyn?: boolean | Prisma.GymDefaultArgs<ExtArgs>
-}, ExtArgs["result"]["checkIn"]>
 
 export type CheckInSelectScalar = {
   id?: boolean
@@ -596,14 +585,6 @@ export type CheckInSelectScalar = {
 
 export type CheckInOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "created_at" | "validated_at" | "user_id" | "gym_id", ExtArgs["result"]["checkIn"]>
 export type CheckInInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  gyn?: boolean | Prisma.GymDefaultArgs<ExtArgs>
-}
-export type CheckInIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  gyn?: boolean | Prisma.GymDefaultArgs<ExtArgs>
-}
-export type CheckInIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   gyn?: boolean | Prisma.GymDefaultArgs<ExtArgs>
 }
@@ -738,30 +719,6 @@ export interface CheckInDelegate<ExtArgs extends runtime.Types.Extensions.Intern
   createMany<T extends CheckInCreateManyArgs>(args?: Prisma.SelectSubset<T, CheckInCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
-   * Create many CheckIns and returns the data saved in the database.
-   * @param {CheckInCreateManyAndReturnArgs} args - Arguments to create many CheckIns.
-   * @example
-   * // Create many CheckIns
-   * const checkIn = await prisma.checkIn.createManyAndReturn({
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Create many CheckIns and only return the `id`
-   * const checkInWithIdOnly = await prisma.checkIn.createManyAndReturn({
-   *   select: { id: true },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  createManyAndReturn<T extends CheckInCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, CheckInCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CheckInPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-  /**
    * Delete a CheckIn.
    * @param {CheckInDeleteArgs} args - Arguments to delete one CheckIn.
    * @example
@@ -824,36 +781,6 @@ export interface CheckInDelegate<ExtArgs extends runtime.Types.Extensions.Intern
    * 
    */
   updateMany<T extends CheckInUpdateManyArgs>(args: Prisma.SelectSubset<T, CheckInUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
-
-  /**
-   * Update zero or more CheckIns and returns the data updated in the database.
-   * @param {CheckInUpdateManyAndReturnArgs} args - Arguments to update many CheckIns.
-   * @example
-   * // Update many CheckIns
-   * const checkIn = await prisma.checkIn.updateManyAndReturn({
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * 
-   * // Update zero or more CheckIns and only return the `id`
-   * const checkInWithIdOnly = await prisma.checkIn.updateManyAndReturn({
-   *   select: { id: true },
-   *   where: {
-   *     // ... provide filter here
-   *   },
-   *   data: [
-   *     // ... provide data here
-   *   ]
-   * })
-   * Note, that providing `undefined` is treated as the value not being there.
-   * Read more here: https://pris.ly/d/null-undefined
-   * 
-   */
-  updateManyAndReturn<T extends CheckInUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, CheckInUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CheckInPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one CheckIn.
@@ -1288,29 +1215,6 @@ export type CheckInCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
- * CheckIn createManyAndReturn
- */
-export type CheckInCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the CheckIn
-   */
-  select?: Prisma.CheckInSelectCreateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the CheckIn
-   */
-  omit?: Prisma.CheckInOmit<ExtArgs> | null
-  /**
-   * The data used to create many CheckIns.
-   */
-  data: Prisma.CheckInCreateManyInput | Prisma.CheckInCreateManyInput[]
-  skipDuplicates?: boolean
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.CheckInIncludeCreateManyAndReturn<ExtArgs> | null
-}
-
-/**
  * CheckIn update
  */
 export type CheckInUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1352,36 +1256,6 @@ export type CheckInUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many CheckIns to update.
    */
   limit?: number
-}
-
-/**
- * CheckIn updateManyAndReturn
- */
-export type CheckInUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the CheckIn
-   */
-  select?: Prisma.CheckInSelectUpdateManyAndReturn<ExtArgs> | null
-  /**
-   * Omit specific fields from the CheckIn
-   */
-  omit?: Prisma.CheckInOmit<ExtArgs> | null
-  /**
-   * The data used to update CheckIns.
-   */
-  data: Prisma.XOR<Prisma.CheckInUpdateManyMutationInput, Prisma.CheckInUncheckedUpdateManyInput>
-  /**
-   * Filter which CheckIns to update
-   */
-  where?: Prisma.CheckInWhereInput
-  /**
-   * Limit how many CheckIns to update.
-   */
-  limit?: number
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.CheckInIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
