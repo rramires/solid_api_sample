@@ -1,5 +1,4 @@
-# Dist Folder
 dist
-
-# Build Folder
 build
+node_modules
+src/prisma-client

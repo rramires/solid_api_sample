@@ -1,4 +1,5 @@
 import fastify from 'fastify'
+import fastifyHelmet from '@fastify/helmet'
 import fastifyJwt from '@fastify/jwt'
 import fastifyCookie from '@fastify/cookie'
 import { ZodError } from 'zod'
@@ -8,6 +9,8 @@ import { gymsRoutes } from './http/controllers/gyms/routes'
 import { checkInsRoutes } from './http/controllers/check-ins/routes'
 
 export const app = fastify()
+// Security headers
+app.register(fastifyHelmet)
 // JWT
 app.register(fastifyJwt, {
 	secret: env.JWT_SECRET,
