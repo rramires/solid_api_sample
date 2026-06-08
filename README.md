@@ -1,33 +1,27 @@
-# gympass_solid_api
+# solid_api_sample
 
-GymPass style API using SOLID standards
+GymPass style API built with SOLID principles.
 
-#### To create a Postgres instance in Docker for development:
+**Stack:** Node.js · Fastify · TypeScript 6 · Prisma 7 · MySQL · Vitest
 
-```sh
-npm run compose:up
-```
-
-To stop docker instance
+## Setup
 
 ```sh
-npm run compose:stop
+pnpm install
+pnpm compose:up       # start MySQL in Docker
+pnpm migrate          # run migrations
+pnpm dev              # start dev server
 ```
 
-To remove docker instance
+## Scripts
 
-```sh
-npm run compose:down
-```
-
-#### To create database:
-
-```sh
-npm run migrate
-```
-
-To view database in Prisma Studio
-
-```sh
-npm run showdb
-```
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server with hot-reload |
+| `pnpm build` | Production build (tsup) |
+| `pnpm start` | Run production build |
+| `pnpm test` | Unit tests |
+| `pnpm test:e2e` | E2E tests (requires MySQL) |
+| `pnpm lint` | Run ESLint |
+| `pnpm lint:fix` | Fix lint errors |
+| `pnpm compile` | TypeScript type-check |
