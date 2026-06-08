@@ -8,26 +8,32 @@ jobs:
         runs-on: ubuntu-latest
 
         services:
-            postgres:
-                image: bitnami/postgresql
+            mysql:
+                image: mysql:8
                 ports:
-                    - 5432:5432
+                    - 3306:3306
                 env:
-                    POSTGRESQL_USERNAME: docker
-                    POSTGRESQL_PASSWORD: docker123
-                    POSTGRESQL_DATABASE: gympass-db
+                    MYSQL_ROOT_PASSWORD: docker123
+                    MYSQL_DATABASE: gympass-db
+                options: >-
+                    --health-cmd="mysqladmin ping -h localhost"
+                    --health-interval=10s
+                    --health-timeout=5s
+                    --health-retries=5
 
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
               with:
-                  node-version: 20
-                  cache: 'npm'
-            - run: npm ci
-            - run: npm run test:e2e
+                  node-version: 24
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: latest
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm test:e2e
 
               env:
                   NODE_ENV: test
                   PORT: 3333
                   JWT_SECRET: acceptsMin20characters
-                  DATABASE_URL: 'postgresql://docker:docker123@localhost:5432/gympass-db?schema=public'
+                  DATABASE_URL: 'mysql://root:docker123@127.0.0.1:3306/gympass-db'
