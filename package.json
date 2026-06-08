@@ -5,8 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "compile": "npx tsc",
-    "dist": "node dist/server.js",
+    "compile": "pnpm exec tsc",
     "build": "tsup",
     "start": "node build/server.mjs",
     "lint": "eslint . --ext .ts",
@@ -16,8 +15,8 @@
     "compose:up": "docker compose up -d",
     "compose:stop": "docker compose stop",
     "compose:down": "docker compose down",
-    "migrate": "npx prisma migrate dev",
-    "showdb": "npx prisma studio",
+    "migrate": "pnpm exec prisma migrate dev",
+    "showdb": "pnpm exec prisma studio --port 5555 --browser none",
     "test": "vitest run --project unit",
     "test:e2e": "vitest run --project e2e",
     "test:watch": "vitest --project unit",
@@ -36,6 +35,7 @@
     "url": "https://github.com/rramires/gympass_solid_api/issues"
   },
   "homepage": "https://github.com/rramires/gympass_solid_api#readme",
+  "packageManager": "pnpm@11.5.2",
   "dependencies": {
     "@fastify/cookie": "11.0.2",
     "@fastify/jwt": "9.1.0",
