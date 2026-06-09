@@ -2,6 +2,16 @@
 
 GymPass style API built with SOLID principles.
 
+> 🇧🇷 Versão em português: [README-pt-BR.md](README-pt-BR.md)
+
+## Architecture
+
+For the full architecture reference (request lifecycle, security model, data
+layer, CI/CD and operational concerns) see:
+
+- [PROJECT.md](PROJECT.md) — English
+- [PROJECT-pt-BR.md](PROJECT-pt-BR.md) — Português
+
 [![Unit Tests](https://github.com/rramires/solid_api_sample/actions/workflows/run-unit-tests.yml/badge.svg)](https://github.com/rramires/solid_api_sample/actions/workflows/run-unit-tests.yml)
 [![E2E Tests](https://github.com/rramires/solid_api_sample/actions/workflows/run-e2e-tests.yml/badge.svg)](https://github.com/rramires/solid_api_sample/actions/workflows/run-e2e-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -201,12 +211,6 @@ curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -d '{"title":"Academia SOLID","description":"Treino funcional","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
   python3 -m json.tool
 ```
-
-## Architecture
-
-See [PROJECT.md](PROJECT.md) for the full architecture reference: request
-lifecycle, security model (RBAC, rate limiting, token denylist), data layer,
-and operational concerns (fail-fast env, logging, graceful shutdown).
 
 ## License
 
