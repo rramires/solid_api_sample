@@ -33,6 +33,7 @@ export class PrismaUsersRepository implements IUsersRepository {
 				role: true,
 				is_verified: true,
 				created_at: true,
+				password_changed_at: true,
 			},
 		})
 		return user

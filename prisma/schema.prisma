@@ -26,6 +26,9 @@ model User {
   role          Role     @default(MEMBER)
   is_verified   Boolean  @default(false)
   created_at    DateTime @default(now())
+  // Set on every password change. Tokens issued before this instant are
+  // rejected (global logout) via the password-changed registry.
+  password_changed_at DateTime?
 
   checkIns            CheckIn[]
   email_verifications EmailVerification[]

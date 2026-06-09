@@ -18,6 +18,7 @@ export class InMemoryUsersRepository implements IUsersRepository {
 			role: data.role ?? 'MEMBER',
 			is_verified: data.is_verified ?? false,
 			created_at: new Date(),
+			password_changed_at: null,
 		}
 		this.items.push(user)
 
@@ -29,6 +30,7 @@ export class InMemoryUsersRepository implements IUsersRepository {
 			role: user.role,
 			is_verified: user.is_verified,
 			created_at: user.created_at,
+			password_changed_at: user.password_changed_at,
 		}
 	}
 

@@ -4,12 +4,15 @@ import './lib/login-attempt-tracker'
 
 import { app } from './app'
 import { env } from './env'
+import { passwordChangedRegistry } from './lib/password-changed-registry'
 import { tokenDenylist } from './lib/token-denylist'
 
 async function bootstrap() {
 	try {
-		// Warm the revocation denylist from the database before accepting traffic.
+		// Warm the revocation denylist and password-change registry from the
+		// database before accepting traffic.
 		await tokenDenylist.load()
+		await passwordChangedRegistry.load()
 
 		const address = await app.listen({
 			// '0.0.0.0' ensures access across all network interfaces

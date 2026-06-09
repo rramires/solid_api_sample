@@ -368,10 +368,6 @@ export type CheckInUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.CheckInScalarWhereInput | Prisma.CheckInScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type CheckInCreateNestedManyWithoutGynInput = {
   create?: Prisma.XOR<Prisma.CheckInCreateWithoutGynInput, Prisma.CheckInUncheckedCreateWithoutGynInput> | Prisma.CheckInCreateWithoutGynInput[] | Prisma.CheckInUncheckedCreateWithoutGynInput[]
   connectOrCreate?: Prisma.CheckInCreateOrConnectWithoutGynInput | Prisma.CheckInCreateOrConnectWithoutGynInput[]
