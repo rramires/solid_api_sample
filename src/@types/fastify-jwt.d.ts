@@ -12,6 +12,8 @@ declare module '@fastify/jwt' {
 			jti: string
 			// Expiration as a UNIX timestamp (seconds).
 			exp: number
+			// Whether the user has verified their email address.
+			is_verified: boolean
 		}
 	}
 }

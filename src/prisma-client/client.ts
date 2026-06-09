@@ -57,6 +57,11 @@ export type CheckIn = Prisma.CheckInModel
  */
 export type Gym = Prisma.GymModel
 /**
+ * Model EmailVerification
+ * 
+ */
+export type EmailVerification = Prisma.EmailVerificationModel
+/**
  * Model RevokedToken
  * 
  */

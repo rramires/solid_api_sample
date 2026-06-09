@@ -16,6 +16,7 @@ export class InMemoryUsersRepository implements IUsersRepository {
 			email: data.email,
 			password_hash: data.password_hash,
 			role: data.role ?? 'MEMBER',
+			is_verified: data.is_verified ?? false,
 			created_at: new Date(),
 		}
 		this.items.push(user)
@@ -26,6 +27,7 @@ export class InMemoryUsersRepository implements IUsersRepository {
 			name: user.name,
 			email: user.email,
 			role: user.role,
+			is_verified: user.is_verified,
 			created_at: user.created_at,
 		}
 	}
@@ -42,5 +44,12 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		const user = this.items.find((item) => item.email === email)
 
 		return user || null
+	}
+
+	async update(id: string, data: { is_verified?: boolean }): Promise<void> {
+		const user = this.items.find((item) => item.id === id)
+		if (user && data.is_verified !== undefined) {
+			user.is_verified = data.is_verified
+		}
 	}
 }

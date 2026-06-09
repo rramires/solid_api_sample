@@ -387,6 +387,7 @@ export const ModelName = {
   User: 'User',
   CheckIn: 'CheckIn',
   Gym: 'Gym',
+  EmailVerification: 'EmailVerification',
   RevokedToken: 'RevokedToken'
 } as const
 
@@ -403,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "checkIn" | "gym" | "revokedToken"
+    modelProps: "user" | "checkIn" | "gym" | "emailVerification" | "revokedToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -605,6 +606,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EmailVerification: {
+      payload: Prisma.$EmailVerificationPayload<ExtArgs>
+      fields: Prisma.EmailVerificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailVerificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailVerificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        findFirst: {
+          args: Prisma.EmailVerificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailVerificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        findMany: {
+          args: Prisma.EmailVerificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>[]
+        }
+        create: {
+          args: Prisma.EmailVerificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        createMany: {
+          args: Prisma.EmailVerificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmailVerificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        update: {
+          args: Prisma.EmailVerificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailVerificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailVerificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmailVerificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailVerificationPayload>
+        }
+        aggregate: {
+          args: Prisma.EmailVerificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailVerification>
+        }
+        groupBy: {
+          args: Prisma.EmailVerificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailVerificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailVerificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailVerificationCountAggregateOutputType> | number
+        }
+      }
+    }
     RevokedToken: {
       payload: Prisma.$RevokedTokenPayload<ExtArgs>
       fields: Prisma.RevokedTokenFieldRefs
@@ -716,6 +783,7 @@ export const UserScalarFieldEnum = {
   email: 'email',
   password_hash: 'password_hash',
   role: 'role',
+  is_verified: 'is_verified',
   created_at: 'created_at'
 } as const
 
@@ -743,6 +811,19 @@ export const GymScalarFieldEnum = {
 } as const
 
 export type GymScalarFieldEnum = (typeof GymScalarFieldEnum)[keyof typeof GymScalarFieldEnum]
+
+
+export const EmailVerificationScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  link_token: 'link_token',
+  otp_code: 'otp_code',
+  expires_at: 'expires_at',
+  used_at: 'used_at',
+  created_at: 'created_at'
+} as const
+
+export type EmailVerificationScalarFieldEnum = (typeof EmailVerificationScalarFieldEnum)[keyof typeof EmailVerificationScalarFieldEnum]
 
 
 export const RevokedTokenScalarFieldEnum = {
@@ -799,6 +880,16 @@ export const GymOrderByRelevanceFieldEnum = {
 export type GymOrderByRelevanceFieldEnum = (typeof GymOrderByRelevanceFieldEnum)[keyof typeof GymOrderByRelevanceFieldEnum]
 
 
+export const EmailVerificationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  link_token: 'link_token',
+  otp_code: 'otp_code'
+} as const
+
+export type EmailVerificationOrderByRelevanceFieldEnum = (typeof EmailVerificationOrderByRelevanceFieldEnum)[keyof typeof EmailVerificationOrderByRelevanceFieldEnum]
+
+
 export const RevokedTokenOrderByRelevanceFieldEnum = {
   jti: 'jti'
 } as const
@@ -823,6 +914,13 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
  * Reference to a field of type 'Role'
  */
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -959,6 +1057,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   checkIn?: Prisma.CheckInOmit
   gym?: Prisma.GymOmit
+  emailVerification?: Prisma.EmailVerificationOmit
   revokedToken?: Prisma.RevokedTokenOmit
 }
 

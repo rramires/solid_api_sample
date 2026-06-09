@@ -24,9 +24,11 @@ model User {
   email         String   @unique
   password_hash String
   role          Role     @default(MEMBER)
+  is_verified   Boolean  @default(false)
   created_at    DateTime @default(now())
 
-  checkIns CheckIn[]
+  checkIns            CheckIn[]
+  email_verifications EmailVerification[]
 
   @@map("users")
 }
@@ -56,6 +58,20 @@ model Gym {
   checkIns CheckIn[]
 
   @@map("gyms")
+}
+
+model EmailVerification {
+  id         String    @id @default(uuid())
+  user_id    String
+  link_token String    @unique @default(uuid())
+  otp_code   String
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("email_verifications")
 }
 
 model RevokedToken {
