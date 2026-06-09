@@ -9,6 +9,12 @@ node_modules
 .env
 .env.*.local
 
+# Internal security notes (do NOT commit)
+IMPROVEMENTS.md
+
+# Internal implementation plan (do NOT commit)
+PLAN.md
+
 # TypeScript Incremental Compilation
 *.tsbuildinfo
 
