@@ -34,6 +34,9 @@ export class RegisterUseCase {
 		// check email
 		const userWithSameEmail = await this.usersRepository.findByEmail(email)
 		if (userWithSameEmail) {
+			// Hash anyway so the response timing matches a real registration and
+			// does not reveal that the email already exists. The result is discarded.
+			await hash(password, 12)
 			throw new UserAlreadyExistsError()
 		}
 		// hash
