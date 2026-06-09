@@ -34,8 +34,13 @@ de segurança, camada de dados, CI/CD e observabilidade) consulte:
   para prevenir enumeração de usuários.
 - **Operabilidade** — validação de env fail-fast, log estruturado com `pino` e
   graceful shutdown.
-- **Testado** — suite unitária (sem banco) e suite e2e com banco isolado, ambas
-  no CI.
+- **Bloqueio de login por conta** — após N tentativas falhas a conta é bloqueada
+  por um período configurável (in-memory hoje, troca por Redis via `ILoginAttemptTracker`).
+- **Verificação de e-mail** — fluxo de link + OTP com seam de provedor de e-mail
+  (`IEmailProvider`); `ConsoleEmailProvider` imprime no stdout em dev.
+- **Proteção do event loop** — `@fastify/under-pressure` retorna `503`
+  automaticamente quando o lag do event loop ou o uso de heap ultrapassa os limites.
+- **Testado** — suite unitária (sem banco) e suite e2e com banco isolado, ambas no CI.
 
 ## Configuração
 
@@ -83,6 +88,14 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `ADMIN_NAME`          | sim         | –       | Nome de exibição do ADMIN seed                                                                      |
 | `ADMIN_EMAIL`         | sim         | –       | Email do ADMIN (login)                                                                              |
 | `ADMIN_PASSWORD`      | sim         | –       | Senha do ADMIN: mín. 10 chars com maiúscula, minúscula, número e especial (ex. `Admin@12345`)       |
+| `TRUST_PROXY`                | não         | –                    | `false` \| `true` \| IP do proxy; ative atrás de Nginx/Cloudflare/ALB |
+| `MAX_EVENT_LOOP_DELAY`       | não         | `1000`               | Limiar de lag do event loop em ms antes de retornar 503              |
+| `MAX_HEAP_USED_BYTES`        | não         | `209715200`          | Limiar de heap em bytes antes de retornar 503 (padrão 200 MB)        |
+| `LOGIN_MAX_ATTEMPTS`         | não         | `5`                  | Tentativas falhas antes do bloqueio de conta                          |
+| `LOGIN_LOCKOUT_MINUTES`      | não         | `15`                 | Duração do bloqueio em minutos                                         |
+| `APP_URL`                    | não         | `http://localhost:3333` | URL pública usada nos e-mails de verificação                    |
+| `VERIFICATION_EXPIRES_HOURS` | não         | `24`                 | Validade do link/OTP de verificação em horas                          |
+| `REQUIRE_EMAIL_VERIFICATION` | não         | `false`              | Quando `true`, bloqueia usuários não verificados em rotas protegidas  |
 
 ## Rotas da API
 
@@ -101,6 +114,10 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total de check-ins                                     |
 | `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Fazer check-in                                         |
 | `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validar check-in                                       |
+| `POST`  | `/users/send-verification`       | Bearer         | –       | Enviar e-mail de verificação (link + OTP)               |
+| `GET`   | `/users/verify-email`            | –              | –       | Verificar e-mail via link token (`?token=`)             |
+| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verificar e-mail via código OTP                         |
+| `POST`  | `/users/resend-verification`     | Bearer         | –       | Reenviar e-mail de verificação                          |
 
 > O `role` (`MEMBER` \| `ADMIN`) é incorporado ao JWT no momento do login.
 > Promover um usuário **não** afeta tokens já emitidos — é necessário um novo

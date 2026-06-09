@@ -240,6 +240,10 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 | GET | `/check-ins/metrics` | ✅ | — | total próprio |
 | POST | `/gyms/:gymId/check-ins` | ✅ | — | fazer check-in |
 | PATCH | `/check-ins/:checkInId/validate` | ✅ | **ADMIN** | validar check-in |
+| POST | `/users/send-verification` | ✅ | — | enviar e-mail de verificação (link + OTP) |
+| GET | `/users/verify-email` | ❌ | — | verificar e-mail via link token (`?token=`) |
+| POST | `/users/verify-email/otp` | ✅ | — | verificar e-mail via código OTP |
+| POST | `/users/resend-verification` | ✅ | — | reenviar e-mail de verificação |
 
 > Padrão para proteger um grupo: `app.addHook('onRequest', verifyJwtMiddleware)`
 > no início da função de rotas. Para exigir papel: adicionar
@@ -273,6 +277,19 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
   e especial).
 - **`bodyLimit` configurável** (`BODY_LIMIT`, default 16 KB) limita o tamanho do
   corpo da request.
+- **`.max()` por campo em todas as entradas de texto** previne overflow de colunas
+  no banco e ReDoS em validadores regex complexos. O `bodyLimit` global limita o
+  payload total, mas não campos individuais.
+- **Bloqueio de login por conta** (`ILoginAttemptTracker`): após `LOGIN_MAX_ATTEMPTS`
+  falhas a conta é bloqueada por `LOGIN_LOCKOUT_MINUTES`. `Map` in-memory hoje;
+  troca por Redis substituindo `src/lib/login-attempt-tracker.ts` (mesma interface
+  assíncrona). Retorna `429 Too Many Requests`.
+- **`@fastify/under-pressure`**: monitora lag do event loop e uso de heap; retorna
+  `503 Service Unavailable` automaticamente quando os limiares são excedidos —
+  circuit breaker contra DoS por queries lentas.
+- **`trustProxy`**: defina `TRUST_PROXY=true` (ou um IP específico) ao implantar
+  atrás de proxy reverso para que `@fastify/rate-limit` leia `X-Forwarded-For`
+  em vez do IP do proxy.
 
 ### 5.5 Revogação de token (denylist híbrida)
 
@@ -322,11 +339,15 @@ enviar o cookie em requisições cross-origin não seguras.
 
 ### 6.3 Modelos
 
-- `User` (id uuid, email único, password_hash, role, created_at) 1—N `CheckIn`.
+- `User` (id uuid, email único, password_hash, role, `is_verified` bool, created_at) 1—N `CheckIn`.
 - `Gym` (id uuid, title, latitude/longitude decimal) 1—N `CheckIn`.
 - `CheckIn` (created_at, validated_at?) N—1 `User` e N—1 `Gym`.
 - `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — denylist persistida
   (tabela `revoked_tokens`).
+- `EmailVerification` (`id` uuid, `user_id` FK, `link_token` uuid único,
+  `otp_code` string de 6 dígitos, `expires_at`, `used_at?`, `created_at`) — armazena
+  tanto o link de verificação quanto o OTP para o mesmo evento de verificação
+  (tabela `email_verifications`).
 
 ### 6.4 Paginação
 
@@ -382,6 +403,9 @@ enviar o cookie em requisições cross-origin não seguras.
 Tudo que muda entre ambientes é **env validado no boot** (`src/env/index.ts`); o
 app **não sobe** com config inválida. Variáveis: `NODE_ENV`, `PORT`, `JWT_SECRET`
 (≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `BODY_LIMIT`, `LOG_LEVEL`,
+`TRUST_PROXY`, `MAX_EVENT_LOOP_DELAY`, `MAX_HEAP_USED_BYTES`,
+`LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`, `APP_URL`,
+`VERIFICATION_EXPIRES_HOURS`, `REQUIRE_EMAIL_VERIFICATION`,
 `ADMIN_NAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Toda nova env entra também no
 `.env.example`** (com comentário explicando formato/exemplo).
 
@@ -422,6 +446,11 @@ Para adicionar um recurso novo (ex.: `Plan`):
    e/ou `verifyUserRole` conforme a necessidade).
 9. **Registrar** as rotas em `app.ts` (`app.register(plansRoutes)`).
 10. **Teste E2E**: `http/controllers/plans/create-controller.spec.ts`.
+
+> **Recursos que enviam e-mails:** siga o padrão de seam `IEmailProvider` em
+> `src/lib/email/`. Adicione um método à interface, implemente em
+> `ConsoleEmailProvider` primeiro, depois troque por SMTP/SendGrid/Resend em
+> produção substituindo `src/lib/email/index.ts` — nenhum call site muda.
 
 **Regra de ouro:** controllers nunca falam com Prisma; use-cases nunca falam com
 HTTP; dependências sempre via **interface** + injeção pela factory.

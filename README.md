@@ -33,6 +33,13 @@ layer, CI/CD and operational concerns) see:
   prevent user enumeration.
 - **Operability** — fail-fast env validation, structured `pino` logging, and
   graceful shutdown.
+- **Per-account login lockout** — after N failed attempts the account is locked
+  for a configurable period (in-memory today, drop-in Redis replacement via
+  `ILoginAttemptTracker`).
+- **Email verification** — link + OTP flow with a pluggable email provider seam
+  (`IEmailProvider`); `ConsoleEmailProvider` logs to stdout in dev.
+- **Event-loop protection** — `@fastify/under-pressure` returns `503`
+  automatically when event-loop lag or heap usage exceeds configured thresholds.
 - **Tested** — unit suite (no DB) and isolated-database e2e suite, both in CI.
 
 ## Setup
@@ -80,6 +87,14 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `ADMIN_NAME`          | yes      | –       | Seed ADMIN display name                                                                      |
 | `ADMIN_EMAIL`         | yes      | –       | Seed ADMIN email (login)                                                                     |
 | `ADMIN_PASSWORD`      | yes      | –       | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
+| `TRUST_PROXY`                | no       | –               | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB     |
+| `MAX_EVENT_LOOP_DELAY`       | no       | `1000`          | Event-loop lag threshold in ms before returning 503                         |
+| `MAX_HEAP_USED_BYTES`        | no       | `209715200`     | Heap threshold in bytes before returning 503 (default 200 MB)               |
+| `LOGIN_MAX_ATTEMPTS`         | no       | `5`             | Failed login attempts before account lockout                                |
+| `LOGIN_LOCKOUT_MINUTES`      | no       | `15`            | Account lockout duration in minutes                                         |
+| `APP_URL`                    | no       | `http://localhost:3333` | Public URL used in verification emails                          |
+| `VERIFICATION_EXPIRES_HOURS` | no       | `24`            | Verification link/OTP validity in hours                                     |
+| `REQUIRE_EMAIL_VERIFICATION` | no       | `false`         | When `true`, unverified users are blocked on protected routes               |
 
 ## API routes
 
@@ -98,6 +113,10 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total check-ins count                                |
 | `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Create a check-in                                    |
 | `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validate a check-in                                  |
+| `POST`  | `/users/send-verification`       | Bearer         | –       | Send verification email (link + OTP)                 |
+| `GET`   | `/users/verify-email`            | –              | –       | Verify email via link token (`?token=`)              |
+| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verify email via OTP code                            |
+| `POST`  | `/users/resend-verification`     | Bearer         | –       | Resend verification email                            |
 
 > The `role` (`MEMBER` \| `ADMIN`) is embedded in the JWT at login time.
 > Promoting a user does **not** affect tokens already issued — a new login is
@@ -162,6 +181,26 @@ echo "=== 1. GET /hello ===" && curl -s "$BASE/hello" && echo
 echo -e "\n=== 2. POST /users ===" && \
 curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
   -d '{"name":"Fulano","email":"fulano@email.com","password":"password123"}' | python3 -m json.tool
+
+# 2b. Login to get a token, send verification email, then verify via the link/OTP printed to the server log
+echo -e "\n=== 2b. POST /users/send-verification (check server log for link + OTP) ===" && \
+TOKEN_TMP=$(curl -s -X POST "$BASE/sessions" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"fulano@email.com","password":"password123"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/users/send-verification" -H "Authorization: Bearer $TOKEN_TMP" && \
+echo "(copy the token from the server log and run:)" && \
+echo "  curl '$BASE/users/verify-email?token=<paste-token>'"
+
+# 2c. Test lockout: try wrong password N times -> expected 429 on the last attempt
+echo -e "\n=== 2c. Login lockout test (6 attempts with wrong password) ===" && \
+for i in 1 2 3 4 5 6; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/sessions" \
+    -H "Content-Type: application/json" \
+    -d '{"email":"fulano@email.com","password":"wrong"}')
+  echo "Attempt $i: $STATUS"
+done
 
 # 3. Login as MEMBER (captures token + refresh cookie)
 echo -e "\n=== 3. POST /sessions (member) ===" && \
