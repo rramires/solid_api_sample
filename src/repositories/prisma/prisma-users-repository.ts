@@ -31,6 +31,7 @@ export class PrismaUsersRepository implements IUsersRepository {
 				name: true,
 				email: true,
 				role: true,
+				is_verified: true,
 				created_at: true,
 			},
 		})
