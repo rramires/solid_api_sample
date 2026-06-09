@@ -14,4 +14,8 @@ jobs:
                   node-version: 24
             - uses: pnpm/action-setup@v4
             - run: pnpm install --frozen-lockfile
+            # Type-check and lint gates: vitest transpiles without type-checking,
+            # so tsc/ESLint breakage is invisible to the test step otherwise.
+            - run: pnpm compile
+            - run: pnpm lint
             - run: pnpm test
