@@ -88,6 +88,16 @@ app.setErrorHandler((error, request, reply) => {
 					: z.treeifyError(error),
 		})
 	}
+	// Framework errors carry a meaningful statusCode (429 rate-limit, 413
+	// body-limit, 400 bad JSON, 503 under-pressure). Honor it; only true
+	// unknowns fall through to 500 + reportError.
+	const statusCode = (error as { statusCode?: unknown }).statusCode
+	if (typeof statusCode === 'number' && statusCode !== 500) {
+		const message = (error as { message?: unknown }).message
+		return reply.status(statusCode).send({
+			message: typeof message === 'string' ? message : 'Error.',
+		})
+	}
 	if (env.NODE_ENV === 'production') {
 		// Production: route through the reporting seam (Sentry/Datadog later).
 		reportError(error)

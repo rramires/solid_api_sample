@@ -1,3 +1,4 @@
+import { EmailVerification } from '@/prisma-client'
 import { IEmailVerificationRepository } from '@/repositories/i-email-verification-repository'
 import { IUsersRepository } from '@/repositories/i-users-repository'
 
@@ -18,14 +19,14 @@ export class VerifyEmailUseCase {
 	) {}
 
 	async execute(input: VerifyEmailUseCaseRequest): Promise<void> {
-		let record = null
+		let record: EmailVerification | null
 		let userId: string
 
 		if ('token' in input) {
 			record = await this.emailVerificationRepository.findByLinkToken(
 				input.token,
 			)
-			if (!record) throw new InvalidVerificationTokenError()
+			if (!record) {throw new InvalidVerificationTokenError()}
 			userId = record.user_id
 		} else {
 			userId = input.userId
@@ -33,17 +34,17 @@ export class VerifyEmailUseCase {
 				userId,
 				input.code,
 			)
-			if (!record) throw new InvalidVerificationTokenError()
+			if (!record) {throw new InvalidVerificationTokenError()}
 		}
 
 		const user = await this.usersRepository.findById(userId)
-		if (!user) throw new ResourceNotFoundError()
+		if (!user) {throw new ResourceNotFoundError()}
 
-		if (user.is_verified) throw new AlreadyVerifiedError()
+		if (user.is_verified) {throw new AlreadyVerifiedError()}
 
-		if (record.used_at) throw new InvalidVerificationTokenError()
+		if (record.used_at) {throw new InvalidVerificationTokenError()}
 
-		if (record.expires_at < new Date()) throw new VerificationTokenExpiredError()
+		if (record.expires_at < new Date()) {throw new VerificationTokenExpiredError()}
 
 		await this.emailVerificationRepository.markUsed(record.id)
 		await this.usersRepository.update(userId, { is_verified: true })

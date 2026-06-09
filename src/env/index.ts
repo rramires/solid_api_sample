@@ -51,7 +51,9 @@ const envSchema = z.object({
 		.regex(/[a-z]/, 'Must contain a lowercase letter')
 		.regex(/[A-Z]/, 'Must contain an uppercase letter')
 		.regex(/[0-9]/, 'Must contain a number')
-		.regex(/[^A-Za-z0-9]/, 'Must contain a special character'),
+		.regex(/[^A-Za-z0-9]/, 'Must contain a special character')
+		// bcrypt counts BYTES: enforce the true 72-byte ceiling, not just chars.
+		.refine((p) => Buffer.byteLength(p, 'utf8') <= 72, 'Password too long'),
 })
 
 const _env = envSchema.safeParse(process.env)

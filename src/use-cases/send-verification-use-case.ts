@@ -20,7 +20,7 @@ export class SendVerificationUseCase {
 
 	async execute({ userId }: SendVerificationUseCaseRequest): Promise<void> {
 		const user = await this.usersRepository.findById(userId)
-		if (!user) throw new ResourceNotFoundError()
+		if (!user) {throw new ResourceNotFoundError()}
 
 		// Remove expired records to keep the table tidy.
 		await this.emailVerificationRepository.deleteExpiredByUserId(userId)
