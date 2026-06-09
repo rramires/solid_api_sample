@@ -1,5 +1,3 @@
-import { env } from '@/env'
-
 import { ILoginAttemptTracker } from '../i-login-attempt-tracker'
 
 interface AttemptRecord {
@@ -12,9 +10,9 @@ export class InMemoryLoginAttemptTracker implements ILoginAttemptTracker {
 	private readonly maxAttempts: number
 	private readonly lockoutMs: number
 
-	constructor() {
-		this.maxAttempts = env.LOGIN_MAX_ATTEMPTS
-		this.lockoutMs = env.LOGIN_LOCKOUT_MINUTES * 60 * 1000
+	constructor(maxAttempts = 5, lockoutMinutes = 15) {
+		this.maxAttempts = maxAttempts
+		this.lockoutMs = lockoutMinutes * 60 * 1000
 		// Cleanup expired entries periodically to prevent memory growth in long-running
 		// processes. unref() ensures this timer does not keep the process alive.
 		const interval = setInterval(() => this.cleanup(), 10 * 60 * 1000)
@@ -56,3 +54,4 @@ export class InMemoryLoginAttemptTracker implements ILoginAttemptTracker {
 		}
 	}
 }
+
