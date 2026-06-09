@@ -54,6 +54,7 @@ export const ModelName = {
   User: 'User',
   CheckIn: 'CheckIn',
   Gym: 'Gym',
+  EmailVerification: 'EmailVerification',
   RevokedToken: 'RevokedToken'
 } as const
 
@@ -79,6 +80,7 @@ export const UserScalarFieldEnum = {
   email: 'email',
   password_hash: 'password_hash',
   role: 'role',
+  is_verified: 'is_verified',
   created_at: 'created_at'
 } as const
 
@@ -106,6 +108,19 @@ export const GymScalarFieldEnum = {
 } as const
 
 export type GymScalarFieldEnum = (typeof GymScalarFieldEnum)[keyof typeof GymScalarFieldEnum]
+
+
+export const EmailVerificationScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  link_token: 'link_token',
+  otp_code: 'otp_code',
+  expires_at: 'expires_at',
+  used_at: 'used_at',
+  created_at: 'created_at'
+} as const
+
+export type EmailVerificationScalarFieldEnum = (typeof EmailVerificationScalarFieldEnum)[keyof typeof EmailVerificationScalarFieldEnum]
 
 
 export const RevokedTokenScalarFieldEnum = {
@@ -160,6 +175,16 @@ export const GymOrderByRelevanceFieldEnum = {
 } as const
 
 export type GymOrderByRelevanceFieldEnum = (typeof GymOrderByRelevanceFieldEnum)[keyof typeof GymOrderByRelevanceFieldEnum]
+
+
+export const EmailVerificationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  link_token: 'link_token',
+  otp_code: 'otp_code'
+} as const
+
+export type EmailVerificationOrderByRelevanceFieldEnum = (typeof EmailVerificationOrderByRelevanceFieldEnum)[keyof typeof EmailVerificationOrderByRelevanceFieldEnum]
 
 
 export const RevokedTokenOrderByRelevanceFieldEnum = {
