@@ -287,6 +287,19 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 - **Fluxo:** `POST /logout` → `revoke(jti, exp)` → requests seguintes com aquele
   token são rejeitadas (`401`) no `verifyJwtMiddleware`.
 
+### 5.6 Por que proteção CSRF não é necessária
+
+Todas as rotas autenticadas usam o cabeçalho `Authorization: Bearer` —
+requisições cross-site não conseguem definir cabeçalhos customizados, portanto
+CSRF não é aplicável.
+A única rota baseada em cookie (`PATCH /token/refresh`) é protegida pelo atributo
+`sameSite` no cookie de refresh (`lax` ou `strict`), que impede navegadores de
+enviar o cookie em requisições cross-origin não seguras.
+
+> **Importante:** se `sameSite` for alterado para `none` (ex.: para suportar
+> cookies cross-origin em subdomínio diferente), `@fastify/csrf-protection`
+> deve ser adicionado.
+
 ---
 
 ## 6. Camada de Dados

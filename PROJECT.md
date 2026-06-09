@@ -287,6 +287,18 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 - **Flow:** `POST /logout` → `revoke(jti, exp)` → subsequent requests with that
   token are rejected (`401`) in `verifyJwtMiddleware`.
 
+### 5.6 Why CSRF protection is not required
+
+All authenticated routes use the `Authorization: Bearer` header — cross-site
+requests cannot set custom headers, so CSRF is not applicable.
+The only cookie-based route (`PATCH /token/refresh`) is protected by the
+`sameSite` attribute on the refresh cookie (`lax` or `strict`), which prevents
+browsers from sending the cookie on cross-origin non-safe requests.
+
+> **Important:** if `sameSite` is changed to `none` (e.g., to support
+> cross-origin cookies for a different subdomain), `@fastify/csrf-protection`
+> must be added.
+
 ---
 
 ## 6. Data Layer
