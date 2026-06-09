@@ -1,8 +1,12 @@
 import { app } from './app'
 import { env } from './env'
+import { tokenDenylist } from './lib/token-denylist'
 
 async function bootstrap() {
 	try {
+		// Warm the revocation denylist from the database before accepting traffic.
+		await tokenDenylist.load()
+
 		const address = await app.listen({
 			// '0.0.0.0' ensures access across all network interfaces
 			host: '0.0.0.0',

@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import { FastifyReply,FastifyRequest } from 'fastify'
 
 export async function refreshController(request: FastifyRequest, reply: FastifyReply) {
@@ -10,6 +12,8 @@ export async function refreshController(request: FastifyRequest, reply: FastifyR
 	const token = await reply.jwtSign(
 		{
 			role,
+			// jti enables per-token revocation via the denylist.
+			jti: randomUUID(),
 		},
 		{
 			sign: {
@@ -21,6 +25,7 @@ export async function refreshController(request: FastifyRequest, reply: FastifyR
 	const refreshToken = await reply.jwtSign(
 		{
 			role,
+			jti: randomUUID(),
 		},
 		{
 			sign: {

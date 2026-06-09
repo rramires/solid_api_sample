@@ -8,6 +8,10 @@ declare module '@fastify/jwt' {
 		user: {
 			sub: string
 			role: Role
+			// Unique token id used by the revocation denylist.
+			jti: string
+			// Expiration as a UNIX timestamp (seconds).
+			exp: number
 		}
 	}
 }

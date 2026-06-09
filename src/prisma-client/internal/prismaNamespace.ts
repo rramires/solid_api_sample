@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   CheckIn: 'CheckIn',
-  Gym: 'Gym'
+  Gym: 'Gym',
+  RevokedToken: 'RevokedToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "checkIn" | "gym"
+    modelProps: "user" | "checkIn" | "gym" | "revokedToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -604,6 +605,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RevokedToken: {
+      payload: Prisma.$RevokedTokenPayload<ExtArgs>
+      fields: Prisma.RevokedTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RevokedTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RevokedTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.RevokedTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RevokedTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload>
+        }
+        findMany: {
+          args: Prisma.RevokedTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload>[]
+        }
+        create: {
+          args: Prisma.RevokedTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload>
+        }
+        createMany: {
+          args: Prisma.RevokedTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.RevokedTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload>
+        }
+        update: {
+          args: Prisma.RevokedTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.RevokedTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RevokedTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.RevokedTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RevokedTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.RevokedTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRevokedToken>
+        }
+        groupBy: {
+          args: Prisma.RevokedTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RevokedTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RevokedTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RevokedTokenCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -678,6 +745,15 @@ export const GymScalarFieldEnum = {
 export type GymScalarFieldEnum = (typeof GymScalarFieldEnum)[keyof typeof GymScalarFieldEnum]
 
 
+export const RevokedTokenScalarFieldEnum = {
+  jti: 'jti',
+  expires_at: 'expires_at',
+  created_at: 'created_at'
+} as const
+
+export type RevokedTokenScalarFieldEnum = (typeof RevokedTokenScalarFieldEnum)[keyof typeof RevokedTokenScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -721,6 +797,13 @@ export const GymOrderByRelevanceFieldEnum = {
 } as const
 
 export type GymOrderByRelevanceFieldEnum = (typeof GymOrderByRelevanceFieldEnum)[keyof typeof GymOrderByRelevanceFieldEnum]
+
+
+export const RevokedTokenOrderByRelevanceFieldEnum = {
+  jti: 'jti'
+} as const
+
+export type RevokedTokenOrderByRelevanceFieldEnum = (typeof RevokedTokenOrderByRelevanceFieldEnum)[keyof typeof RevokedTokenOrderByRelevanceFieldEnum]
 
 
 
@@ -876,6 +959,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   checkIn?: Prisma.CheckInOmit
   gym?: Prisma.GymOmit
+  revokedToken?: Prisma.RevokedTokenOmit
 }
 
 /* Types for Logging */
