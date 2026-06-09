@@ -8,7 +8,8 @@ function verifyUserRole(roleToVerify: Role) {
 		const { role } = request.user
 
 		if (role !== roleToVerify) {
-			return reply.status(401).send({ message: 'Unauthorized.' })
+			// Authenticated but lacking the required role: 403, not 401
+			return reply.status(403).send({ message: 'Forbidden.' })
 		}
 	}
 }
