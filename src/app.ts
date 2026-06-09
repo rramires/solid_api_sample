@@ -13,8 +13,16 @@ import { usersRoutes } from './http/controllers/users/routes'
 import { prisma } from './lib/prisma'
 import { reportError } from './lib/report-error'
 
+const trustProxy =
+	env.TRUST_PROXY === 'true'
+		? true
+		: env.TRUST_PROXY && env.TRUST_PROXY !== 'false'
+			? env.TRUST_PROXY
+			: false
+
 export const app = fastify({
 	bodyLimit: env.BODY_LIMIT,
+	trustProxy,
 	// Structured JSON logs in production; human-readable in development; silent
 	// during tests to avoid worker-thread noise and open handles.
 	logger:

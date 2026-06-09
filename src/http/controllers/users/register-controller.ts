@@ -7,7 +7,7 @@ import { makeRegisterUseCase } from '@/use-cases/factories/make-register-use-cas
 
 export async function registerController(request: FastifyRequest, reply: FastifyReply) {
 	const bodySchema = z.object({
-		name: z.string(),
+		name: z.string().min(1).max(255),
 		email: z.email(),
 		// Minimum length is configurable; 72 is the bcrypt input ceiling (anti-DoS)
 		password: z.string().min(env.PASSWORD_MIN_LENGTH).max(72),
