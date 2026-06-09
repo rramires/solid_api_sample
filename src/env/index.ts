@@ -23,6 +23,8 @@ const envSchema = z.object({
 	// Email verification settings.
 	BASE_URL: z.string().url().optional().default('http://localhost:3333'),
 	VERIFICATION_EXPIRES_HOURS: z.coerce.number().int().positive().optional().default(24),
+	// When true, protected routes return 403 for unverified users.
+	REQUIRE_EMAIL_VERIFICATION: z.coerce.boolean().optional().default(false),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
 	ADMIN_NAME: z.string().min(1).max(255),
 	ADMIN_EMAIL: z.email(),

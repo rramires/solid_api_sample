@@ -43,4 +43,11 @@ export class InMemoryUsersRepository implements IUsersRepository {
 
 		return user || null
 	}
+
+	async update(id: string, data: { is_verified?: boolean }): Promise<void> {
+		const user = this.items.find((item) => item.id === id)
+		if (user && data.is_verified !== undefined) {
+			user.is_verified = data.is_verified
+		}
+	}
 }
