@@ -4,8 +4,20 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
+		coverage: {
+			exclude: ['src/prisma-client/**'],
+		},
 		projects: [
-			{ extends: true, test: { name: 'unit', dir: 'src/use-cases' } },
+			{
+				extends: true,
+				test: {
+					name: 'unit',
+					include: [
+						'src/use-cases/**/*.spec.ts',
+						'src/utils/**/*.spec.ts',
+					],
+				},
+			},
 			{
 				extends: true,
 				test: {

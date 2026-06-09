@@ -31,4 +31,17 @@ describe('Create Gym Use Case', () => {
 		// return id string
 		expect(gym.id).toEqual(expect.any(String))
 	})
+
+	it('should be able to create gym without optional fields', async () => {
+		const { gym } = await sut.execute({
+			title: 'Minimal Gym',
+			description: null,
+			phone: null,
+			latitude: coordinates.lat,
+			longitude: coordinates.lon,
+		})
+		expect(gym.id).toEqual(expect.any(String))
+		expect(gym.description).toBeNull()
+		expect(gym.phone).toBeNull()
+	})
 })

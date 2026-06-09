@@ -48,6 +48,29 @@ describe('Validate Check-in Use Case', () => {
 		).rejects.toBeInstanceOf(ResourceNotFoundError)
 	})
 
+	it('should create check-in with validated_at already set', async () => {
+		const validatedAt = new Date()
+		const checkIn = await checkInsRepository.create({
+			gym_id: 'gym-01',
+			user_id: 'user-01',
+			validated_at: validatedAt,
+		})
+		expect(checkIn.validated_at).toEqual(validatedAt)
+	})
+
+	it('should return check-in unchanged when saving a non-existent id', async () => {
+		const phantom = {
+			id: 'ghost-id',
+			user_id: 'user-01',
+			gym_id: 'gym-01',
+			validated_at: null,
+			created_at: new Date(),
+		}
+		const result = await checkInsRepository.save(phantom)
+		expect(result).toEqual(phantom)
+		expect(checkInsRepository.items).toHaveLength(0)
+	})
+
 	it('should not be able to validate the check-in after 20 minutes of this creation', async () => {
 		// Fix date
 		vi.setSystemTime(new Date('2025-05-28T08:00:00Z'))
