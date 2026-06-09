@@ -20,6 +20,9 @@ const envSchema = z.object({
 	// Login lockout settings.
 	LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().optional().default(5),
 	LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().positive().optional().default(15),
+	// Email verification settings.
+	BASE_URL: z.string().url().optional().default('http://localhost:3333'),
+	VERIFICATION_EXPIRES_HOURS: z.coerce.number().int().positive().optional().default(24),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
 	ADMIN_NAME: z.string().min(1).max(255),
 	ADMIN_EMAIL: z.email(),
