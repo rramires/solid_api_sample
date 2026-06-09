@@ -12,13 +12,22 @@ const envSchema = z.object({
 	LOG_LEVEL: z
 		.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
 		.default('info'),
+	// Reverse-proxy trust. 'false' | 'true' | specific IP string.
+	TRUST_PROXY: z.string().optional(),
+	// Under-pressure thresholds.
+	MAX_EVENT_LOOP_DELAY: z.coerce.number().optional().default(1000),
+	MAX_HEAP_USED_BYTES: z.coerce.number().optional().default(209_715_200),
+	// Login lockout settings.
+	LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().optional().default(5),
+	LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().positive().optional().default(15),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
-	ADMIN_NAME: z.string().min(1),
+	ADMIN_NAME: z.string().min(1).max(255),
 	ADMIN_EMAIL: z.email(),
 	// Strong password policy: min 10 chars, with upper, lower, number and special.
 	ADMIN_PASSWORD: z
 		.string()
 		.min(10)
+		.max(72)
 		.regex(/[a-z]/, 'Must contain a lowercase letter')
 		.regex(/[A-Z]/, 'Must contain an uppercase letter')
 		.regex(/[0-9]/, 'Must contain a number')

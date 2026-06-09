@@ -22,3 +22,6 @@ coverage
 
 # OS
 .DS_Store
+
+# Local planning docs (working documents, never committed)
+PLAN.md

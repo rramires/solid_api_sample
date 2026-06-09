@@ -5,9 +5,9 @@ import { makeCreateGymUseCase } from '@/use-cases/factories/make-create-gym-use-
 
 export async function createController(request: FastifyRequest, reply: FastifyReply) {
 	const bodySchema = z.object({
-		title: z.string(),
-		description: z.string().nullable(),
-		phone: z.string().nullable(),
+		title: z.string().min(1).max(100),
+		description: z.string().max(500).nullable(),
+		phone: z.string().max(20).nullable(),
 		latitude: z.coerce.number().refine((value) => {
 			return Math.abs(value) <= 90
 		}),

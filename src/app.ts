@@ -3,6 +3,7 @@ import fastifyCors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import fastifyJwt from '@fastify/jwt'
 import fastifyRateLimit from '@fastify/rate-limit'
+import underPressure from '@fastify/under-pressure'
 import fastify from 'fastify'
 import { z, ZodError } from 'zod'
 
@@ -13,8 +14,16 @@ import { usersRoutes } from './http/controllers/users/routes'
 import { prisma } from './lib/prisma'
 import { reportError } from './lib/report-error'
 
+const trustProxy =
+	env.TRUST_PROXY === 'true'
+		? true
+		: env.TRUST_PROXY && env.TRUST_PROXY !== 'false'
+			? env.TRUST_PROXY
+			: false
+
 export const app = fastify({
 	bodyLimit: env.BODY_LIMIT,
+	trustProxy,
 	// Structured JSON logs in production; human-readable in development; silent
 	// during tests to avoid worker-thread noise and open handles.
 	logger:
@@ -27,6 +36,13 @@ export const app = fastify({
 // Security headers. Helmet defaults are fine for a JSON API; a custom CSP only
 // matters if this service starts serving HTML.
 app.register(fastifyHelmet)
+// Under-pressure: auto-returns 503 when event-loop lag or heap size exceed thresholds.
+app.register(underPressure, {
+	maxEventLoopDelay: env.MAX_EVENT_LOOP_DELAY,
+	maxHeapUsedBytes: env.MAX_HEAP_USED_BYTES,
+	message: 'Server under pressure — retry later.',
+	retryAfter: 50,
+})
 // CORS. credentials:true is required to send the refresh-token cookie.
 // Dev allows any origin; prod restricts to the configured allow-list.
 app.register(fastifyCors, {

@@ -1,3 +1,7 @@
+// Pre-initialize the login-attempt tracker so the cleanup interval starts on
+// server boot rather than on the first authenticate request.
+import './lib/login-attempt-tracker'
+
 import { app } from './app'
 import { env } from './env'
 import { tokenDenylist } from './lib/token-denylist'
