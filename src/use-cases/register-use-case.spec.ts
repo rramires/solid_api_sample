@@ -19,13 +19,18 @@ describe('Register Use Case', () => {
 
 	it('should be possible to hash the password when registering a new user', async () => {
 		const password = 'abc123'
-		const { user } = await sut.execute({
+		await sut.execute({
 			name: 'Jhon Doe',
 			email: 'jhondoe@email.com',
 			password,
 		})
 
-		const isPasswordCorrectHashed = await compare(password, user.password_hash)
+		// password_hash is not returned anymore; read it from the repository
+		const createdUser = usersRepository.items[0]
+		const isPasswordCorrectHashed = await compare(
+			password,
+			createdUser.password_hash,
+		)
 		expect(isPasswordCorrectHashed).toBe(true)
 	})
 

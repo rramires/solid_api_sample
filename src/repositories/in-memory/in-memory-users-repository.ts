@@ -20,7 +20,14 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		}
 		this.items.push(user)
 
-		return user
+		// Mirror the prisma repository: never expose password_hash
+		return {
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			role: user.role,
+			created_at: user.created_at,
+		}
 	}
 
 	async findById(id: string) {
