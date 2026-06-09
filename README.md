@@ -74,27 +74,27 @@ pnpm dev              # start dev server
 Copy `.env.example` to `.env` and fill in the values. The app **fails fast** at
 boot if any variable is invalid (Zod validation in `src/env`).
 
-| Variable              | Required | Default | Description                                                                                  |
-| --------------------- | -------- | ------- | -------------------------------------------------------------------------------------------- |
-| `NODE_ENV`            | yes      | –       | `development` \| `test` \| `production`                                                      |
-| `PORT`                | no       | `3333`  | HTTP port                                                                                    |
-| `JWT_SECRET`          | yes      | –       | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod)                       |
-| `DATABASE_URL`        | yes      | –       | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                      |
-| `CORS_ORIGIN`         | no       | –       | Comma-separated allowed origins (production only)                                            |
-| `PASSWORD_MIN_LENGTH` | no       | `8`     | Minimum registration password length (8–72)                                                  |
-| `BODY_LIMIT`          | no       | `16384` | Max request body size, in bytes                                                              |
-| `LOG_LEVEL`           | no       | `info`  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                     |
-| `ADMIN_NAME`          | yes      | –       | Seed ADMIN display name                                                                      |
-| `ADMIN_EMAIL`         | yes      | –       | Seed ADMIN email (login)                                                                     |
-| `ADMIN_PASSWORD`      | yes      | –       | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
-| `TRUST_PROXY`                | no       | –               | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB     |
-| `MAX_EVENT_LOOP_DELAY`       | no       | `1000`          | Event-loop lag threshold in ms before returning 503                         |
-| `MAX_HEAP_USED_BYTES`        | no       | `209715200`     | Heap threshold in bytes before returning 503 (default 200 MB)               |
-| `LOGIN_MAX_ATTEMPTS`         | no       | `5`             | Failed login attempts before account lockout                                |
-| `LOGIN_LOCKOUT_MINUTES`      | no       | `15`            | Account lockout duration in minutes                                         |
-| `APP_URL`                    | no       | `http://localhost:3333` | Public URL used in verification emails                          |
-| `VERIFICATION_EXPIRES_HOURS` | no       | `24`            | Verification link/OTP validity in hours                                     |
-| `REQUIRE_EMAIL_VERIFICATION` | no       | `false`         | When `true`, unverified users are blocked on protected routes               |
+| Variable                     | Required | Default                 | Description                                                                                  |
+| ---------------------------- | -------- | ----------------------- | -------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                   | yes      | –                       | `development` \| `test` \| `production`                                                      |
+| `PORT`                       | no       | `3333`                  | HTTP port                                                                                    |
+| `JWT_SECRET`                 | yes      | –                       | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod)                       |
+| `DATABASE_URL`               | yes      | –                       | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                      |
+| `CORS_ORIGIN`                | no       | –                       | Comma-separated allowed origins (production only)                                            |
+| `PASSWORD_MIN_LENGTH`        | no       | `8`                     | Minimum registration password length (8–72)                                                  |
+| `BODY_LIMIT`                 | no       | `16384`                 | Max request body size, in bytes                                                              |
+| `LOG_LEVEL`                  | no       | `info`                  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                     |
+| `ADMIN_NAME`                 | yes      | –                       | Seed ADMIN display name                                                                      |
+| `ADMIN_EMAIL`                | yes      | –                       | Seed ADMIN email (login)                                                                     |
+| `ADMIN_PASSWORD`             | yes      | –                       | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
+| `TRUST_PROXY`                | no       | –                       | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB                       |
+| `MAX_EVENT_LOOP_DELAY`       | no       | `1000`                  | Event-loop lag threshold in ms before returning 503                                          |
+| `MAX_HEAP_USED_BYTES`        | no       | `209715200`             | Heap threshold in bytes before returning 503 (default 200 MB)                                |
+| `LOGIN_MAX_ATTEMPTS`         | no       | `5`                     | Failed login attempts before account lockout                                                 |
+| `LOGIN_LOCKOUT_MINUTES`      | no       | `15`                    | Account lockout duration in minutes                                                          |
+| `APP_URL`                    | no       | `http://localhost:3333` | Public URL used in verification emails                                                       |
+| `VERIFICATION_EXPIRES_HOURS` | no       | `24`                    | Verification link/OTP validity in hours                                                      |
+| `REQUIRE_EMAIL_VERIFICATION` | no       | `false`                 | When `true`, unverified users are blocked on protected routes                                |
 
 ## API routes
 

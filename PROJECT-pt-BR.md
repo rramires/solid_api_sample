@@ -18,26 +18,26 @@ secundário — o que importa aqui é a **arquitetura replicável**.
 
 ### Stack
 
-| Camada | Tecnologia | Versão |
-|--------|-----------|--------|
-| Runtime | Node.js | 24 |
-| HTTP Framework | Fastify | 5.8.5 |
-| Linguagem | TypeScript | 6.0.3 |
-| ORM | Prisma | 7.8.0 |
-| Driver Adapter | `@prisma/adapter-mariadb` | 7.8.0 |
-| Banco | MySQL | 8 |
-| Validação | Zod | 4.4.3 |
-| Auth | `@fastify/jwt` + `@fastify/cookie` | 10.1 / 11.0 |
-| Hash | bcryptjs (12 rounds) | 3.0.3 |
-| Headers de segurança | `@fastify/helmet` | 13.0.2 |
-| CORS | `@fastify/cors` | 11.2 |
-| Rate limit | `@fastify/rate-limit` | 10.3 |
-| Logs | pino (via Fastify) + pino-pretty | — |
-| Datas | dayjs | 1.11 |
-| Testes | Vitest | 4.1.8 |
-| Lint/Format | ESLint 10 (flat) + Prettier 3.8 | — |
-| Build prod | tsup | 8.5.1 |
-| Package manager | pnpm | 11.5.2 |
+| Camada               | Tecnologia                         | Versão      |
+| -------------------- | ---------------------------------- | ----------- |
+| Runtime              | Node.js                            | 24          |
+| HTTP Framework       | Fastify                            | 5.8.5       |
+| Linguagem            | TypeScript                         | 6.0.3       |
+| ORM                  | Prisma                             | 7.8.0       |
+| Driver Adapter       | `@prisma/adapter-mariadb`          | 7.8.0       |
+| Banco                | MySQL                              | 8           |
+| Validação            | Zod                                | 4.4.3       |
+| Auth                 | `@fastify/jwt` + `@fastify/cookie` | 10.1 / 11.0 |
+| Hash                 | bcryptjs (12 rounds)               | 3.0.3       |
+| Headers de segurança | `@fastify/helmet`                  | 13.0.2      |
+| CORS                 | `@fastify/cors`                    | 11.2        |
+| Rate limit           | `@fastify/rate-limit`              | 10.3        |
+| Logs                 | pino (via Fastify) + pino-pretty   | —           |
+| Datas                | dayjs                              | 1.11        |
+| Testes               | Vitest                             | 4.1.8       |
+| Lint/Format          | ESLint 10 (flat) + Prettier 3.8    | —           |
+| Build prod           | tsup                               | 8.5.1       |
+| Package manager      | pnpm                               | 11.5.2      |
 
 ---
 
@@ -59,8 +59,8 @@ HTTP (Controllers/Routes)  ->  Use Cases (regras de negócio)
 
 Princípios SOLID aplicados:
 
-- **S (Single Responsibility):** cada *use-case* faz **uma** operação de negócio.
-  Cada *controller* só traduz HTTP ↔ use-case.
+- **S (Single Responsibility):** cada _use-case_ faz **uma** operação de negócio.
+  Cada _controller_ só traduz HTTP ↔ use-case.
 - **O (Open/Closed):** novos repositórios/implementações entram sem alterar o
   use-case (ele depende da interface).
 - **L (Liskov):** `InMemory*Repository` e `Prisma*Repository` são intercambiáveis
@@ -68,7 +68,7 @@ Princípios SOLID aplicados:
 - **I (Interface Segregation):** interfaces de repositório pequenas e específicas
   (`IUsersRepository`, `IGymsRepository`, `ICheckInsRepository`).
 - **D (Dependency Inversion):** use-cases recebem **interfaces** no construtor; as
-  *factories* injetam a implementação concreta (Prisma).
+  _factories_ injetam a implementação concreta (Prisma).
 
 ---
 
@@ -167,17 +167,17 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 
 1. **Rota** (`users/routes.ts`): `app.post('/sessions', authenticateController)` — sem hook de auth.
 2. **Controller** (`authenticate-controller.ts`):
-   - Valida `{ email, password }` com Zod (`email()`, `min(6)`).
-   - `makeAuthenticateUseCase()` → `AuthenticateUseCase` + `PrismaUsersRepository`.
+    - Valida `{ email, password }` com Zod (`email()`, `min(6)`).
+    - `makeAuthenticateUseCase()` → `AuthenticateUseCase` + `PrismaUsersRepository`.
 3. **Use-case** (`authenticate-use-case.ts`):
-   - `findByEmail` → se não existir, lança `InvalidCredentialsError`.
-   - `bcrypt.compare(password, hash)` → se não bater, mesmo erro genérico.
+    - `findByEmail` → se não existir, lança `InvalidCredentialsError`.
+    - `bcrypt.compare(password, hash)` → se não bater, mesmo erro genérico.
 4. **Emissão de tokens** (de volta no controller):
-   - `token` (access): payload `{ role, jti }`, `sub = user.id`, **expira em 4h**.
-   - `refreshToken`: payload `{ role, jti }`, `sub`, **expira em 7d**.
-   - cada token recebe um `jti` (`randomUUID()`) que habilita a revogação (denylist).
-   - `refreshToken` é gravado em **cookie** `httpOnly + secure + sameSite`.
-   - `token` (access) volta no **corpo** da resposta.
+    - `token` (access): payload `{ role, jti }`, `sub = user.id`, **expira em 4h**.
+    - `refreshToken`: payload `{ role, jti }`, `sub`, **expira em 7d**.
+    - cada token recebe um `jti` (`randomUUID()`) que habilita a revogação (denylist).
+    - `refreshToken` é gravado em **cookie** `httpOnly + secure + sameSite`.
+    - `token` (access) volta no **corpo** da resposta.
 5. **Erros**: `InvalidCredentialsError` → `401`; demais → re-lançados → `500`.
 
 ### 4.3 Exemplo detalhado — `POST /gyms/:gymId/check-ins` (protegido)
@@ -185,13 +185,13 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 1. **Rota** (`check-ins/routes.ts`): grupo inteiro tem `app.addHook('onRequest', verifyJwtMiddleware)`.
 2. **`verifyJwtMiddleware`**: `request.jwtVerify()` valida o Bearer token; popula `request.user = { sub, role }`. Falha → `401`.
 3. **Controller** (`check-in-controller.ts`):
-   - Lê `userId = request.user.sub` (vem do token, **não** do cliente).
-   - Valida `gymId` (uuid) nos params e `latitude/longitude` no body.
+    - Lê `userId = request.user.sub` (vem do token, **não** do cliente).
+    - Valida `gymId` (uuid) nos params e `latitude/longitude` no body.
 4. **Use-case** (`check-in-use-case.ts`) aplica as regras de negócio:
-   - Academia existe? senão `ResourceNotFoundError`.
-   - Usuário está a ≤ **100 m** da academia (haversine)? senão `MaxDistanceError`.
-   - Já existe check-in **no mesmo dia**? então `MaxCheckInsReachedError`.
-   - Caso ok → cria o check-in.
+    - Academia existe? senão `ResourceNotFoundError`.
+    - Usuário está a ≤ **100 m** da academia (haversine)? senão `MaxDistanceError`.
+    - Já existe check-in **no mesmo dia**? então `MaxCheckInsReachedError`.
+    - Caso ok → cria o check-in.
 5. Resposta `201` com o check-in criado.
 
 ---
@@ -216,7 +216,7 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 ### 5.2 Autorização (o que o usuário pode fazer) — RBAC
 
 - Papéis no enum `Role`: `MEMBER` (padrão) e `ADMIN`.
-- `verifyUserRole(role)` é um *middleware factory* que compara `request.user.role`
+- `verifyUserRole(role)` é um _middleware factory_ que compara `request.user.role`
   com o papel exigido. Usado nas rotas administrativas.
 - **Por que `403` e não `401`:** o usuário está **autenticado** (token válido), mas
   **sem permissão** → `403 Forbidden`. O `401 Unauthorized` fica reservado para
@@ -225,25 +225,25 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 
 ### 5.3 Mapa de rotas × proteção
 
-| Método | Rota | Auth (JWT) | Papel exigido | Observação |
-|--------|------|:---------:|:-------------:|------------|
-| GET | `/hello` | ❌ | — | health/teste |
-| POST | `/users` | ❌ | — | registro (público) |
-| POST | `/sessions` | ❌ | — | login |
-| PATCH | `/token/refresh` | cookie | — | rotação de token |
-| GET | `/me` | ✅ | — | perfil próprio |
-| POST | `/logout` | ✅ | — | revoga o token atual (denylist) + limpa cookie |
-| GET | `/gyms/search` | ✅ | — | busca por nome |
-| GET | `/gyms/nearby` | ✅ | — | busca por proximidade |
-| POST | `/gyms` | ✅ | **ADMIN** | cadastrar academia |
-| GET | `/check-ins/history` | ✅ | — | histórico próprio |
-| GET | `/check-ins/metrics` | ✅ | — | total próprio |
-| POST | `/gyms/:gymId/check-ins` | ✅ | — | fazer check-in |
-| PATCH | `/check-ins/:checkInId/validate` | ✅ | **ADMIN** | validar check-in |
-| POST | `/users/send-verification` | ✅ | — | enviar e-mail de verificação (link + OTP) |
-| GET | `/users/verify-email` | ❌ | — | verificar e-mail via link token (`?token=`) |
-| POST | `/users/verify-email/otp` | ✅ | — | verificar e-mail via código OTP |
-| POST | `/users/resend-verification` | ✅ | — | reenviar e-mail de verificação |
+| Método | Rota                             | Auth (JWT) | Papel exigido | Observação                                     |
+| ------ | -------------------------------- | :--------: | :-----------: | ---------------------------------------------- |
+| GET    | `/hello`                         |     ❌     |       —       | health/teste                                   |
+| POST   | `/users`                         |     ❌     |       —       | registro (público)                             |
+| POST   | `/sessions`                      |     ❌     |       —       | login                                          |
+| PATCH  | `/token/refresh`                 |   cookie   |       —       | rotação de token                               |
+| GET    | `/me`                            |     ✅     |       —       | perfil próprio                                 |
+| POST   | `/logout`                        |     ✅     |       —       | revoga o token atual (denylist) + limpa cookie |
+| GET    | `/gyms/search`                   |     ✅     |       —       | busca por nome                                 |
+| GET    | `/gyms/nearby`                   |     ✅     |       —       | busca por proximidade                          |
+| POST   | `/gyms`                          |     ✅     |   **ADMIN**   | cadastrar academia                             |
+| GET    | `/check-ins/history`             |     ✅     |       —       | histórico próprio                              |
+| GET    | `/check-ins/metrics`             |     ✅     |       —       | total próprio                                  |
+| POST   | `/gyms/:gymId/check-ins`         |     ✅     |       —       | fazer check-in                                 |
+| PATCH  | `/check-ins/:checkInId/validate` |     ✅     |   **ADMIN**   | validar check-in                               |
+| POST   | `/users/send-verification`       |     ✅     |       —       | enviar e-mail de verificação (link + OTP)      |
+| GET    | `/users/verify-email`            |     ❌     |       —       | verificar e-mail via link token (`?token=`)    |
+| POST   | `/users/verify-email/otp`        |     ✅     |       —       | verificar e-mail via código OTP                |
+| POST   | `/users/resend-verification`     |     ✅     |       —       | reenviar e-mail de verificação                 |
 
 > Padrão para proteger um grupo: `app.addHook('onRequest', verifyJwtMiddleware)`
 > no início da função de rotas. Para exigir papel: adicionar
@@ -374,8 +374,8 @@ enviar o cookie em requisições cross-origin não seguras.
   Cada arquivo cria um **banco isolado** (`test_<UUID>`) via
   `prisma/vitest-environment/prisma-test-environment.ts`, roda
   `prisma migrate deploy` e dropa o banco no teardown.
-  - ⚠️ O environment de teste precisa de `import 'dotenv/config'` no topo, pois o
-    Vite não injeta `.env` nos workers forkados.
+    - ⚠️ O environment de teste precisa de `import 'dotenv/config'` no topo, pois o
+      Vite não injeta `.env` nos workers forkados.
 - Config Vitest usa `projects:` (`unit` e `e2e`) — comandos: `pnpm test` e
   `pnpm test:e2e`.
 
