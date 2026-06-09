@@ -33,7 +33,14 @@ app.setErrorHandler((error, _, reply) => {
 	if (error instanceof ZodError) {
 		return reply.status(400).send({
 			message: 'Validation error.',
-			issues: error.format(),
+			// In production expose only path + message; full format() leaks input shape
+			issues:
+				env.NODE_ENV === 'production'
+					? error.issues.map((issue) => ({
+							path: issue.path,
+							message: issue.message,
+						}))
+					: error.format(),
 		})
 	}
 	if (env.NODE_ENV !== 'production') {
