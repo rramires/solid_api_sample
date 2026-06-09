@@ -14,6 +14,9 @@ const envSchema = z.object({
 		.default('info'),
 	// Reverse-proxy trust. 'false' | 'true' | specific IP string.
 	TRUST_PROXY: z.string().optional(),
+	// Under-pressure thresholds.
+	MAX_EVENT_LOOP_DELAY: z.coerce.number().optional().default(1000),
+	MAX_HEAP_USED_BYTES: z.coerce.number().optional().default(209_715_200),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
 	ADMIN_NAME: z.string().min(1).max(255),
 	ADMIN_EMAIL: z.email(),

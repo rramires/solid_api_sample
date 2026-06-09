@@ -3,6 +3,7 @@ import fastifyCors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import fastifyJwt from '@fastify/jwt'
 import fastifyRateLimit from '@fastify/rate-limit'
+import underPressure from '@fastify/under-pressure'
 import fastify from 'fastify'
 import { z, ZodError } from 'zod'
 
@@ -35,6 +36,13 @@ export const app = fastify({
 // Security headers. Helmet defaults are fine for a JSON API; a custom CSP only
 // matters if this service starts serving HTML.
 app.register(fastifyHelmet)
+// Under-pressure: auto-returns 503 when event-loop lag or heap size exceed thresholds.
+app.register(underPressure, {
+	maxEventLoopDelay: env.MAX_EVENT_LOOP_DELAY,
+	maxHeapUsedBytes: env.MAX_HEAP_USED_BYTES,
+	message: 'Server under pressure — retry later.',
+	retryAfter: 50,
+})
 // CORS. credentials:true is required to send the refresh-token cookie.
 // Dev allows any origin; prod restricts to the configured allow-list.
 app.register(fastifyCors, {
