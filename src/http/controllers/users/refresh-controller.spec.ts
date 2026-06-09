@@ -6,7 +6,7 @@ import { app } from '@/app'
 const user = {
 	name: 'John Doe',
 	email: 'johndoe@example.com',
-	password: '123456',
+	password: '12345678',
 }
 
 describe('Refresh Token (e2e)', () => {

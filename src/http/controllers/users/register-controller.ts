@@ -1,6 +1,7 @@
 import { FastifyReply,FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
+import { env } from '@/env'
 import { UserAlreadyExistsError } from '@/use-cases/errors/user-already-exists-error'
 import { makeRegisterUseCase } from '@/use-cases/factories/make-register-use-case'
 
@@ -8,7 +9,8 @@ export async function registerController(request: FastifyRequest, reply: Fastify
 	const bodySchema = z.object({
 		name: z.string(),
 		email: z.string().email(),
-		password: z.string().min(6),
+		// Minimum length is configurable; 72 is the bcrypt input ceiling (anti-DoS)
+		password: z.string().min(env.PASSWORD_MIN_LENGTH).max(72),
 	})
 	const { name, email, password } = bodySchema.parse(request.body)
 
