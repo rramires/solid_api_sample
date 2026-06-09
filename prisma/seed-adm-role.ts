@@ -20,6 +20,9 @@ async function seedAdminRole() {
 			email: env.ADMIN_EMAIL,
 			password_hash,
 			role: Role.ADMIN,
+			// Admin can't verify via an email it may not control; seed as verified
+			// so REQUIRE_EMAIL_VERIFICATION=true never locks the admin out.
+			is_verified: true,
 		},
 	})
 

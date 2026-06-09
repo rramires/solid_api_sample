@@ -18,7 +18,7 @@ export class VerifyEmailUseCase {
 		private emailVerificationRepository: IEmailVerificationRepository,
 	) {}
 
-	async execute(input: VerifyEmailUseCaseRequest): Promise<void> {
+	async execute(input: VerifyEmailUseCaseRequest): Promise<{ userId: string }> {
 		let record: EmailVerification | null
 		let userId: string
 
@@ -48,5 +48,8 @@ export class VerifyEmailUseCase {
 
 		await this.emailVerificationRepository.markUsed(record.id)
 		await this.usersRepository.update(userId, { is_verified: true })
+
+		// Return the resolved user so the caller can refresh the verified cache.
+		return { userId }
 	}
 }

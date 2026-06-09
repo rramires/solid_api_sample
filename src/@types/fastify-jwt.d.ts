@@ -15,8 +15,6 @@ declare module '@fastify/jwt' {
 			// Issued-at as a UNIX timestamp (seconds). Compared against the user's
 			// last password change for global session invalidation.
 			iat: number
-			// Whether the user has verified their email address.
-			is_verified: boolean
 		}
 	}
 }

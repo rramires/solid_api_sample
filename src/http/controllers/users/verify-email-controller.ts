@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
+import { verifiedCache } from '@/lib/verified-cache'
 import { AlreadyVerifiedError } from '@/use-cases/errors/already-verified-error'
 import { InvalidVerificationTokenError } from '@/use-cases/errors/invalid-verification-token-error'
 import { VerificationTokenExpiredError } from '@/use-cases/errors/verification-token-expired-error'
@@ -17,7 +18,9 @@ export async function verifyEmailByLinkController(
 
 	try {
 		const useCase = makeVerifyEmailUseCase()
-		await useCase.execute({ token })
+		const { userId } = await useCase.execute({ token })
+		// Refresh the read-through cache so the middleware unblocks immediately.
+		verifiedCache.set(userId, true)
 		return reply.status(204).send()
 	} catch (err) {
 		if (err instanceof AlreadyVerifiedError) {
@@ -44,7 +47,9 @@ export async function verifyEmailByOtpController(
 
 	try {
 		const useCase = makeVerifyEmailUseCase()
-		await useCase.execute({ userId: request.user.sub, code })
+		const { userId } = await useCase.execute({ userId: request.user.sub, code })
+		// Refresh the read-through cache so the middleware unblocks immediately.
+		verifiedCache.set(userId, true)
 		return reply.status(204).send()
 	} catch (err) {
 		if (err instanceof AlreadyVerifiedError) {
