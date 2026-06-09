@@ -1,4 +1,5 @@
 import fastifyCookie from '@fastify/cookie'
+import fastifyCors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import fastifyJwt from '@fastify/jwt'
 import fastifyRateLimit from '@fastify/rate-limit'
@@ -13,6 +14,15 @@ import { usersRoutes } from './http/controllers/users/routes'
 export const app = fastify()
 // Security headers
 app.register(fastifyHelmet)
+// CORS. credentials:true is required to send the refresh-token cookie.
+// Dev allows any origin; prod restricts to the configured allow-list.
+app.register(fastifyCors, {
+	credentials: true,
+	origin:
+		env.NODE_ENV === 'production'
+			? (env.CORS_ORIGIN?.split(',') ?? false)
+			: true,
+})
 // Global rate limit per IP. For multi-instance, swap the store for Redis later.
 app.register(fastifyRateLimit, {
 	max: 100,
