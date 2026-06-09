@@ -2,7 +2,28 @@
 
 GymPass style API built with SOLID principles.
 
+[![Unit Tests](https://github.com/rramires/gympass_solid_api/actions/workflows/run-unit-tests.yml/badge.svg)](https://github.com/rramires/gympass_solid_api/actions/workflows/run-unit-tests.yml)
+[![E2E Tests](https://github.com/rramires/gympass_solid_api/actions/workflows/run-e2e-tests.yml/badge.svg)](https://github.com/rramires/gympass_solid_api/actions/workflows/run-e2e-tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Stack:** Node.js · Fastify · TypeScript 6 · Prisma 7 · MySQL · Vitest
+
+## Features
+
+- **SOLID, layered architecture** — controllers, use-cases, and repository
+  interfaces with both Prisma and in-memory implementations.
+- **JWT auth with refresh tokens** — short-lived access token plus an
+  httpOnly refresh cookie.
+- **RBAC** — `MEMBER` / `ADMIN` roles enforced per route.
+- **Token revocation** — logout adds the token's `jti` to a hybrid
+  (in-memory + database) denylist.
+- **Rate limiting** — global limits plus stricter limits on auth routes.
+- **Security hardening** — Helmet headers, per-environment CORS, configurable
+  password policy, request body size cap, and login timing equalization to
+  prevent user enumeration.
+- **Operability** — fail-fast env validation, structured `pino` logging, and
+  graceful shutdown.
+- **Tested** — unit suite (no DB) and isolated-database e2e suite, both in CI.
 
 ## Setup
 
@@ -71,6 +92,23 @@ boot if any variable is invalid (Zod validation in `src/env`).
 > The `role` (`MEMBER` \| `ADMIN`) is embedded in the JWT at login time.
 > Promoting a user does **not** affect tokens already issued — a new login is
 > required to obtain a token carrying the new role.
+
+### Example responses
+
+`POST /sessions` → `200` (also sets the `refreshToken` httpOnly cookie):
+
+```json
+{ "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+```
+
+`GET /me` → `200`:
+
+```json
+{ "user": { "id": "3fa2...c9", "name": "Fulano" } }
+```
+
+A failed validation returns `400` with the issues; an unauthorized or revoked
+token returns `401`; a missing `ADMIN` role returns `403`.
 
 ## ADMIN user
 
@@ -169,3 +207,7 @@ curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
 See [PROJECT.md](PROJECT.md) for the full architecture reference: request
 lifecycle, security model (RBAC, rate limiting, token denylist), data layer,
 and operational concerns (fail-fast env, logging, graceful shutdown).
+
+## License
+
+Released under the [MIT License](LICENSE).
