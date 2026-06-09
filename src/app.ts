@@ -10,6 +10,7 @@ import { env } from './env'
 import { checkInsRoutes } from './http/controllers/check-ins/routes'
 import { gymsRoutes } from './http/controllers/gyms/routes'
 import { usersRoutes } from './http/controllers/users/routes'
+import { prisma } from './lib/prisma'
 import { reportError } from './lib/report-error'
 
 export const app = fastify({
@@ -79,4 +80,8 @@ app.setErrorHandler((error, request, reply) => {
 	}
 	// Other errors
 	return reply.status(500).send({ message: 'Internal server error.' })
+})
+// Release the database connection pool when the server closes.
+app.addHook('onClose', async () => {
+	await prisma.$disconnect()
 })
