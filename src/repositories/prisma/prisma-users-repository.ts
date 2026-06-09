@@ -25,6 +25,14 @@ export class PrismaUsersRepository implements IUsersRepository {
 	async create(data: Prisma.UserCreateInput) {
 		const user = await prisma.user.create({
 			data,
+			// Never return password_hash to callers
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				role: true,
+				created_at: true,
+			},
 		})
 		return user
 	}

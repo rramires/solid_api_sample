@@ -8,7 +8,7 @@ export default async function createAndAuthUser(app: FastifyInstance, isAdmin = 
 	const newUser = {
 		name: 'John Doe',
 		email: 'johndoe@example.com',
-		password: 'abc123',
+		password: 'abc12345',
 	}
 	// create user
 	const response = await request(app.server).post('/users').send(newUser)

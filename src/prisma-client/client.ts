@@ -56,3 +56,8 @@ export type CheckIn = Prisma.CheckInModel
  * 
  */
 export type Gym = Prisma.GymModel
+/**
+ * Model RevokedToken
+ * 
+ */
+export type RevokedToken = Prisma.RevokedTokenModel

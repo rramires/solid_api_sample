@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   CheckIn: 'CheckIn',
-  Gym: 'Gym'
+  Gym: 'Gym',
+  RevokedToken: 'RevokedToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -107,6 +108,15 @@ export const GymScalarFieldEnum = {
 export type GymScalarFieldEnum = (typeof GymScalarFieldEnum)[keyof typeof GymScalarFieldEnum]
 
 
+export const RevokedTokenScalarFieldEnum = {
+  jti: 'jti',
+  expires_at: 'expires_at',
+  created_at: 'created_at'
+} as const
+
+export type RevokedTokenScalarFieldEnum = (typeof RevokedTokenScalarFieldEnum)[keyof typeof RevokedTokenScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -150,4 +160,11 @@ export const GymOrderByRelevanceFieldEnum = {
 } as const
 
 export type GymOrderByRelevanceFieldEnum = (typeof GymOrderByRelevanceFieldEnum)[keyof typeof GymOrderByRelevanceFieldEnum]
+
+
+export const RevokedTokenOrderByRelevanceFieldEnum = {
+  jti: 'jti'
+} as const
+
+export type RevokedTokenOrderByRelevanceFieldEnum = (typeof RevokedTokenOrderByRelevanceFieldEnum)[keyof typeof RevokedTokenOrderByRelevanceFieldEnum]
 

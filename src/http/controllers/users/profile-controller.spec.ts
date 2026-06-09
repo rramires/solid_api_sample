@@ -1,7 +1,8 @@
 import request from 'supertest'
-import { afterAll, beforeAll, describe, expect,it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '@/app'
+import { Role } from '@/prisma-client/enums'
 import createAndAuthUser from '@/utils/tests/create-and-auth-user'
 
 describe('Profile (e2e)', () => {
@@ -31,5 +32,20 @@ describe('Profile (e2e)', () => {
 				name: user.name,
 			}),
 		)
+	})
+
+	it('should not be able to get profile of a non-existent user', async () => {
+		// Valid token whose subject no longer exists in the database
+		const token = app.jwt.sign({
+			sub: 'non-existent-user-id',
+			role: Role.MEMBER,
+		})
+
+		const response = await request(app.server)
+			.get('/me')
+			.set('Authorization', `Bearer ${token}`)
+			.send()
+
+		expect(response.statusCode).toEqual(401)
 	})
 })

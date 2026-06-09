@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import { FastifyReply,FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
@@ -6,7 +8,7 @@ import { makeAuthenticateUseCase } from '@/use-cases/factories/make-authenticate
 
 export async function authenticateController(request: FastifyRequest, reply: FastifyReply) {
 	const bodySchema = z.object({
-		email: z.string().email(),
+		email: z.email(),
 		password: z.string().min(6),
 	})
 	const { email, password } = bodySchema.parse(request.body)
@@ -21,6 +23,8 @@ export async function authenticateController(request: FastifyRequest, reply: Fas
 		const token = await reply.jwtSign(
 			{
 				role: user.role,
+				// jti enables per-token revocation via the denylist.
+				jti: randomUUID(),
 			},
 			{
 				sign: {
@@ -32,6 +36,7 @@ export async function authenticateController(request: FastifyRequest, reply: Fas
 		const refreshToken = await reply.jwtSign(
 			{
 				role: user.role,
+				jti: randomUUID(),
 			},
 			{
 				sign: {
