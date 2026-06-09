@@ -9,6 +9,9 @@ const envSchema = z.object({
 	CORS_ORIGIN: z.string().optional(),
 	PASSWORD_MIN_LENGTH: z.coerce.number().int().min(8).max(72).default(8),
 	BODY_LIMIT: z.coerce.number().int().positive().default(16_384),
+	LOG_LEVEL: z
+		.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
+		.default('info'),
 })
 
 const _env = envSchema.safeParse(process.env)

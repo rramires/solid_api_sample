@@ -10,8 +10,19 @@ import { env } from './env'
 import { checkInsRoutes } from './http/controllers/check-ins/routes'
 import { gymsRoutes } from './http/controllers/gyms/routes'
 import { usersRoutes } from './http/controllers/users/routes'
+import { reportError } from './lib/report-error'
 
-export const app = fastify({ bodyLimit: env.BODY_LIMIT })
+export const app = fastify({
+	bodyLimit: env.BODY_LIMIT,
+	// Structured JSON logs in production; human-readable in development; silent
+	// during tests to avoid worker-thread noise and open handles.
+	logger:
+		env.NODE_ENV === 'test'
+			? false
+			: env.NODE_ENV === 'production'
+				? { level: env.LOG_LEVEL }
+				: { transport: { target: 'pino-pretty' } },
+})
 // Security headers. Helmet defaults are fine for a JSON API; a custom CSP only
 // matters if this service starts serving HTML.
 app.register(fastifyHelmet)
@@ -46,7 +57,7 @@ app.register(usersRoutes)
 app.register(gymsRoutes)
 app.register(checkInsRoutes)
 // Errors
-app.setErrorHandler((error, _, reply) => {
+app.setErrorHandler((error, request, reply) => {
 	if (error instanceof ZodError) {
 		return reply.status(400).send({
 			message: 'Validation error.',
@@ -60,10 +71,11 @@ app.setErrorHandler((error, _, reply) => {
 					: error.format(),
 		})
 	}
-	if (env.NODE_ENV !== 'production') {
-		console.error(error)
+	if (env.NODE_ENV === 'production') {
+		// Production: route through the reporting seam (Sentry/Datadog later).
+		reportError(error)
 	} else {
-		// TODO: Here we should log to an external tool like Datadog/NewRelic/Sentry etc
+		request.log.error(error)
 	}
 	// Other errors
 	return reply.status(500).send({ message: 'Internal server error.' })
