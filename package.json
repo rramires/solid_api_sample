@@ -1,5 +1,5 @@
 {
-  "name": "gympass_solid_api",
+  "name": "solid_api_sample",
   "version": "1.0.0",
   "description": "GymPass style API using SOLID standards",
   "main": "src/server.ts",
