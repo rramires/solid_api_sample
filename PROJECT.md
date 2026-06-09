@@ -240,6 +240,10 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 | GET | `/check-ins/metrics` | ✅ | — | own total |
 | POST | `/gyms/:gymId/check-ins` | ✅ | — | check in |
 | PATCH | `/check-ins/:checkInId/validate` | ✅ | **ADMIN** | validate check-in |
+| POST | `/users/send-verification` | ✅ | — | send verification email (link + OTP) |
+| GET | `/users/verify-email` | ❌ | — | verify email via link token (`?token=`) |
+| POST | `/users/verify-email/otp` | ✅ | — | verify email via OTP code |
+| POST | `/users/resend-verification` | ✅ | — | resend verification email |
 
 > Pattern to protect a group: `app.addHook('onRequest', verifyJwtMiddleware)`
 > at the start of the routes function. To require a role: add
@@ -273,6 +277,19 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
   and special).
 - **Configurable `bodyLimit`** (`BODY_LIMIT`, default 16 KB) limits the request
   body size.
+- **Per-field `.max()` on all text inputs** prevents DB column overflow and ReDoS
+  on complex regex validators. The global `bodyLimit` caps the total payload but
+  does not limit individual fields.
+- **Per-account login lockout** (`ILoginAttemptTracker`): after `LOGIN_MAX_ATTEMPTS`
+  failures the account is locked for `LOGIN_LOCKOUT_MINUTES`. In-memory `Map` today;
+  swap for Redis by replacing `src/lib/login-attempt-tracker.ts` (same async
+  interface). Returns `429 Too Many Requests`.
+- **`@fastify/under-pressure`**: monitors event-loop lag and heap size; returns
+  `503 Service Unavailable` automatically when thresholds are exceeded — circuit
+  breaker against slow-query DoS.
+- **`trustProxy`**: set `TRUST_PROXY=true` (or a specific IP) when deployed
+  behind a reverse proxy so `@fastify/rate-limit` reads `X-Forwarded-For`
+  instead of the proxy IP.
 
 ### 5.5 Token revocation (hybrid denylist)
 
@@ -286,6 +303,18 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
   RAM and the DB, keeping the denylist bounded.
 - **Flow:** `POST /logout` → `revoke(jti, exp)` → subsequent requests with that
   token are rejected (`401`) in `verifyJwtMiddleware`.
+
+### 5.6 Why CSRF protection is not required
+
+All authenticated routes use the `Authorization: Bearer` header — cross-site
+requests cannot set custom headers, so CSRF is not applicable.
+The only cookie-based route (`PATCH /token/refresh`) is protected by the
+`sameSite` attribute on the refresh cookie (`lax` or `strict`), which prevents
+browsers from sending the cookie on cross-origin non-safe requests.
+
+> **Important:** if `sameSite` is changed to `none` (e.g., to support
+> cross-origin cookies for a different subdomain), `@fastify/csrf-protection`
+> must be added.
 
 ---
 
@@ -311,11 +340,15 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 
 ### 6.3 Models
 
-- `User` (id uuid, unique email, password_hash, role, created_at) 1—N `CheckIn`.
+- `User` (id uuid, unique email, password_hash, role, `is_verified` bool, created_at) 1—N `CheckIn`.
 - `Gym` (id uuid, title, latitude/longitude decimal) 1—N `CheckIn`.
 - `CheckIn` (created_at, validated_at?) N—1 `User` and N—1 `Gym`.
 - `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — persisted denylist
   (table `revoked_tokens`).
+- `EmailVerification` (`id` uuid, `user_id` FK, `link_token` uuid unique,
+  `otp_code` 6-digit string, `expires_at`, `used_at?`, `created_at`) — stores
+  both the clickable link token and the OTP for the same verification event
+  (table `email_verifications`).
 
 ### 6.4 Pagination
 
@@ -373,9 +406,11 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 Everything that changes between environments is an **env var validated on boot**
 (`src/env/index.ts`); the app **does not start** with invalid config. Variables:
 `NODE_ENV`, `PORT`, `JWT_SECRET` (≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`,
-`BODY_LIMIT`, `LOG_LEVEL`, `ADMIN_NAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Every
-new env var must also be added to `.env.example`** (with a comment explaining
-format/example).
+`BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`, `MAX_EVENT_LOOP_DELAY`,
+`MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`, `APP_URL`,
+`VERIFICATION_EXPIRES_HOURS`, `REQUIRE_EMAIL_VERIFICATION`,
+`ADMIN_NAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Every new env var must also be
+added to `.env.example`** (with a comment explaining format/example).
 
 ### 9.2 Logs (pino) and error seam
 
@@ -415,6 +450,12 @@ To add a new resource (e.g. `Plan`):
    and/or `verifyUserRole` as needed).
 9. **Register** the routes in `app.ts` (`app.register(plansRoutes)`).
 10. **E2E test**: `http/controllers/plans/create-controller.spec.ts`.
+
+> **Email-sending resources:** follow the `IEmailProvider` seam pattern in
+> `src/lib/email/`. Add a method to the interface, implement it in
+> `ConsoleEmailProvider` first, then swap for SMTP/SendGrid/Resend in production
+> by replacing `src/lib/email/index.ts` with a concrete provider — no call sites
+> change.
 
 **Golden rule:** controllers never talk to Prisma; use-cases never talk to HTTP;
 dependencies always via **interface** + injection through the factory.

@@ -7,6 +7,7 @@ import getTestCoordinates from '@/utils/tests/get-test-coordinates'
 import { CheckInUseCase } from './check-in-use-case'
 import { MaxCheckInsReachedError } from './errors/max-check-ins-reached-error'
 import { MaxDistanceError } from './errors/max-distance.error'
+import { ResourceNotFoundError } from './errors/resource-not-found-error'
 
 let checkInsRepository: InMemoryCheckInsRepository
 let gymsRepository: InMemoryGymsRepository
@@ -107,5 +108,16 @@ describe('Check-in Use Case', () => {
 				userLongitude: coordinatesPlus10km.lon,
 			}),
 		).rejects.toBeInstanceOf(MaxDistanceError)
+	})
+
+	it('should not be able to check in on a non-existent gym', async () => {
+		await expect(
+			sut.execute({
+				userId: 'user-01',
+				gymId: 'non-existent-gym',
+				userLatitude: coordinates.lat,
+				userLongitude: coordinates.lon,
+			}),
+		).rejects.toBeInstanceOf(ResourceNotFoundError)
 	})
 })
