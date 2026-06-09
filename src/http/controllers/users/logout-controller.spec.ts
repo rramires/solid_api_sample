@@ -47,4 +47,32 @@ describe('Logout (e2e)', () => {
 			.send()
 		expect(after.statusCode).toEqual(401)
 	})
+
+	it('should reject the refresh token after logout', async () => {
+		const email = 'logout-refresh@example.com'
+		await request(app.server)
+			.post('/users')
+			.send({ name: 'John Doe', email, password: 'abc12345' })
+
+		const authResponse = await request(app.server).post('/sessions').send({
+			email,
+			password: 'abc12345',
+		})
+		const cookies = authResponse.get('Set-Cookie') || []
+		const { token } = authResponse.body
+
+		// Logout with the refresh cookie present revokes BOTH tokens.
+		await request(app.server)
+			.post('/logout')
+			.set('Authorization', `Bearer ${token}`)
+			.set('Cookie', cookies)
+			.send()
+
+		// The old refresh cookie can no longer rotate.
+		const after = await request(app.server)
+			.patch('/token/refresh')
+			.set('Cookie', cookies)
+			.send()
+		expect(after.statusCode).toEqual(401)
+	})
 })

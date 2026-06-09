@@ -45,4 +45,29 @@ describe('Refresh Token (e2e)', () => {
 		})
 		expect(response.get('Set-Cookie')).toEqual([expect.stringContaining('refreshToken=')])
 	})
+
+	it('should reject reuse of an old refresh cookie (single-use)', async () => {
+		const email = 'refresh-reuse@example.com'
+		await request(app.server).post('/users').send({ ...user, email })
+
+		const authResponse = await request(app.server).post('/sessions').send({
+			email,
+			password: user.password,
+		})
+		const oldCookies = authResponse.get('Set-Cookie') || []
+
+		// First refresh consumes (rotates) the presented refresh token.
+		const first = await request(app.server)
+			.patch('/token/refresh')
+			.set('Cookie', oldCookies)
+			.send()
+		expect(first.status).toEqual(200)
+
+		// Reusing the SAME, now-rotated cookie must fail.
+		const reuse = await request(app.server)
+			.patch('/token/refresh')
+			.set('Cookie', oldCookies)
+			.send()
+		expect(reuse.status).toEqual(401)
+	})
 })
