@@ -10,7 +10,7 @@ export class ConsoleEmailProvider implements IEmailProvider {
 		expiresInHours: number
 	}): Promise<void> {
 		const { to, linkToken, otpCode, expiresInHours } = params
-		const link = `${env.BASE_URL}/users/verify-email?token=${linkToken}`
+		const link = `${env.APP_URL}/users/verify-email?token=${linkToken}`
 
 		// In development, print the verification details to stdout so developers
 		// can verify their email without a real mail server.
