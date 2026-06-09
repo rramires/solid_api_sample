@@ -8,7 +8,7 @@ import { makeAuthenticateUseCase } from '@/use-cases/factories/make-authenticate
 
 export async function authenticateController(request: FastifyRequest, reply: FastifyReply) {
 	const bodySchema = z.object({
-		email: z.string().email(),
+		email: z.email(),
 		password: z.string().min(6),
 	})
 	const { email, password } = bodySchema.parse(request.body)

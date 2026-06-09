@@ -8,7 +8,7 @@ export async function checkInController(request: FastifyRequest, reply: FastifyR
 	const { sub: userId } = request.user
 
 	const paramsSchema = z.object({
-		gymId: z.string().uuid(),
+		gymId: z.uuid(),
 	})
 	const { gymId } = paramsSchema.parse(request.params)
 

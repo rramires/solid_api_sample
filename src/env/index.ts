@@ -14,7 +14,7 @@ const envSchema = z.object({
 		.default('info'),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
 	ADMIN_NAME: z.string().min(1),
-	ADMIN_EMAIL: z.string().email(),
+	ADMIN_EMAIL: z.email(),
 	// Strong password policy: min 10 chars, with upper, lower, number and special.
 	ADMIN_PASSWORD: z
 		.string()
@@ -28,7 +28,7 @@ const envSchema = z.object({
 const _env = envSchema.safeParse(process.env)
 
 if (_env.success === false) {
-	console.error('Invalid environment variables: ', _env.error.format())
+	console.error('Invalid environment variables: ', z.treeifyError(_env.error))
 	throw new Error('Invalid environment variables.')
 }
 

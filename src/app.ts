@@ -4,7 +4,7 @@ import fastifyHelmet from '@fastify/helmet'
 import fastifyJwt from '@fastify/jwt'
 import fastifyRateLimit from '@fastify/rate-limit'
 import fastify from 'fastify'
-import { ZodError } from 'zod'
+import { z, ZodError } from 'zod'
 
 import { env } from './env'
 import { checkInsRoutes } from './http/controllers/check-ins/routes'
@@ -69,7 +69,7 @@ app.setErrorHandler((error, request, reply) => {
 							path: issue.path,
 							message: issue.message,
 						}))
-					: error.format(),
+					: z.treeifyError(error),
 		})
 	}
 	if (env.NODE_ENV === 'production') {
