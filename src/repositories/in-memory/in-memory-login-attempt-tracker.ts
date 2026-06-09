@@ -23,8 +23,12 @@ export class InMemoryLoginAttemptTracker implements ILoginAttemptTracker {
 
 	async isLocked(email: string): Promise<boolean> {
 		const record = this.store.get(email)
-		if (!record?.lockedUntil) return false
-		if (record.lockedUntil > new Date()) return true
+		if (!record?.lockedUntil) {
+			return false
+		}
+		if (record.lockedUntil > new Date()) {
+			return true
+		}
 		// Lockout expired — remove stale record.
 		this.store.delete(email)
 		return false
