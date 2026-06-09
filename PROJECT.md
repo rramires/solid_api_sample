@@ -1,428 +1,436 @@
-# PROJECT.md — Arquitetura de Referência (Backend)
+# PROJECT.md — Backend Architecture Reference
 
-> Documento de referência da arquitetura deste projeto-exemplo. Serve como
-> **blueprint** para iniciar novos backends maiores, reutilizando a mesma
-> estrutura, os mesmos princípios (SOLID + Clean Architecture leve) e as mesmas
-> práticas de segurança. Escrito para ser entendido tanto por **humanos** quanto
-> por **IAs** que vão replicar o padrão.
+> Architecture reference document for this example project. Serves as a
+> **blueprint** for starting new, larger backends, reusing the same structure,
+> principles (SOLID + lightweight Clean Architecture) and security practices.
+> Written to be understood by both **humans** and **AIs** that will replicate
+> the pattern.
+
+> 🇧🇷 Versão em português: [PROJECT-pt-BR.md](PROJECT-pt-BR.md)
 
 ---
 
-## 1. Visão Geral
+## 1. Overview
 
-API estilo "GymPass" (academias, check-ins e usuários) construída com foco em
-**SOLID**, **separação de camadas** e **inversão de dependência**. O domínio é
-secundário — o que importa aqui é a **arquitetura replicável**.
+"GymPass-style" API (gyms, check-ins and users) built with a focus on
+**SOLID**, **layer separation** and **dependency inversion**. The domain is
+secondary — what matters here is the **replicable architecture**.
 
 ### Stack
 
-| Camada | Tecnologia | Versão |
-|--------|-----------|--------|
+| Layer | Technology | Version |
+|-------|-----------|--------|
 | Runtime | Node.js | 24 |
 | HTTP Framework | Fastify | 5.8.5 |
-| Linguagem | TypeScript | 6.0.3 |
+| Language | TypeScript | 6.0.3 |
 | ORM | Prisma | 7.8.0 |
 | Driver Adapter | `@prisma/adapter-mariadb` | 7.8.0 |
-| Banco | MySQL | 8 |
-| Validação | Zod | 4.4.3 |
+| Database | MySQL | 8 |
+| Validation | Zod | 4.4.3 |
 | Auth | `@fastify/jwt` + `@fastify/cookie` | 10.1 / 11.0 |
 | Hash | bcryptjs (12 rounds) | 3.0.3 |
-| Headers de segurança | `@fastify/helmet` | 13.0.2 |
+| Security headers | `@fastify/helmet` | 13.0.2 |
 | CORS | `@fastify/cors` | 11.2 |
 | Rate limit | `@fastify/rate-limit` | 10.3 |
 | Logs | pino (via Fastify) + pino-pretty | — |
-| Datas | dayjs | 1.11 |
-| Testes | Vitest | 4.1.8 |
+| Dates | dayjs | 1.11 |
+| Tests | Vitest | 4.1.8 |
 | Lint/Format | ESLint 10 (flat) + Prettier 3.8 | — |
-| Build prod | tsup | 8.5.1 |
+| Production build | tsup | 8.5.1 |
 | Package manager | pnpm | 11.5.2 |
 
 ---
 
-## 2. Princípios Arquiteturais
+## 2. Architectural Principles
 
-A arquitetura segue uma divisão em **4 camadas** com dependências apontando
-sempre **para dentro** (regra de dependência da Clean Architecture):
+The architecture follows a **4-layer** division with dependencies always pointing
+**inward** (Clean Architecture dependency rule):
 
 ```
-HTTP (Controllers/Routes)  ->  Use Cases (regras de negócio)
+HTTP (Controllers/Routes)  ->  Use Cases (business rules)
         |                              |
         v                              v
-   Validação (Zod)            Repositories (interfaces)
+   Validation (Zod)         Repositories (interfaces)
                                        |
                               +--------+--------+
                               |                 |
-                        Prisma (prod)     In-Memory (testes)
+                        Prisma (prod)     In-Memory (tests)
 ```
 
-Princípios SOLID aplicados:
+SOLID principles applied:
 
-- **S (Single Responsibility):** cada *use-case* faz **uma** operação de negócio.
-  Cada *controller* só traduz HTTP ↔ use-case.
-- **O (Open/Closed):** novos repositórios/implementações entram sem alterar o
-  use-case (ele depende da interface).
-- **L (Liskov):** `InMemory*Repository` e `Prisma*Repository` são intercambiáveis
-  porque honram o mesmo contrato.
-- **I (Interface Segregation):** interfaces de repositório pequenas e específicas
+- **S (Single Responsibility):** each *use-case* performs **one** business
+  operation. Each *controller* only translates HTTP ↔ use-case.
+- **O (Open/Closed):** new repository implementations are added without changing
+  the use-case (it depends on the interface).
+- **L (Liskov):** `InMemory*Repository` and `Prisma*Repository` are
+  interchangeable because they honor the same contract.
+- **I (Interface Segregation):** small, specific repository interfaces
   (`IUsersRepository`, `IGymsRepository`, `ICheckInsRepository`).
-- **D (Dependency Inversion):** use-cases recebem **interfaces** no construtor; as
-  *factories* injetam a implementação concreta (Prisma).
+- **D (Dependency Inversion):** use-cases receive **interfaces** in the
+  constructor; *factories* inject the concrete implementation (Prisma).
 
 ---
 
-## 3. Estrutura de Pastas
+## 3. Folder Structure
 
 ```
 src/
-├── app.ts                  # Composição do Fastify: plugins, rotas, error handler, hook onClose
-├── server.ts               # Bootstrap + graceful shutdown (SIGTERM/SIGINT) + load da denylist
+├── app.ts                  # Fastify composition: plugins, routes, error handler, onClose hook
+├── server.ts               # Bootstrap + graceful shutdown (SIGTERM/SIGINT) + denylist load
 ├── @types/
-│   └── fastify-jwt.d.ts     # Augmentation do payload JWT (request.user = { sub, role, jti, exp })
+│   └── fastify-jwt.d.ts     # JWT payload augmentation (request.user = { sub, role, jti, exp })
 ├── env/
-│   └── index.ts             # Validação das env vars com Zod (falha rápido no boot)
+│   └── index.ts             # Env var validation with Zod (fail-fast on boot)
 ├── lib/
-│   ├── prisma.ts            # Singleton do PrismaClient + driver adapter MySQL
-│   ├── report-error.ts      # Seam de report de erro (porta única p/ Sentry/Datadog)
-│   └── token-denylist.ts    # Singleton da denylist de tokens revogados (híbrida RAM+DB)
-├── prisma-client/           # CLIENTE GERADO pelo Prisma 7 (output custom)
+│   ├── prisma.ts            # PrismaClient singleton + MySQL driver adapter
+│   ├── report-error.ts      # Error report seam (single integration point for Sentry/Datadog)
+│   └── token-denylist.ts    # Revoked token denylist singleton (hybrid RAM+DB)
+├── prisma-client/           # CLIENT GENERATED by Prisma 7 (custom output)
 ├── http/
 │   ├── controllers/
-│   │   ├── users/           # rotas + controllers de usuário/sessão
-│   │   ├── gyms/            # rotas + controllers de academias
-│   │   └── check-ins/       # rotas + controllers de check-ins
+│   │   ├── users/           # user/session routes + controllers
+│   │   ├── gyms/            # gym routes + controllers
+│   │   └── check-ins/       # check-in routes + controllers
 │   └── middlewares/
-│       ├── verify-jwt-middleware.ts   # autenticação + checagem na denylist
-│       ├── verify-user-role.ts        # autorização (RBAC; 403 se papel errado)
-│       └── rate-limit.ts              # limite estrito p/ rotas de auth
+│       ├── verify-jwt-middleware.ts   # authentication + denylist check
+│       ├── verify-user-role.ts        # authorization (RBAC; 403 on wrong role)
+│       └── rate-limit.ts              # strict limit for auth routes
 ├── use-cases/
-│   ├── *-use-case.ts        # regras de negócio puras (sem HTTP, sem Prisma direto)
-│   ├── *.spec.ts            # testes unitários (usam repos in-memory)
-│   ├── errors/             # erros de domínio tipados
-│   └── factories/          # montam use-case + repositório concreto (DI manual)
+│   ├── *-use-case.ts        # pure business rules (no HTTP, no direct Prisma)
+│   ├── *.spec.ts            # unit tests (use in-memory repos)
+│   ├── errors/             # typed domain errors
+│   └── factories/          # assemble use-case + concrete repository (manual DI)
 ├── repositories/
-│   ├── i-*-repository.ts    # CONTRATOS (interfaces)
-│   ├── i-token-denylist.ts  # contrato da denylist (assíncrono → trocável por Redis)
-│   ├── prisma/             # implementações de produção (inclui denylist híbrida RAM+DB)
-│   └── in-memory/          # implementações para teste unitário
+│   ├── i-*-repository.ts    # CONTRACTS (interfaces)
+│   ├── i-token-denylist.ts  # denylist contract (async → swappable for Redis)
+│   ├── prisma/             # production implementations (includes hybrid RAM+DB denylist)
+│   └── in-memory/          # test implementations
 └── utils/
-    └── get-distance-between-coordinates.ts   # haversine (regra geográfica)
+    └── get-distance-between-coordinates.ts   # haversine (geographic rule)
 ```
 
-### Convenção de nomes
+### Naming conventions
 
-- Interfaces de repositório: prefixo `i-` no arquivo, `I` no tipo.
-- Use-cases: `<acao>-use-case.ts` exportando a classe `<Acao>UseCase`.
-- Factories: `make-<acao>-use-case.ts` exportando `make<Acao>UseCase()`.
-- Controllers: `<acao>-controller.ts` exportando `<acao>Controller`.
-- Erros de domínio: classes que estendem `Error` em `use-cases/errors/`.
+- Repository interfaces: `i-` prefix in the file, `I` in the type.
+- Use-cases: `<action>-use-case.ts` exporting the class `<Action>UseCase`.
+- Factories: `make-<action>-use-case.ts` exporting `make<Action>UseCase()`.
+- Controllers: `<action>-controller.ts` exporting `<action>Controller`.
+- Domain errors: classes extending `Error` in `use-cases/errors/`.
 
 ---
 
-## 4. Caminho Completo de uma Requisição
+## 4. Full Request Lifecycle
 
-Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota protegida).
+Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (protected route).
 
-### 4.1 Fluxo geral (todas as rotas)
+### 4.1 General flow (all routes)
 
 ```
-1. Cliente HTTP
+1. HTTP client
         │
-2. Fastify recebe a request
+2. Fastify receives the request
         │
-3. Plugins globais (app.ts), nesta ordem:
-     • @fastify/helmet      → injeta headers de segurança
-     • @fastify/cors        → política de origem por ambiente (credentials:true)
-     • @fastify/rate-limit  → limite global por IP (100/min)
-     • @fastify/jwt         → habilita request.jwtVerify / reply.jwtSign
-     • @fastify/cookie      → parsing de cookies (refreshToken)
+3. Global plugins (app.ts), in this order:
+     • @fastify/helmet      → injects security headers
+     • @fastify/cors        → per-environment origin policy (credentials:true)
+     • @fastify/rate-limit  → global per-IP limit (100/min)
+     • @fastify/jwt         → enables request.jwtVerify / reply.jwtSign
+     • @fastify/cookie      → cookie parsing (refreshToken)
         │
-4. Hooks `onRequest` da rota (se houver):
-     • strictAuthLimit(app)          → rate limit estrito (5/min) em /users e /sessions
-     • verifyJwtMiddleware           → autenticação (401 se inválido ou revogado)
-     • verifyUserRole(Role.ADMIN)    → autorização (403 se papel errado)
+4. Route `onRequest` hooks (if any):
+     • strictAuthLimit(app)          → strict rate limit (5/min) on /users and /sessions
+     • verifyJwtMiddleware           → authentication (401 if invalid or revoked)
+     • verifyUserRole(Role.ADMIN)    → authorization (403 if wrong role)
         │
 5. Controller:
-     • Valida params/body/query com Zod  (ZodError → 400 no error handler)
-     • Lê dados autenticados em request.user ({ sub, role })
-     • Chama a factory → make<Acao>UseCase()
+     • Validates params/body/query with Zod  (ZodError → 400 in error handler)
+     • Reads authenticated data from request.user ({ sub, role })
+     • Calls the factory → make<Action>UseCase()
         │
-6. Use-case (regra de negócio):
-     • Orquestra repositórios via INTERFACE
-     • Aplica regras (distância, duplicidade, prazos…)
-     • Lança erros de domínio tipados quando regra falha
+6. Use-case (business rule):
+     • Orchestrates repositories via INTERFACE
+     • Applies rules (distance, duplication, deadlines…)
+     • Throws typed domain errors when a rule fails
         │
-7. Repositório (Prisma):
-     • Executa a query no MySQL via driver adapter
+7. Repository (Prisma):
+     • Executes the query on MySQL via driver adapter
         │
-8. Resposta volta: controller traduz resultado/erro → status HTTP
+8. Response returns: controller translates result/error → HTTP status
         │
-9. setErrorHandler global (app.ts):
-     • ZodError              → 400 + issues (enxutas em produção; format() só em dev)
-     • Erro não tratado      → 500 (request.log.error em dev; reportError() em prod)
+9. Global setErrorHandler (app.ts):
+     • ZodError              → 400 + issues (trimmed in production; full in dev)
+     • Unhandled error       → 500 (request.log.error in dev; reportError() in prod)
 ```
 
-### 4.2 Exemplo detalhado — `POST /sessions` (público)
+### 4.2 Detailed example — `POST /sessions` (public)
 
-1. **Rota** (`users/routes.ts`): `app.post('/sessions', authenticateController)` — sem hook de auth.
+1. **Route** (`users/routes.ts`): `app.post('/sessions', authenticateController)` — no auth hook.
 2. **Controller** (`authenticate-controller.ts`):
-   - Valida `{ email, password }` com Zod (`email()`, `min(6)`).
+   - Validates `{ email, password }` with Zod (`email()`, `min(6)`).
    - `makeAuthenticateUseCase()` → `AuthenticateUseCase` + `PrismaUsersRepository`.
 3. **Use-case** (`authenticate-use-case.ts`):
-   - `findByEmail` → se não existir, lança `InvalidCredentialsError`.
-   - `bcrypt.compare(password, hash)` → se não bater, mesmo erro genérico.
-4. **Emissão de tokens** (de volta no controller):
-   - `token` (access): payload `{ role, jti }`, `sub = user.id`, **expira em 4h**.
-   - `refreshToken`: payload `{ role, jti }`, `sub`, **expira em 7d**.
-   - cada token recebe um `jti` (`randomUUID()`) que habilita a revogação (denylist).
-   - `refreshToken` é gravado em **cookie** `httpOnly + secure + sameSite`.
-   - `token` (access) volta no **corpo** da resposta.
-5. **Erros**: `InvalidCredentialsError` → `401`; demais → re-lançados → `500`.
+   - `findByEmail` → if not found, throws `InvalidCredentialsError`.
+   - `bcrypt.compare(password, hash)` → if no match, same generic error.
+4. **Token emission** (back in the controller):
+   - `token` (access): payload `{ role, jti }`, `sub = user.id`, **expires in 4h**.
+   - `refreshToken`: payload `{ role, jti }`, `sub`, **expires in 7d**.
+   - each token receives a `jti` (`randomUUID()`) that enables revocation (denylist).
+   - `refreshToken` is written to an **httpOnly + secure + sameSite cookie**.
+   - `token` (access) is returned in the **response body**.
+5. **Errors**: `InvalidCredentialsError` → `401`; others → re-thrown → `500`.
 
-### 4.3 Exemplo detalhado — `POST /gyms/:gymId/check-ins` (protegido)
+### 4.3 Detailed example — `POST /gyms/:gymId/check-ins` (protected)
 
-1. **Rota** (`check-ins/routes.ts`): grupo inteiro tem `app.addHook('onRequest', verifyJwtMiddleware)`.
-2. **`verifyJwtMiddleware`**: `request.jwtVerify()` valida o Bearer token; popula `request.user = { sub, role }`. Falha → `401`.
+1. **Route** (`check-ins/routes.ts`): the entire group has `app.addHook('onRequest', verifyJwtMiddleware)`.
+2. **`verifyJwtMiddleware`**: `request.jwtVerify()` validates the Bearer token; populates `request.user = { sub, role }`. Failure → `401`.
 3. **Controller** (`check-in-controller.ts`):
-   - Lê `userId = request.user.sub` (vem do token, **não** do cliente).
-   - Valida `gymId` (uuid) nos params e `latitude/longitude` no body.
-4. **Use-case** (`check-in-use-case.ts`) aplica as regras de negócio:
-   - Academia existe? senão `ResourceNotFoundError`.
-   - Usuário está a ≤ **100 m** da academia (haversine)? senão `MaxDistanceError`.
-   - Já existe check-in **no mesmo dia**? então `MaxCheckInsReachedError`.
-   - Caso ok → cria o check-in.
-5. Resposta `201` com o check-in criado.
+   - Reads `userId = request.user.sub` (from the token, **not** from the client).
+   - Validates `gymId` (uuid) in params and `latitude/longitude` in the body.
+4. **Use-case** (`check-in-use-case.ts`) applies the business rules:
+   - Does the gym exist? Otherwise `ResourceNotFoundError`.
+   - Is the user within ≤ **100 m** of the gym (haversine)? Otherwise `MaxDistanceError`.
+   - Is there already a check-in **on the same day**? Then `MaxCheckInsReachedError`.
+   - If all ok → creates the check-in.
+5. Response `201` with the created check-in.
 
 ---
 
-## 5. Modelo de Segurança
+## 5. Security Model
 
-### 5.1 Autenticação (quem é o usuário)
+### 5.1 Authentication (who is the user)
 
-- **JWT stateless** via `@fastify/jwt`. Segredo em `JWT_SECRET` (mín. 20 chars,
-  validado no boot pelo Zod).
-- **Access token**: 4h, enviado no header `Authorization: Bearer <token>`.
-- **Refresh token**: 7d, em **cookie** `httpOnly`, `secure`, `sameSite`,
-  `signed:false` (é um JWT, já autovalidável).
-- `request.jwtVerify()` decodifica e valida assinatura/expiração; o payload
-  tipado (`@types/fastify-jwt.d.ts`) garante `request.user = { sub, role }`.
-- **`PATCH /token/refresh`**: usa `jwtVerify({ onlyCookie: true })` e **rotaciona**
-  ambos os tokens (emite novos access + refresh).
-- **`jti` + denylist**: todo token carrega um `jti`. **`POST /logout`** registra o
-  `jti` atual na denylist (até o `exp`) e limpa o cookie; o `verifyJwtMiddleware`
-  rejeita (`401`) qualquer token revogado. Detalhes na §5.5.
+- **Stateless JWT** via `@fastify/jwt`. Secret in `JWT_SECRET` (min 20 chars,
+  validated on boot by Zod).
+- **Access token**: 4h, sent in the `Authorization: Bearer <token>` header.
+- **Refresh token**: 7d, in an **httpOnly**, `secure`, `sameSite` **cookie**,
+  `signed:false` (it's a JWT, already self-validating).
+- `request.jwtVerify()` decodes and validates signature/expiration; the typed
+  payload (`@types/fastify-jwt.d.ts`) ensures `request.user = { sub, role }`.
+- **`PATCH /token/refresh`**: uses `jwtVerify({ onlyCookie: true })` and
+  **rotates** both tokens (issues new access + refresh).
+- **`jti` + denylist**: every token carries a `jti`. **`POST /logout`** registers
+  the current `jti` in the denylist (until `exp`) and clears the cookie;
+  `verifyJwtMiddleware` rejects (`401`) any revoked token. Details in §5.5.
 
-### 5.2 Autorização (o que o usuário pode fazer) — RBAC
+### 5.2 Authorization (what the user can do) — RBAC
 
-- Papéis no enum `Role`: `MEMBER` (padrão) e `ADMIN`.
-- `verifyUserRole(role)` é um *middleware factory* que compara `request.user.role`
-  com o papel exigido. Usado nas rotas administrativas.
-- **Por que `403` e não `401`:** o usuário está **autenticado** (token válido), mas
-  **sem permissão** → `403 Forbidden`. O `401 Unauthorized` fica reservado para
-  falha de **autenticação** (token ausente/inválido/revogado). Misturar os dois
-  mascara a causa real do erro para o cliente.
+- Roles in the `Role` enum: `MEMBER` (default) and `ADMIN`.
+- `verifyUserRole(role)` is a *middleware factory* that compares `request.user.role`
+  with the required role. Used on administrative routes.
+- **Why `403` and not `401`:** the user is **authenticated** (valid token), but
+  **has no permission** → `403 Forbidden`. `401 Unauthorized` is reserved for
+  **authentication** failures (missing/invalid/revoked token). Mixing them masks
+  the real cause of the error for the client.
 
-### 5.3 Mapa de rotas × proteção
+### 5.3 Route × protection map
 
-| Método | Rota | Auth (JWT) | Papel exigido | Observação |
-|--------|------|:---------:|:-------------:|------------|
-| GET | `/hello` | ❌ | — | health/teste |
-| POST | `/users` | ❌ | — | registro (público) |
+| Method | Route | Auth (JWT) | Required role | Notes |
+|--------|-------|:---------:|:-------------:|-------|
+| GET | `/hello` | ❌ | — | health/test |
+| POST | `/users` | ❌ | — | registration (public) |
 | POST | `/sessions` | ❌ | — | login |
-| PATCH | `/token/refresh` | cookie | — | rotação de token |
-| GET | `/me` | ✅ | — | perfil próprio |
-| POST | `/logout` | ✅ | — | revoga o token atual (denylist) + limpa cookie |
-| GET | `/gyms/search` | ✅ | — | busca por nome |
-| GET | `/gyms/nearby` | ✅ | — | busca por proximidade |
-| POST | `/gyms` | ✅ | **ADMIN** | cadastrar academia |
-| GET | `/check-ins/history` | ✅ | — | histórico próprio |
-| GET | `/check-ins/metrics` | ✅ | — | total próprio |
-| POST | `/gyms/:gymId/check-ins` | ✅ | — | fazer check-in |
-| PATCH | `/check-ins/:checkInId/validate` | ✅ | **ADMIN** | validar check-in |
+| PATCH | `/token/refresh` | cookie | — | token rotation |
+| GET | `/me` | ✅ | — | own profile |
+| POST | `/logout` | ✅ | — | revokes current token (denylist) + clears cookie |
+| GET | `/gyms/search` | ✅ | — | search by name |
+| GET | `/gyms/nearby` | ✅ | — | search by proximity |
+| POST | `/gyms` | ✅ | **ADMIN** | create a gym |
+| GET | `/check-ins/history` | ✅ | — | own history |
+| GET | `/check-ins/metrics` | ✅ | — | own total |
+| POST | `/gyms/:gymId/check-ins` | ✅ | — | check in |
+| PATCH | `/check-ins/:checkInId/validate` | ✅ | **ADMIN** | validate check-in |
 
-> Padrão para proteger um grupo: `app.addHook('onRequest', verifyJwtMiddleware)`
-> no início da função de rotas. Para exigir papel: adicionar
-> `{ onRequest: [verifyUserRole(Role.ADMIN)] }` na rota específica.
+> Pattern to protect a group: `app.addHook('onRequest', verifyJwtMiddleware)`
+> at the start of the routes function. To require a role: add
+> `{ onRequest: [verifyUserRole(Role.ADMIN)] }` to the specific route.
 
-### 5.4 Outras defesas presentes
+### 5.4 Other defenses in place
 
-- **Helmet** (headers de segurança) registrado globalmente.
-- **bcrypt 12 rounds** para hash de senha.
-- **SQL Injection mitigado**: o ORM parametriza tudo; a única query `$queryRaw`
-  (`findManyNearby`) usa `Prisma.sql` com interpolação **parametrizada** (`${...}`),
-  não concatenação de string.
-- **Validação de entrada** com Zod em todo controller (body/params/query).
-- **Erros de credencial genéricos** (`InvalidCredentialsError`) — não revelam se o
-  e-mail existe.
-- **`userId` sempre derivado do token** (`request.user.sub`), nunca do corpo da
-  requisição → previne IDOR/spoofing de identidade.
-- **Cookie `httpOnly`** → token de refresh não acessível via JavaScript (anti-XSS).
-- **Rate limiting** (`@fastify/rate-limit`): limite global por IP (100/min) +
-  limite estrito (5/min) em `/users` e `/sessions` via `strictAuthLimit` → mitiga
-  brute-force de senha e abuso de cadastro/enumeração.
-- **CORS por ambiente** (`@fastify/cors`) com `credentials:true` (necessário para
-  o cookie de refresh). Em produção a origem vem de `CORS_ORIGIN` (allow-list); em
-  dev é liberado. Nunca `origin:'*'` junto de credenciais.
-- **Tempo de login uniforme (anti-enumeração):** o login **sempre** roda
-  `bcrypt.compare` — contra um `DUMMY_HASH` fixo quando o e-mail não existe — para
-  que o tempo de resposta não revele se a conta existe.
-- **Política de senha configurável:** registro com
-  `min(PASSWORD_MIN_LENGTH).max(72)` (72 = limite do bcrypt; evita DoS por string
-  gigante). A senha do ADMIN exige complexidade (≥10, maiúscula, minúscula, número
-  e especial).
-- **`bodyLimit` configurável** (`BODY_LIMIT`, default 16 KB) limita o tamanho do
-  corpo da request.
+- **Helmet** (security headers) registered globally.
+- **bcrypt 12 rounds** for password hashing.
+- **SQL Injection mitigated**: the ORM parametrizes everything; the only
+  `$queryRaw` query (`findManyNearby`) uses `Prisma.sql` with **parametrized**
+  interpolation (`${...}`), not string concatenation.
+- **Input validation** with Zod on every controller (body/params/query).
+- **Generic credential errors** (`InvalidCredentialsError`) — do not reveal
+  whether the email exists.
+- **`userId` always derived from the token** (`request.user.sub`), never from
+  the request body → prevents IDOR/identity spoofing.
+- **`httpOnly` cookie** → refresh token not accessible via JavaScript (anti-XSS).
+- **Rate limiting** (`@fastify/rate-limit`): global per-IP limit (100/min) +
+  strict limit (5/min) on `/users` and `/sessions` via `strictAuthLimit` →
+  mitigates password brute-force and registration/enumeration abuse.
+- **Per-environment CORS** (`@fastify/cors`) with `credentials:true` (required
+  for the refresh cookie). In production the origin comes from `CORS_ORIGIN`
+  (allow-list); in dev it is open. Never `origin:'*'` together with credentials.
+- **Uniform login timing (anti-enumeration):** login **always** runs
+  `bcrypt.compare` — against a fixed `DUMMY_HASH` when the email does not exist —
+  so response time does not reveal whether the account exists.
+- **Configurable password policy:** registration with
+  `min(PASSWORD_MIN_LENGTH).max(72)` (72 = bcrypt limit; prevents DoS via giant
+  strings). The ADMIN password requires complexity (≥10, upper, lower, digit
+  and special).
+- **Configurable `bodyLimit`** (`BODY_LIMIT`, default 16 KB) limits the request
+  body size.
 
-### 5.5 Revogação de token (denylist híbrida)
+### 5.5 Token revocation (hybrid denylist)
 
-- **Contrato assíncrono** (`i-token-denylist.ts`: `isRevoked`, `revoke`, `load`) —
-  deixado `async` de propósito para trocar a implementação por **Redis** sem tocar
-  no middleware.
-- **Implementação híbrida (RAM + DB), sem Redis:** leitura (`isRevoked`) só na RAM
-  (~0 custo no hot path de toda request); `revoke` faz INSERT no banco **e**
-  atualiza o `Map`; `load()` aquece a RAM a partir do banco no boot.
-- **Limpeza periódica** (`setInterval(...).unref()`) remove entradas expiradas da
-  RAM e do banco, mantendo a denylist limitada.
-- **Fluxo:** `POST /logout` → `revoke(jti, exp)` → requests seguintes com aquele
-  token são rejeitadas (`401`) no `verifyJwtMiddleware`.
+- **Async contract** (`i-token-denylist.ts`: `isRevoked`, `revoke`, `load`) —
+  intentionally `async` to allow swapping the implementation for **Redis** without
+  touching the middleware.
+- **Hybrid implementation (RAM + DB), no Redis:** reads (`isRevoked`) only in RAM
+  (~0 cost on every request's hot path); `revoke` does an INSERT in the DB **and**
+  updates the `Map`; `load()` warms RAM from the DB on boot.
+- **Periodic cleanup** (`setInterval(...).unref()`) removes expired entries from
+  RAM and the DB, keeping the denylist bounded.
+- **Flow:** `POST /logout` → `revoke(jti, exp)` → subsequent requests with that
+  token are rejected (`401`) in `verifyJwtMiddleware`.
 
 ---
 
-## 6. Camada de Dados
+## 6. Data Layer
 
-### 6.1 Conexão (`src/lib/prisma.ts`)
+### 6.1 Connection (`src/lib/prisma.ts`)
 
-- `PrismaClient` único (singleton de módulo) com **driver adapter** MySQL
+- Single `PrismaClient` (module singleton) with MySQL **driver adapter**
   (`@prisma/adapter-mariadb`), `connectionLimit: 5`.
-- A URL é lida de `process.env.DATABASE_URL` **em tempo de chamada** (`createAdapter()`),
-  o que evita problemas de ordem de carregamento de env em workers de teste.
-- `log: ['query']` apenas em `development`.
+- The URL is read from `process.env.DATABASE_URL` **at call time** (`createAdapter()`),
+  which avoids env loading order issues in test workers.
+- `log: ['query']` only in `development`.
 
-### 6.2 Prisma 7 — pontos de atenção
+### 6.2 Prisma 7 — key notes
 
-- O schema **não** contém `url` no `datasource`; a URL vem do `prisma.config.ts`
-  (que faz `import 'dotenv/config'` e usa `env('DATABASE_URL')`).
-- O cliente é gerado em `src/prisma-client/` (output custom).
-- ⚠️ **`prisma generate` apaga `src/prisma-client/index.ts`.** É preciso recriá-lo
-  com `export * from './client.js'` após cada geração (barrel manual).
+- The schema does **not** contain `url` in the `datasource`; the URL comes from
+  `prisma.config.ts` (which does `import 'dotenv/config'` and uses
+  `env('DATABASE_URL')`).
+- The client is generated in `src/prisma-client/` (custom output).
+- ⚠️ **`prisma generate` deletes `src/prisma-client/index.ts`.** It must be
+  recreated with `export * from './client.js'` after each generation (manual
+  barrel).
 
-### 6.3 Modelos
+### 6.3 Models
 
-- `User` (id uuid, email único, password_hash, role, created_at) 1—N `CheckIn`.
+- `User` (id uuid, unique email, password_hash, role, created_at) 1—N `CheckIn`.
 - `Gym` (id uuid, title, latitude/longitude decimal) 1—N `CheckIn`.
-- `CheckIn` (created_at, validated_at?) N—1 `User` e N—1 `Gym`.
-- `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — denylist persistida
-  (tabela `revoked_tokens`).
+- `CheckIn` (created_at, validated_at?) N—1 `User` and N—1 `Gym`.
+- `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — persisted denylist
+  (table `revoked_tokens`).
 
-### 6.4 Paginação
+### 6.4 Pagination
 
-- Tamanho fixo `PAGE_SIZE = 20`, via `take`/`skip` (`(page-1)*PAGE_SIZE`).
-- `findManyNearby` usa `ORDER BY distance ASC` (MySQL não garante ordem de inserção).
+- Fixed size `PAGE_SIZE = 20`, via `take`/`skip` (`(page-1)*PAGE_SIZE`).
+- `findManyNearby` uses `ORDER BY distance ASC` (MySQL does not guarantee
+  insertion order).
 
-### 6.5 Seed controlado de ADMIN
+### 6.5 Controlled ADMIN seed
 
-- `prisma/seed-adm-role.ts`: `upsert` **idempotente** do usuário `ADMIN`
-  (`update: {}` → nunca reseta a senha de um admin já existente).
-- Credenciais **só via env** (`ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
-  validadas no Zod global (fail-fast); senha com bcrypt 12 rounds.
-- Registrado em `prisma.config.ts` (`migrations.seed`) e no script
-  `pnpm seed-adm-role` (`prisma db seed`). O `migrate deploy` usado nos testes
-  **não** dispara o seed.
+- `prisma/seed-adm-role.ts`: **idempotent** `upsert` of the `ADMIN` user
+  (`update: {}` → never resets the password of an already existing admin).
+- Credentials **only via env** (`ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
+  validated by global Zod (fail-fast); password with bcrypt 12 rounds.
+- Registered in `prisma.config.ts` (`migrations.seed`) and in the
+  `pnpm seed-adm-role` script (`prisma db seed`). The `migrate deploy` used in
+  tests does **not** trigger the seed.
 
 ---
 
-## 7. Testes
+## 7. Tests
 
-- **Unitários** (`*.spec.ts` em `use-cases/`): usam repositórios **in-memory** →
-  rápidos, sem banco. Validam regras de negócio isoladamente.
-- **E2E** (`*.spec.ts` em `http/controllers/`): sobem o app real + MySQL.
-  Cada arquivo cria um **banco isolado** (`test_<UUID>`) via
-  `prisma/vitest-environment/prisma-test-environment.ts`, roda
-  `prisma migrate deploy` e dropa o banco no teardown.
-  - ⚠️ O environment de teste precisa de `import 'dotenv/config'` no topo, pois o
-    Vite não injeta `.env` nos workers forkados.
-- Config Vitest usa `projects:` (`unit` e `e2e`) — comandos: `pnpm test` e
-  `pnpm test:e2e`.
+- **Unit** (`*.spec.ts` in `use-cases/`): use **in-memory** repositories →
+  fast, no database. Validate business rules in isolation.
+- **E2E** (`*.spec.ts` in `http/controllers/`): start the real app + MySQL.
+  Each file creates an **isolated database** (`test_<UUID>`) via
+  `prisma/vitest-environment/prisma-test-environment.ts`, runs
+  `prisma migrate deploy`, and drops the database on teardown.
+  - ⚠️ The test environment needs `import 'dotenv/config'` at the top, because
+    Vite does not inject `.env` in forked workers.
+- Vitest config uses `projects:` (`unit` and `e2e`) — commands: `pnpm test`
+  and `pnpm test:e2e`.
 
 ---
 
 ## 8. CI/CD (GitHub Actions)
 
-- **`run-unit-tests.yml`**: em todo `push`. Node 24 + pnpm (sem `version:` no
-  `action-setup`, herda de `packageManager` no `package.json`) → `pnpm test`.
-- **`run-e2e-tests.yml`**: em `pull_request`. Sobe service container MySQL 8 com
-  healthcheck → `pnpm test:e2e`.
-- **Branch `master` protegida** por ruleset: bloqueia deleção e force-push, exige
-  PR e status checks (`Execute Unit Tests` + `Execute E2E Tests`) verdes.
+- **`run-unit-tests.yml`**: on every `push`. Node 24 + pnpm (no `version:` in
+  `action-setup`, inherits from `packageManager` in `package.json`) → `pnpm test`.
+- **`run-e2e-tests.yml`**: on `pull_request`. Starts a MySQL 8 service container
+  with healthcheck → `pnpm test:e2e`.
+- **`master` branch protected** by ruleset: blocks deletion and force-push,
+  requires PR and green status checks (`Execute Unit Tests` + `Execute E2E Tests`).
 
-> O `JWT_SECRET` do workflow e2e vem de **GitHub Secrets**
-> (`${{ secrets.JWT_SECRET }}`) — cadastre o secret no repositório. Em produção,
-> injete o segredo via cofre (Vault/Secrets Manager), nunca versionado.
+> The `JWT_SECRET` for the e2e workflow comes from **GitHub Secrets**
+> (`${{ secrets.JWT_SECRET }}`) — register the secret in the repository. In
+> production, inject the secret via a vault (Vault/Secrets Manager), never
+> versioned.
 
 ---
 
-## 9. Operação & Observabilidade
+## 9. Operations & Observability
 
-### 9.1 Configuração via ambiente (fail-fast)
+### 9.1 Environment-based configuration (fail-fast)
 
-Tudo que muda entre ambientes é **env validado no boot** (`src/env/index.ts`); o
-app **não sobe** com config inválida. Variáveis: `NODE_ENV`, `PORT`, `JWT_SECRET`
-(≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `BODY_LIMIT`, `LOG_LEVEL`,
-`ADMIN_NAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Toda nova env entra também no
-`.env.example`** (com comentário explicando formato/exemplo).
+Everything that changes between environments is an **env var validated on boot**
+(`src/env/index.ts`); the app **does not start** with invalid config. Variables:
+`NODE_ENV`, `PORT`, `JWT_SECRET` (≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`,
+`BODY_LIMIT`, `LOG_LEVEL`, `ADMIN_NAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Every
+new env var must also be added to `.env.example`** (with a comment explaining
+format/example).
 
-### 9.2 Logs (pino) e seam de erro
+### 9.2 Logs (pino) and error seam
 
-- Logger do Fastify (**pino**): JSON estruturado em produção (nível via
-  `LOG_LEVEL`), `pino-pretty` em desenvolvimento e **desligado em teste** (evita
-  ruído e handles abertos).
-- **`reportError()`** (`src/lib/report-error.ts`) é a **porta única** de report de
-  erro: hoje loga via pino; troque o corpo por Sentry/Datadog/etc. sem mexer nos
-  call sites. O `setErrorHandler` chama `reportError(error)` no ramo de produção.
+- Fastify logger (**pino**): structured JSON in production (level via `LOG_LEVEL`),
+  `pino-pretty` in development, and **disabled in test** (avoids noise and open
+  handles).
+- **`reportError()`** (`src/lib/report-error.ts`) is the **single error report
+  port**: today it logs via pino; replace the body with Sentry/Datadog/etc. without
+  touching call sites. The `setErrorHandler` calls `reportError(error)` on the
+  production branch.
 
 ### 9.3 Graceful shutdown
 
-- `app.addHook('onClose', …)` desconecta o Prisma ao fechar o app.
-- `server.ts` trata `SIGTERM`/`SIGINT` → `app.close()` (drena requests) → `exit(0)`,
-  com **timeout de 10s** (`setTimeout(...).unref()`) que força a saída se travar.
+- `app.addHook('onClose', …)` disconnects Prisma when the app closes.
+- `server.ts` handles `SIGTERM`/`SIGINT` → `app.close()` (drains requests) →
+  `exit(0)`, with a **10s timeout** (`setTimeout(...).unref()`) that forces exit
+  if stuck.
 
 ---
 
-## 10. Como Replicar a Arquitetura (passo a passo para um novo recurso)
+## 10. Replicating the Architecture (step by step for a new resource)
 
-Para adicionar um recurso novo (ex.: `Plan`):
+To add a new resource (e.g. `Plan`):
 
-1. **Modelo** no `schema.prisma` → `prisma migrate dev` → recriar barrel
+1. **Model** in `schema.prisma` → `prisma migrate dev` → recreate barrel
    `src/prisma-client/index.ts`.
-2. **Interface** do repositório: `repositories/i-plans-repository.ts`.
-3. **Implementações**: `repositories/prisma/prisma-plans-repository.ts` e
+2. **Repository interface**: `repositories/i-plans-repository.ts`.
+3. **Implementations**: `repositories/prisma/prisma-plans-repository.ts` and
    `repositories/in-memory/in-memory-plans-repository.ts`.
-4. **Use-case**: `use-cases/create-plan-use-case.ts` (recebe a interface no
-   construtor; lança erros de domínio de `use-cases/errors/`).
-5. **Teste unitário**: `use-cases/create-plan-use-case.spec.ts` usando o repo
-   in-memory.
+4. **Use-case**: `use-cases/create-plan-use-case.ts` (receives the interface in
+   the constructor; throws domain errors from `use-cases/errors/`).
+5. **Unit test**: `use-cases/create-plan-use-case.spec.ts` using the in-memory repo.
 6. **Factory**: `use-cases/factories/make-create-plan-use-case.ts`.
-7. **Controller**: `http/controllers/plans/create-controller.ts` (valida com Zod,
-   chama a factory, traduz erros → HTTP).
-8. **Rotas**: `http/controllers/plans/routes.ts` (aplique `verifyJwtMiddleware`
-   e/ou `verifyUserRole` conforme a necessidade).
-9. **Registrar** as rotas em `app.ts` (`app.register(plansRoutes)`).
-10. **Teste E2E**: `http/controllers/plans/create-controller.spec.ts`.
+7. **Controller**: `http/controllers/plans/create-controller.ts` (validates with
+   Zod, calls the factory, maps errors → HTTP).
+8. **Routes**: `http/controllers/plans/routes.ts` (apply `verifyJwtMiddleware`
+   and/or `verifyUserRole` as needed).
+9. **Register** the routes in `app.ts` (`app.register(plansRoutes)`).
+10. **E2E test**: `http/controllers/plans/create-controller.spec.ts`.
 
-**Regra de ouro:** controllers nunca falam com Prisma; use-cases nunca falam com
-HTTP; dependências sempre via **interface** + injeção pela factory.
+**Golden rule:** controllers never talk to Prisma; use-cases never talk to HTTP;
+dependencies always via **interface** + injection through the factory.
 
 ---
 
-## 11. Pontos Fortes (manter no padrão)
+## 11. Key Strengths (preserve these patterns)
 
-- Camadas bem separadas e testáveis; DIP via interfaces + factories.
-- `userId` sempre derivado do token (anti-IDOR).
-- Raw SQL parametrizado (sem injeção).
-- bcrypt 12 rounds; cookie `httpOnly`/`secure`/`sameSite`.
-- Env validado no boot (fail-fast) e tudo configurável por `.env`.
-- Rate limit (global + auth), CORS por ambiente, headers via Helmet, `bodyLimit`.
-- Login com tempo uniforme (anti-enumeração) e revogação de token (denylist).
-- Autorização com `403` correto; respostas **sem** `password_hash`.
-- Logger estruturado (pino) + seam `reportError()`; graceful shutdown.
-- Seed idempotente de ADMIN via env.
-- Testes unitários + E2E com banco isolado por arquivo; CI com branch protegida.
+- Well-separated, testable layers; DIP via interfaces + factories.
+- `userId` always derived from the token (anti-IDOR).
+- Parametrized raw SQL (no injection).
+- bcrypt 12 rounds; `httpOnly`/`secure`/`sameSite` cookie.
+- Env validated on boot (fail-fast) and everything configurable via `.env`.
+- Rate limit (global + auth), per-environment CORS, Helmet headers, `bodyLimit`.
+- Uniform login timing (anti-enumeration) and token revocation (denylist).
+- Correct `403` authorization; responses **without** `password_hash`.
+- Structured logger (pino) + `reportError()` seam; graceful shutdown.
+- Idempotent ADMIN seed via env.
+- Unit + E2E tests with isolated database per file; CI with protected branch.
