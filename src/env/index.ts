@@ -17,6 +17,9 @@ const envSchema = z.object({
 	// Under-pressure thresholds.
 	MAX_EVENT_LOOP_DELAY: z.coerce.number().optional().default(1000),
 	MAX_HEAP_USED_BYTES: z.coerce.number().optional().default(209_715_200),
+	// Login lockout settings.
+	LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().optional().default(5),
+	LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().positive().optional().default(15),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
 	ADMIN_NAME: z.string().min(1).max(255),
 	ADMIN_EMAIL: z.email(),

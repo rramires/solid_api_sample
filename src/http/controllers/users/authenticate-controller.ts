@@ -3,7 +3,9 @@ import { randomUUID } from 'node:crypto'
 import { FastifyReply,FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
+import { env } from '@/env'
 import { InvalidCredentialsError } from '@/use-cases/errors/invalid-credentials-error'
+import { TooManyAttemptsError } from '@/use-cases/errors/too-many-attempts-error'
 import { makeAuthenticateUseCase } from '@/use-cases/factories/make-authenticate-use-case'
 
 export async function authenticateController(request: FastifyRequest, reply: FastifyReply) {
@@ -58,6 +60,13 @@ export async function authenticateController(request: FastifyRequest, reply: Fas
 			})
 		//
 	} catch (err) {
+		if (err instanceof TooManyAttemptsError) {
+			// 429 Too Many Requests
+			return reply.status(429).send({
+				message: err.message,
+				retryAfter: env.LOGIN_LOCKOUT_MINUTES * 60,
+			})
+		}
 		if (err instanceof InvalidCredentialsError) {
 			// 401 Unauthorized
 			return reply.status(401).send({ message: err.message })
