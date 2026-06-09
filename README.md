@@ -2,8 +2,8 @@
 
 GymPass style API built with SOLID principles.
 
-[![Unit Tests](https://github.com/rramires/gympass_solid_api/actions/workflows/run-unit-tests.yml/badge.svg)](https://github.com/rramires/gympass_solid_api/actions/workflows/run-unit-tests.yml)
-[![E2E Tests](https://github.com/rramires/gympass_solid_api/actions/workflows/run-e2e-tests.yml/badge.svg)](https://github.com/rramires/gympass_solid_api/actions/workflows/run-e2e-tests.yml)
+[![Unit Tests](https://github.com/rramires/solid_api_sample/actions/workflows/run-unit-tests.yml/badge.svg)](https://github.com/rramires/solid_api_sample/actions/workflows/run-unit-tests.yml)
+[![E2E Tests](https://github.com/rramires/solid_api_sample/actions/workflows/run-e2e-tests.yml/badge.svg)](https://github.com/rramires/solid_api_sample/actions/workflows/run-e2e-tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Stack:** Node.js · Fastify · TypeScript 6 · Prisma 7 · MySQL · Vitest
@@ -38,56 +38,56 @@ pnpm dev              # start dev server
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start dev server with hot-reload |
-| `pnpm build` | Production build (tsup) |
-| `pnpm start` | Run production build |
-| `pnpm migrate` | Run/create Prisma migrations |
+| Command              | Description                      |
+| -------------------- | -------------------------------- |
+| `pnpm dev`           | Start dev server with hot-reload |
+| `pnpm build`         | Production build (tsup)          |
+| `pnpm start`         | Run production build             |
+| `pnpm migrate`       | Run/create Prisma migrations     |
 | `pnpm seed-adm-role` | Seed the ADMIN user (idempotent) |
-| `pnpm test` | Unit tests |
-| `pnpm test:e2e` | E2E tests (requires MySQL) |
-| `pnpm lint` | Run ESLint |
-| `pnpm lint:fix` | Fix lint errors |
-| `pnpm compile` | TypeScript type-check |
-| `pnpm showdb` | Open Prisma Studio (port 5555) |
+| `pnpm test`          | Unit tests                       |
+| `pnpm test:e2e`      | E2E tests (requires MySQL)       |
+| `pnpm lint`          | Run ESLint                       |
+| `pnpm lint:fix`      | Fix lint errors                  |
+| `pnpm compile`       | TypeScript type-check            |
+| `pnpm showdb`        | Open Prisma Studio (port 5555)   |
 
 ## Environment variables
 
 Copy `.env.example` to `.env` and fill in the values. The app **fails fast** at
 boot if any variable is invalid (Zod validation in `src/env`).
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `NODE_ENV` | yes | – | `development` \| `test` \| `production` |
-| `PORT` | no | `3333` | HTTP port |
-| `JWT_SECRET` | yes | – | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod) |
-| `DATABASE_URL` | yes | – | e.g. `mysql://root:docker123@localhost:3306/gympass-db` |
-| `CORS_ORIGIN` | no | – | Comma-separated allowed origins (production only) |
-| `PASSWORD_MIN_LENGTH` | no | `8` | Minimum registration password length (8–72) |
-| `BODY_LIMIT` | no | `16384` | Max request body size, in bytes |
-| `LOG_LEVEL` | no | `info` | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent` |
-| `ADMIN_NAME` | yes | – | Seed ADMIN display name |
-| `ADMIN_EMAIL` | yes | – | Seed ADMIN email (login) |
-| `ADMIN_PASSWORD` | yes | – | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
+| Variable              | Required | Default | Description                                                                                  |
+| --------------------- | -------- | ------- | -------------------------------------------------------------------------------------------- |
+| `NODE_ENV`            | yes      | –       | `development` \| `test` \| `production`                                                      |
+| `PORT`                | no       | `3333`  | HTTP port                                                                                    |
+| `JWT_SECRET`          | yes      | –       | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod)                       |
+| `DATABASE_URL`        | yes      | –       | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                      |
+| `CORS_ORIGIN`         | no       | –       | Comma-separated allowed origins (production only)                                            |
+| `PASSWORD_MIN_LENGTH` | no       | `8`     | Minimum registration password length (8–72)                                                  |
+| `BODY_LIMIT`          | no       | `16384` | Max request body size, in bytes                                                              |
+| `LOG_LEVEL`           | no       | `info`  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                     |
+| `ADMIN_NAME`          | yes      | –       | Seed ADMIN display name                                                                      |
+| `ADMIN_EMAIL`         | yes      | –       | Seed ADMIN email (login)                                                                     |
+| `ADMIN_PASSWORD`      | yes      | –       | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
 
 ## API routes
 
-| Method | Route | Auth | Role | Description |
-|--------|-------|------|------|-------------|
-| `GET` | `/hello` | – | – | Healthcheck |
-| `POST` | `/users` | – | – | Register a user (rate-limited) |
-| `POST` | `/sessions` | – | – | Login → access token + refresh cookie (rate-limited) |
-| `PATCH` | `/token/refresh` | refresh cookie | – | Rotate the access token |
-| `GET` | `/me` | Bearer | – | Authenticated user profile |
-| `POST` | `/logout` | Bearer | – | Revoke the current token (denylist) |
-| `GET` | `/gyms/search` | Bearer | – | Search gyms by title |
-| `GET` | `/gyms/nearby` | Bearer | – | Gyms near a coordinate |
-| `POST` | `/gyms` | Bearer | `ADMIN` | Create a gym |
-| `GET` | `/check-ins/history` | Bearer | – | Paginated check-in history |
-| `GET` | `/check-ins/metrics` | Bearer | – | Total check-ins count |
-| `POST` | `/gyms/:gymId/check-ins` | Bearer | – | Create a check-in |
-| `PATCH` | `/check-ins/:checkInId/validate` | Bearer | `ADMIN` | Validate a check-in |
+| Method  | Route                            | Auth           | Role    | Description                                          |
+| ------- | -------------------------------- | -------------- | ------- | ---------------------------------------------------- |
+| `GET`   | `/hello`                         | –              | –       | Healthcheck                                          |
+| `POST`  | `/users`                         | –              | –       | Register a user (rate-limited)                       |
+| `POST`  | `/sessions`                      | –              | –       | Login → access token + refresh cookie (rate-limited) |
+| `PATCH` | `/token/refresh`                 | refresh cookie | –       | Rotate the access token                              |
+| `GET`   | `/me`                            | Bearer         | –       | Authenticated user profile                           |
+| `POST`  | `/logout`                        | Bearer         | –       | Revoke the current token (denylist)                  |
+| `GET`   | `/gyms/search`                   | Bearer         | –       | Search gyms by title                                 |
+| `GET`   | `/gyms/nearby`                   | Bearer         | –       | Gyms near a coordinate                               |
+| `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Create a gym                                         |
+| `GET`   | `/check-ins/history`             | Bearer         | –       | Paginated check-in history                           |
+| `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total check-ins count                                |
+| `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Create a check-in                                    |
+| `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validate a check-in                                  |
 
 > The `role` (`MEMBER` \| `ADMIN`) is embedded in the JWT at login time.
 > Promoting a user does **not** affect tokens already issued — a new login is

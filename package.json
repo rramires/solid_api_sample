@@ -27,15 +27,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rramires/gympass_solid_api.git"
+    "url": "git+https://github.com/rramires/solid_api_sample.git"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/rramires/gympass_solid_api/issues"
+    "url": "https://github.com/rramires/solid_api_sample/issues"
   },
-  "homepage": "https://github.com/rramires/gympass_solid_api#readme",
+  "homepage": "https://github.com/rramires/solid_api_sample#readme",
   "packageManager": "pnpm@11.5.2",
   "dependencies": {
     "@fastify/cookie": "11.0.2",
