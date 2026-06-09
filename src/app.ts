@@ -1,6 +1,7 @@
 import fastifyCookie from '@fastify/cookie'
 import fastifyHelmet from '@fastify/helmet'
 import fastifyJwt from '@fastify/jwt'
+import fastifyRateLimit from '@fastify/rate-limit'
 import fastify from 'fastify'
 import { ZodError } from 'zod'
 
@@ -12,6 +13,11 @@ import { usersRoutes } from './http/controllers/users/routes'
 export const app = fastify()
 // Security headers
 app.register(fastifyHelmet)
+// Global rate limit per IP. For multi-instance, swap the store for Redis later.
+app.register(fastifyRateLimit, {
+	max: 100,
+	timeWindow: '1 minute',
+})
 // JWT
 app.register(fastifyJwt, {
 	secret: env.JWT_SECRET,

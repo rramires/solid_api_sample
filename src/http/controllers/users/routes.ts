@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 
+import { strictAuthLimit } from '@/http/middlewares/rate-limit'
 import { verifyJwtMiddleware } from '@/http/middlewares/verify-jwt-middleware'
 
 import { authenticateController } from './authenticate-controller'
@@ -14,8 +15,12 @@ export async function usersRoutes(app: FastifyInstance) {
 	 */
 	app.get('/hello', helloController)
 	//
-	app.post('/users', registerController)
-	app.post('/sessions', authenticateController)
+	app.post('/users', { onRequest: [strictAuthLimit(app)] }, registerController)
+	app.post(
+		'/sessions',
+		{ onRequest: [strictAuthLimit(app)] },
+		authenticateController,
+	)
 	//
 	app.patch('/token/refresh', refreshController)
 	/**
