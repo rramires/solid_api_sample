@@ -55,19 +55,19 @@ pnpm dev              # inicia o servidor em modo dev
 
 ## Scripts
 
-| Comando              | Descrição                               |
-| -------------------- | --------------------------------------- |
-| `pnpm dev`           | Inicia o servidor dev com hot-reload    |
-| `pnpm build`         | Build de produção (tsup)                |
-| `pnpm start`         | Executa o build de produção             |
-| `pnpm migrate`       | Cria/executa migrations do Prisma       |
-| `pnpm seed-adm-role` | Cria o usuário ADMIN (idempotente)      |
-| `pnpm test`          | Testes unitários                        |
-| `pnpm test:e2e`      | Testes e2e (requer MySQL)               |
-| `pnpm lint`          | Executa o ESLint                        |
-| `pnpm lint:fix`      | Corrige erros de lint                   |
-| `pnpm compile`       | Type-check do TypeScript                |
-| `pnpm showdb`        | Abre o Prisma Studio (porta 5555)       |
+| Comando              | Descrição                            |
+| -------------------- | ------------------------------------ |
+| `pnpm dev`           | Inicia o servidor dev com hot-reload |
+| `pnpm build`         | Build de produção (tsup)             |
+| `pnpm start`         | Executa o build de produção          |
+| `pnpm migrate`       | Cria/executa migrations do Prisma    |
+| `pnpm seed-adm-role` | Cria o usuário ADMIN (idempotente)   |
+| `pnpm test`          | Testes unitários                     |
+| `pnpm test:e2e`      | Testes e2e (requer MySQL)            |
+| `pnpm lint`          | Executa o ESLint                     |
+| `pnpm lint:fix`      | Corrige erros de lint                |
+| `pnpm compile`       | Type-check do TypeScript             |
+| `pnpm showdb`        | Abre o Prisma Studio (porta 5555)    |
 
 ## Variáveis de ambiente
 
@@ -75,49 +75,49 @@ Copie `.env.example` para `.env` e preencha os valores. A aplicação **falha
 imediatamente** no boot se alguma variável for inválida (validação Zod em
 `src/env`).
 
-| Variável              | Obrigatória | Padrão  | Descrição                                                                                           |
-| --------------------- | ----------- | ------- | --------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`            | sim         | –       | `development` \| `test` \| `production`                                                             |
-| `PORT`                | não         | `3333`  | Porta HTTP                                                                                          |
-| `JWT_SECRET`          | sim         | –       | Segredo de assinatura, mín. 20 chars (use GitHub Secrets / cofre em CI/produção)                    |
-| `DATABASE_URL`        | sim         | –       | ex. `mysql://root:docker123@localhost:3306/gympass-db`                                              |
-| `CORS_ORIGIN`         | não         | –       | Origens permitidas separadas por vírgula (somente produção)                                         |
-| `PASSWORD_MIN_LENGTH` | não         | `8`     | Tamanho mínimo de senha no cadastro (8–72)                                                          |
-| `BODY_LIMIT`          | não         | `16384` | Tamanho máximo do body da requisição, em bytes                                                      |
-| `LOG_LEVEL`           | não         | `info`  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                            |
-| `ADMIN_NAME`          | sim         | –       | Nome de exibição do ADMIN seed                                                                      |
-| `ADMIN_EMAIL`         | sim         | –       | Email do ADMIN (login)                                                                              |
-| `ADMIN_PASSWORD`      | sim         | –       | Senha do ADMIN: mín. 10 chars com maiúscula, minúscula, número e especial (ex. `Admin@12345`)       |
-| `TRUST_PROXY`                | não         | –                    | `false` \| `true` \| IP do proxy; ative atrás de Nginx/Cloudflare/ALB |
-| `MAX_EVENT_LOOP_DELAY`       | não         | `1000`               | Limiar de lag do event loop em ms antes de retornar 503              |
-| `MAX_HEAP_USED_BYTES`        | não         | `209715200`          | Limiar de heap em bytes antes de retornar 503 (padrão 200 MB)        |
-| `LOGIN_MAX_ATTEMPTS`         | não         | `5`                  | Tentativas falhas antes do bloqueio de conta                          |
-| `LOGIN_LOCKOUT_MINUTES`      | não         | `15`                 | Duração do bloqueio em minutos                                         |
-| `APP_URL`                    | não         | `http://localhost:3333` | URL pública usada nos e-mails de verificação                    |
-| `VERIFICATION_EXPIRES_HOURS` | não         | `24`                 | Validade do link/OTP de verificação em horas                          |
-| `REQUIRE_EMAIL_VERIFICATION` | não         | `false`              | Quando `true`, bloqueia usuários não verificados em rotas protegidas  |
+| Variável                     | Obrigatória | Padrão                  | Descrição                                                                                     |
+| ---------------------------- | ----------- | ----------------------- | --------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                   | sim         | –                       | `development` \| `test` \| `production`                                                       |
+| `PORT`                       | não         | `3333`                  | Porta HTTP                                                                                    |
+| `JWT_SECRET`                 | sim         | –                       | Segredo de assinatura, mín. 20 chars (use GitHub Secrets / cofre em CI/produção)              |
+| `DATABASE_URL`               | sim         | –                       | ex. `mysql://root:docker123@localhost:3306/gympass-db`                                        |
+| `CORS_ORIGIN`                | não         | –                       | Origens permitidas separadas por vírgula (somente produção)                                   |
+| `PASSWORD_MIN_LENGTH`        | não         | `8`                     | Tamanho mínimo de senha no cadastro (8–72)                                                    |
+| `BODY_LIMIT`                 | não         | `16384`                 | Tamanho máximo do body da requisição, em bytes                                                |
+| `LOG_LEVEL`                  | não         | `info`                  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                      |
+| `ADMIN_NAME`                 | sim         | –                       | Nome de exibição do ADMIN seed                                                                |
+| `ADMIN_EMAIL`                | sim         | –                       | Email do ADMIN (login)                                                                        |
+| `ADMIN_PASSWORD`             | sim         | –                       | Senha do ADMIN: mín. 10 chars com maiúscula, minúscula, número e especial (ex. `Admin@12345`) |
+| `TRUST_PROXY`                | não         | –                       | `false` \| `true` \| IP do proxy; ative atrás de Nginx/Cloudflare/ALB                         |
+| `MAX_EVENT_LOOP_DELAY`       | não         | `1000`                  | Limiar de lag do event loop em ms antes de retornar 503                                       |
+| `MAX_HEAP_USED_BYTES`        | não         | `209715200`             | Limiar de heap em bytes antes de retornar 503 (padrão 200 MB)                                 |
+| `LOGIN_MAX_ATTEMPTS`         | não         | `5`                     | Tentativas falhas antes do bloqueio de conta                                                  |
+| `LOGIN_LOCKOUT_MINUTES`      | não         | `15`                    | Duração do bloqueio em minutos                                                                |
+| `APP_URL`                    | não         | `http://localhost:3333` | URL pública usada nos e-mails de verificação                                                  |
+| `VERIFICATION_EXPIRES_HOURS` | não         | `24`                    | Validade do link/OTP de verificação em horas                                                  |
+| `REQUIRE_EMAIL_VERIFICATION` | não         | `false`                 | Quando `true`, bloqueia usuários não verificados em rotas protegidas                          |
 
 ## Rotas da API
 
-| Método  | Rota                             | Auth           | Papel   | Descrição                                              |
-| ------- | -------------------------------- | -------------- | ------- | ------------------------------------------------------ |
-| `GET`   | `/hello`                         | –              | –       | Healthcheck                                            |
-| `POST`  | `/users`                         | –              | –       | Cadastrar usuário (com rate limit)                     |
-| `POST`  | `/sessions`                      | –              | –       | Login → access token + cookie de refresh (rate limit)  |
-| `PATCH` | `/token/refresh`                 | refresh cookie | –       | Rotacionar o access token                              |
-| `GET`   | `/me`                            | Bearer         | –       | Perfil do usuário autenticado                          |
-| `POST`  | `/logout`                        | Bearer         | –       | Revogar o token atual (denylist)                       |
-| `GET`   | `/gyms/search`                   | Bearer         | –       | Buscar academias por nome                              |
-| `GET`   | `/gyms/nearby`                   | Bearer         | –       | Academias próximas a uma coordenada                    |
-| `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Cadastrar academia                                     |
-| `GET`   | `/check-ins/history`             | Bearer         | –       | Histórico de check-ins paginado                        |
-| `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total de check-ins                                     |
-| `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Fazer check-in                                         |
-| `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validar check-in                                       |
-| `POST`  | `/users/send-verification`       | Bearer         | –       | Enviar e-mail de verificação (link + OTP)               |
-| `GET`   | `/users/verify-email`            | –              | –       | Verificar e-mail via link token (`?token=`)             |
-| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verificar e-mail via código OTP                         |
-| `POST`  | `/users/resend-verification`     | Bearer         | –       | Reenviar e-mail de verificação                          |
+| Método  | Rota                             | Auth           | Papel   | Descrição                                             |
+| ------- | -------------------------------- | -------------- | ------- | ----------------------------------------------------- |
+| `GET`   | `/hello`                         | –              | –       | Healthcheck                                           |
+| `POST`  | `/users`                         | –              | –       | Cadastrar usuário (com rate limit)                    |
+| `POST`  | `/sessions`                      | –              | –       | Login → access token + cookie de refresh (rate limit) |
+| `PATCH` | `/token/refresh`                 | refresh cookie | –       | Rotacionar o access token                             |
+| `GET`   | `/me`                            | Bearer         | –       | Perfil do usuário autenticado                         |
+| `POST`  | `/logout`                        | Bearer         | –       | Revogar o token atual (denylist)                      |
+| `GET`   | `/gyms/search`                   | Bearer         | –       | Buscar academias por nome                             |
+| `GET`   | `/gyms/nearby`                   | Bearer         | –       | Academias próximas a uma coordenada                   |
+| `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Cadastrar academia                                    |
+| `GET`   | `/check-ins/history`             | Bearer         | –       | Histórico de check-ins paginado                       |
+| `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total de check-ins                                    |
+| `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Fazer check-in                                        |
+| `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validar check-in                                      |
+| `POST`  | `/users/send-verification`       | Bearer         | –       | Enviar e-mail de verificação (link + OTP)             |
+| `GET`   | `/users/verify-email`            | –              | –       | Verificar e-mail via link token (`?token=`)           |
+| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verificar e-mail via código OTP                       |
+| `POST`  | `/users/resend-verification`     | Bearer         | –       | Reenviar e-mail de verificação                        |
 
 > O `role` (`MEMBER` \| `ADMIN`) é incorporado ao JWT no momento do login.
 > Promover um usuário **não** afeta tokens já emitidos — é necessário um novo
