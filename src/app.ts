@@ -11,8 +11,9 @@ import { checkInsRoutes } from './http/controllers/check-ins/routes'
 import { gymsRoutes } from './http/controllers/gyms/routes'
 import { usersRoutes } from './http/controllers/users/routes'
 
-export const app = fastify()
-// Security headers
+export const app = fastify({ bodyLimit: env.BODY_LIMIT })
+// Security headers. Helmet defaults are fine for a JSON API; a custom CSP only
+// matters if this service starts serving HTML.
 app.register(fastifyHelmet)
 // CORS. credentials:true is required to send the refresh-token cookie.
 // Dev allows any origin; prod restricts to the configured allow-list.
