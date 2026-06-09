@@ -2,7 +2,7 @@ import { hash } from 'bcryptjs'
 import { describe, expect, it } from 'vitest'
 import { beforeEach } from 'vitest'
 
-import { User } from '@/prisma-client'
+import { PublicUser } from '@/repositories/i-users-repository'
 import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository'
 
 import { ResourceNotFoundError } from './errors/resource-not-found-error'
@@ -15,7 +15,7 @@ const newUser = {
 	password: 'abc123',
 }
 let sut: GetUserProfileUseCase
-let createdUser: User
+let createdUser: PublicUser
 
 describe('Get User Profile Use Case', () => {
 	beforeEach(async () => {

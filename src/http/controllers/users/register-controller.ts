@@ -9,8 +9,14 @@ export async function registerController(request: FastifyRequest, reply: Fastify
 	const bodySchema = z.object({
 		name: z.string().min(1).max(255),
 		email: z.email(),
-		// Minimum length is configurable; 72 is the bcrypt input ceiling (anti-DoS)
-		password: z.string().min(env.PASSWORD_MIN_LENGTH).max(72),
+		// Minimum length is configurable; 72 is the bcrypt input ceiling (anti-DoS).
+		// bcrypt counts BYTES, not chars: .max(72) is a cheap pre-filter; the refine
+		// enforces the true 72-byte limit (multibyte chars can exceed it).
+		password: z
+			.string()
+			.min(env.PASSWORD_MIN_LENGTH)
+			.max(72)
+			.refine((p) => Buffer.byteLength(p, 'utf8') <= 72, 'Password too long'),
 	})
 	const { name, email, password } = bodySchema.parse(request.body)
 
