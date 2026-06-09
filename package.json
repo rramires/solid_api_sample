@@ -17,6 +17,7 @@
     "compose:down": "docker compose down",
     "migrate": "pnpm exec prisma migrate dev",
     "showdb": "pnpm exec prisma studio --port 5555 --browser none",
+    "seed-adm-role": "pnpm exec prisma db seed",
     "test": "vitest run --project unit",
     "test:e2e": "vitest run --project e2e",
     "test:watch": "vitest --project unit",

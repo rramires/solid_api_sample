@@ -12,6 +12,17 @@ const envSchema = z.object({
 	LOG_LEVEL: z
 		.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
 		.default('info'),
+	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
+	ADMIN_NAME: z.string().min(1),
+	ADMIN_EMAIL: z.string().email(),
+	// Strong password policy: min 10 chars, with upper, lower, number and special.
+	ADMIN_PASSWORD: z
+		.string()
+		.min(10)
+		.regex(/[a-z]/, 'Must contain a lowercase letter')
+		.regex(/[A-Z]/, 'Must contain an uppercase letter')
+		.regex(/[0-9]/, 'Must contain a number')
+		.regex(/[^A-Za-z0-9]/, 'Must contain a special character'),
 })
 
 const _env = envSchema.safeParse(process.env)

@@ -1,0 +1,35 @@
+import 'dotenv/config'
+
+import { hash } from 'bcryptjs'
+
+import { env } from '@/env'
+import { prisma } from '@/lib/prisma'
+import { Role } from '@/prisma-client/enums'
+
+// Idempotent ADMIN seed: creates the admin user from environment-provided
+// credentials if it does not exist yet. Safe to run repeatedly — an existing
+// admin is left untouched (update: {}), so its password is never reset.
+async function seedAdminRole() {
+	const password_hash = await hash(env.ADMIN_PASSWORD, 12)
+
+	const admin = await prisma.user.upsert({
+		where: { email: env.ADMIN_EMAIL },
+		update: {},
+		create: {
+			name: env.ADMIN_NAME,
+			email: env.ADMIN_EMAIL,
+			password_hash,
+			role: Role.ADMIN,
+		},
+	})
+
+	console.log(`Admin user ready: ${admin.email}`)
+}
+
+seedAdminRole()
+	.then(() => prisma.$disconnect())
+	.catch(async (error) => {
+		console.error(error)
+		await prisma.$disconnect()
+		process.exit(1)
+	})
