@@ -5,7 +5,14 @@ export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
 		coverage: {
+			// Generated Prisma client is not our code to test.
 			exclude: ['src/prisma-client/**'],
+			// Floor set below current (~88% lines / ~92% funcs) to catch
+			// regressions without being brittle. Raise as coverage grows.
+			thresholds: {
+				lines: 80,
+				functions: 80,
+			},
 		},
 		projects: [
 			{
