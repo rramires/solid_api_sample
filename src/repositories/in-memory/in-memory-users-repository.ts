@@ -48,10 +48,26 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		return user || null
 	}
 
-	async update(id: string, data: { is_verified?: boolean }): Promise<void> {
+	async update(
+		id: string,
+		data: {
+			is_verified?: boolean
+			password_hash?: string
+			password_changed_at?: Date
+		},
+	): Promise<void> {
 		const user = this.items.find((item) => item.id === id)
-		if (user && data.is_verified !== undefined) {
+		if (!user) {
+			return
+		}
+		if (data.is_verified !== undefined) {
 			user.is_verified = data.is_verified
+		}
+		if (data.password_hash !== undefined) {
+			user.password_hash = data.password_hash
+		}
+		if (data.password_changed_at !== undefined) {
+			user.password_changed_at = data.password_changed_at
 		}
 	}
 }

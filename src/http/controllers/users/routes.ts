@@ -4,12 +4,14 @@ import { strictAuthLimit } from '@/http/middlewares/rate-limit'
 import { verifyJwtMiddleware } from '@/http/middlewares/verify-jwt-middleware'
 
 import { authenticateController } from './authenticate-controller'
+import { forgotPasswordController } from './forgot-password-controller'
 import { helloController } from './hello-controller'
 import { logoutController } from './logout-controller'
 import { profileController } from './profile-controller'
 import { refreshController } from './refresh-controller'
 import { registerController } from './register-controller'
 import { resendVerificationController } from './resend-verification-controller'
+import { resetPasswordController } from './reset-password-controller'
 import { sendVerificationController } from './send-verification-controller'
 import {
 	verifyEmailByLinkController,
@@ -34,6 +36,17 @@ export async function usersRoutes(app: FastifyInstance) {
 	)
 	//
 	app.patch('/token/refresh', refreshController)
+	// Password reset — both public, behind the strict auth limiter.
+	app.post(
+		'/users/forgot-password',
+		{ onRequest: [strictAuthLimit(app)] },
+		forgotPasswordController,
+	)
+	app.post(
+		'/users/reset-password',
+		{ onRequest: [strictAuthLimit(app)] },
+		resetPasswordController,
+	)
 	// Email verification — public (link click from email)
 	app.get('/users/verify-email', verifyEmailByLinkController)
 	// Email verification — public (resend without being logged in is not useful;
