@@ -5,7 +5,14 @@ export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
 		coverage: {
+			// Generated Prisma client is not our code to test.
 			exclude: ['src/prisma-client/**'],
+			// Floor set below current (~88% lines / ~92% funcs) to catch
+			// regressions without being brittle. Raise as coverage grows.
+			thresholds: {
+				lines: 80,
+				functions: 80,
+			},
 		},
 		projects: [
 			{
@@ -24,7 +31,12 @@ export default defineConfig({
 				extends: true,
 				test: {
 					name: 'e2e',
-					dir: 'src/http/controllers',
+					// Controller e2e specs, plus prisma integration specs
+					// (*.int-spec.ts) that need the isolated test database.
+					include: [
+						'src/http/controllers/**/*.spec.ts',
+						'src/repositories/prisma/**/*.int-spec.ts',
+					],
 					environment:
 						'./prisma/vitest-environment/prisma-test-environment.ts',
 				},

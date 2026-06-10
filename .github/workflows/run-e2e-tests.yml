@@ -31,7 +31,9 @@ jobs:
             # Type-check and lint gates (cheap; catch drift on PRs early).
             - run: pnpm compile
             - run: pnpm lint
-            - run: pnpm test:e2e
+            # Runs every project (unit + e2e) under coverage and enforces the
+            # thresholds in vite.config.mts. MySQL exists in this job.
+            - run: pnpm test:coverage
 
               env:
                   NODE_ENV: test
