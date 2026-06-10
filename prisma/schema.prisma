@@ -32,6 +32,7 @@ model User {
 
   checkIns            CheckIn[]
   email_verifications EmailVerification[]
+  password_resets     PasswordReset[]
 
   @@map("users")
 }
@@ -77,6 +78,21 @@ model EmailVerification {
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("email_verifications")
+}
+
+model PasswordReset {
+  id              String    @id @default(uuid())
+  user_id         String
+  link_token_hash String    @unique // sha256 hex of the UUID sent by email
+  otp_code_hash   String // sha256 hex of the 6-digit code
+  attempts        Int       @default(0)
+  expires_at      DateTime
+  used_at         DateTime?
+  created_at      DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
 }
 
 model RevokedToken {
