@@ -32,6 +32,7 @@ secundário — o que importa aqui é a **arquitetura replicável**.
 | Headers de segurança | `@fastify/helmet`                  | 13.0.2      |
 | CORS                 | `@fastify/cors`                    | 11.2        |
 | Rate limit           | `@fastify/rate-limit`              | 10.3        |
+| Guarda do event loop | `@fastify/under-pressure`          | 9.0.3       |
 | Logs                 | pino (via Fastify) + pino-pretty   | —           |
 | Datas                | dayjs                              | 1.11        |
 | Testes               | Vitest                             | 4.1.8       |
@@ -160,6 +161,7 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
         │
 9. setErrorHandler global (app.ts):
      • ZodError              → 400 + issues (enxutas em produção; format() só em dev)
+     • Erro de framework     → seu próprio statusCode (429 rate-limit, 413 body-limit, 400 JSON inválido, 503 under-pressure)
      • Erro não tratado      → 500 (request.log.error em dev; reportError() em prod)
 ```
 
@@ -208,10 +210,17 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 - `request.jwtVerify()` decodifica e valida assinatura/expiração; o payload
   tipado (`@types/fastify-jwt.d.ts`) garante `request.user = { sub, role }`.
 - **`PATCH /token/refresh`**: usa `jwtVerify({ onlyCookie: true })` e **rotaciona**
-  ambos os tokens (emite novos access + refresh).
-- **`jti` + denylist**: todo token carrega um `jti`. **`POST /logout`** registra o
-  `jti` atual na denylist (até o `exp`) e limpa o cookie; o `verifyJwtMiddleware`
-  rejeita (`401`) qualquer token revogado. Detalhes na §5.5.
+  ambos os tokens. Refresh tokens são de **uso único** — o `jti` apresentado é
+  revogado antes de emitir o novo par, então um cookie de refresh roubado não
+  pode ser reusado.
+- **`jti` + denylist**: todo token carrega um `jti`. **`POST /logout`** revoga
+  **ambos** os `jti` (access e refresh, até o `exp`) e limpa o cookie; o
+  `verifyJwtMiddleware` rejeita (`401`) qualquer token revogado. Detalhes na §5.5.
+- **`is_verified` não é claim do JWT**: o `verifyEmailVerified` lê o estado real
+  do banco via cache read-through (`lib/verified-cache.ts`), então um usuário que
+  verifica no meio da sessão é liberado na hora.
+- **Invalidação global de sessão**: um reset de senha grava `password_changed_at`;
+  todo token emitido antes desse instante é rejeitado (veja §5.5).
 
 ### 5.2 Autorização (o que o usuário pode fazer) — RBAC
 
@@ -225,25 +234,27 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
 
 ### 5.3 Mapa de rotas × proteção
 
-| Método | Rota                             | Auth (JWT) | Papel exigido | Observação                                     |
-| ------ | -------------------------------- | :--------: | :-----------: | ---------------------------------------------- |
-| GET    | `/hello`                         |     ❌     |       —       | health/teste                                   |
-| POST   | `/users`                         |     ❌     |       —       | registro (público)                             |
-| POST   | `/sessions`                      |     ❌     |       —       | login                                          |
-| PATCH  | `/token/refresh`                 |   cookie   |       —       | rotação de token                               |
-| GET    | `/me`                            |     ✅     |       —       | perfil próprio                                 |
-| POST   | `/logout`                        |     ✅     |       —       | revoga o token atual (denylist) + limpa cookie |
-| GET    | `/gyms/search`                   |     ✅     |       —       | busca por nome                                 |
-| GET    | `/gyms/nearby`                   |     ✅     |       —       | busca por proximidade                          |
-| POST   | `/gyms`                          |     ✅     |   **ADMIN**   | cadastrar academia                             |
-| GET    | `/check-ins/history`             |     ✅     |       —       | histórico próprio                              |
-| GET    | `/check-ins/metrics`             |     ✅     |       —       | total próprio                                  |
-| POST   | `/gyms/:gymId/check-ins`         |     ✅     |       —       | fazer check-in                                 |
-| PATCH  | `/check-ins/:checkInId/validate` |     ✅     |   **ADMIN**   | validar check-in                               |
-| POST   | `/users/send-verification`       |     ✅     |       —       | enviar e-mail de verificação (link + OTP)      |
-| GET    | `/users/verify-email`            |     ❌     |       —       | verificar e-mail via link token (`?token=`)    |
-| POST   | `/users/verify-email/otp`        |     ✅     |       —       | verificar e-mail via código OTP                |
-| POST   | `/users/resend-verification`     |     ✅     |       —       | reenviar e-mail de verificação                 |
+| Método | Rota                             | Auth (JWT) | Papel exigido | Observação                                      |
+| ------ | -------------------------------- | :--------: | :-----------: | ----------------------------------------------- |
+| GET    | `/hello`                         |     ❌     |       —       | health/teste                                    |
+| POST   | `/users`                         |     ❌     |       —       | registro (público)                              |
+| POST   | `/sessions`                      |     ❌     |       —       | login                                           |
+| PATCH  | `/token/refresh`                 |   cookie   |       —       | rotação de token                                |
+| GET    | `/me`                            |     ✅     |       —       | perfil próprio                                  |
+| POST   | `/logout`                        |     ✅     |       —       | revoga o token atual (denylist) + limpa cookie  |
+| GET    | `/gyms/search`                   |     ✅     |       —       | busca por nome                                  |
+| GET    | `/gyms/nearby`                   |     ✅     |       —       | busca por proximidade                           |
+| POST   | `/gyms`                          |     ✅     |   **ADMIN**   | cadastrar academia                              |
+| GET    | `/check-ins/history`             |     ✅     |       —       | histórico próprio                               |
+| GET    | `/check-ins/metrics`             |     ✅     |       —       | total próprio                                   |
+| POST   | `/gyms/:gymId/check-ins`         |     ✅     |       —       | check-in (e-mail verificado se flag ligada)     |
+| PATCH  | `/check-ins/:checkInId/validate` |     ✅     |   **ADMIN**   | validar check-in                                |
+| POST   | `/users/send-verification`       |     ✅     |       —       | enviar e-mail de verificação (link + OTP)       |
+| GET    | `/users/verify-email`            |     ❌     |       —       | verificar e-mail via link token (`?token=`)     |
+| POST   | `/users/verify-email/otp`        |     ✅     |       —       | verificar e-mail via código OTP                 |
+| POST   | `/users/resend-verification`     |     ✅     |       —       | reenviar e-mail de verificação                  |
+| POST   | `/users/forgot-password`         |     ❌     |       —       | solicitar reset; sempre `202` (anti-enumeração) |
+| POST   | `/users/reset-password`          |     ❌     |       —       | resetar via link token ou email + OTP           |
 
 > Padrão para proteger um grupo: `app.addHook('onRequest', verifyJwtMiddleware)`
 > no início da função de rotas. Para exigir papel: adicionar
@@ -303,6 +314,12 @@ Exemplo: **`POST /sessions`** (login) e **`POST /gyms/:gymId/check-ins`** (rota 
   RAM e do banco, mantendo a denylist limitada.
 - **Fluxo:** `POST /logout` → `revoke(jti, exp)` → requests seguintes com aquele
   token são rejeitadas (`401`) no `verifyJwtMiddleware`.
+- **Refresh de uso único:** `PATCH /token/refresh` também revoga o `jti` de
+  refresh apresentado antes de emitir o novo par (rotação = consumo).
+- **Logout global (`password_changed_at`):** um registro híbrido RAM+DB irmão
+  (`password-changed-registry.ts`) grava cada troca de senha; tokens cujo `iat`
+  é anterior são rejeitados no `verifyJwtMiddleware`. Mesmo seam de troca por
+  Redis da denylist.
 
 ### 5.6 Por que proteção CSRF não é necessária
 
@@ -339,15 +356,20 @@ enviar o cookie em requisições cross-origin não seguras.
 
 ### 6.3 Modelos
 
-- `User` (id uuid, email único, password_hash, role, `is_verified` bool, created_at) 1—N `CheckIn`.
+- `User` (id uuid, email único, password_hash, role, `is_verified` bool,
+  `password_changed_at?`, created_at) 1—N `CheckIn`.
 - `Gym` (id uuid, title, latitude/longitude decimal) 1—N `CheckIn`.
 - `CheckIn` (created_at, validated_at?) N—1 `User` e N—1 `Gym`.
 - `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — denylist persistida
   (tabela `revoked_tokens`).
 - `EmailVerification` (`id` uuid, `user_id` FK, `link_token` uuid único,
-  `otp_code` string de 6 dígitos, `expires_at`, `used_at?`, `created_at`) — armazena
-  tanto o link de verificação quanto o OTP para o mesmo evento de verificação
-  (tabela `email_verifications`).
+  `otp_code` string de 6 dígitos, `attempts`, `expires_at`, `used_at?`,
+  `created_at`) — armazena tanto o link de verificação quanto o OTP para o mesmo
+  evento de verificação (tabela `email_verifications`).
+- `PasswordReset` (`id` uuid, `user_id` FK, `link_token_hash` único,
+  `otp_code_hash`, `attempts`, `expires_at`, `used_at?`, `created_at`) — tokens
+  de reset são armazenados **com hash** (SHA-256), então um vazamento do banco
+  não revela link/código utilizável (tabela `password_resets`).
 
 ### 6.4 Paginação
 
@@ -448,9 +470,10 @@ Para adicionar um recurso novo (ex.: `Plan`):
 10. **Teste E2E**: `http/controllers/plans/create-controller.spec.ts`.
 
 > **Recursos que enviam e-mails:** siga o padrão de seam `IEmailProvider` em
-> `src/lib/email/`. Adicione um método à interface, implemente em
-> `ConsoleEmailProvider` primeiro, depois troque por SMTP/SendGrid/Resend em
-> produção substituindo `src/lib/email/index.ts` — nenhum call site muda.
+> `src/lib/email/` (ex. `sendVerificationEmail`, `sendPasswordResetEmail`).
+> Adicione um método à interface, implemente em `ConsoleEmailProvider` primeiro,
+> depois troque por SMTP/SendGrid/Resend em produção substituindo
+> `src/lib/email/index.ts` — nenhum call site muda.
 
 **Regra de ouro:** controllers nunca falam com Prisma; use-cases nunca falam com
 HTTP; dependências sempre via **interface** + injeção pela factory.

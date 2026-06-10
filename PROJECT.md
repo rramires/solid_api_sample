@@ -32,6 +32,7 @@ secondary — what matters here is the **replicable architecture**.
 | Security headers | `@fastify/helmet`                  | 13.0.2      |
 | CORS             | `@fastify/cors`                    | 11.2        |
 | Rate limit       | `@fastify/rate-limit`              | 10.3        |
+| Event-loop guard | `@fastify/under-pressure`          | 9.0.3       |
 | Logs             | pino (via Fastify) + pino-pretty   | —           |
 | Dates            | dayjs                              | 1.11        |
 | Tests            | Vitest                             | 4.1.8       |
@@ -160,6 +161,7 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
         │
 9. Global setErrorHandler (app.ts):
      • ZodError              → 400 + issues (trimmed in production; full in dev)
+     • Framework error       → its own statusCode (429 rate-limit, 413 body-limit, 400 bad JSON, 503 under-pressure)
      • Unhandled error       → 500 (request.log.error in dev; reportError() in prod)
 ```
 
@@ -208,10 +210,17 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 - `request.jwtVerify()` decodes and validates signature/expiration; the typed
   payload (`@types/fastify-jwt.d.ts`) ensures `request.user = { sub, role }`.
 - **`PATCH /token/refresh`**: uses `jwtVerify({ onlyCookie: true })` and
-  **rotates** both tokens (issues new access + refresh).
-- **`jti` + denylist**: every token carries a `jti`. **`POST /logout`** registers
-  the current `jti` in the denylist (until `exp`) and clears the cookie;
+  **rotates** both tokens. Refresh tokens are **single-use** — the presented
+  `jti` is revoked before the new pair is issued, so a stolen refresh cookie
+  cannot be replayed.
+- **`jti` + denylist**: every token carries a `jti`. **`POST /logout`** revokes
+  **both** the access and the refresh `jti` (until `exp`) and clears the cookie;
   `verifyJwtMiddleware` rejects (`401`) any revoked token. Details in §5.5.
+- **`is_verified` is not a JWT claim**: `verifyEmailVerified` reads the real
+  state from the database through a read-through cache (`lib/verified-cache.ts`),
+  so a user who verifies mid-session is unblocked immediately.
+- **Global session invalidation**: a password reset stamps `password_changed_at`;
+  every token issued before that instant is rejected (see §5.5).
 
 ### 5.2 Authorization (what the user can do) — RBAC
 
@@ -238,12 +247,14 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 | POST   | `/gyms`                          |     ✅     |   **ADMIN**   | create a gym                                     |
 | GET    | `/check-ins/history`             |     ✅     |       —       | own history                                      |
 | GET    | `/check-ins/metrics`             |     ✅     |       —       | own total                                        |
-| POST   | `/gyms/:gymId/check-ins`         |     ✅     |       —       | check in                                         |
+| POST   | `/gyms/:gymId/check-ins`         |     ✅     |       —       | check in (verified email if flag on)             |
 | PATCH  | `/check-ins/:checkInId/validate` |     ✅     |   **ADMIN**   | validate check-in                                |
 | POST   | `/users/send-verification`       |     ✅     |       —       | send verification email (link + OTP)             |
 | GET    | `/users/verify-email`            |     ❌     |       —       | verify email via link token (`?token=`)          |
 | POST   | `/users/verify-email/otp`        |     ✅     |       —       | verify email via OTP code                        |
 | POST   | `/users/resend-verification`     |     ✅     |       —       | resend verification email                        |
+| POST   | `/users/forgot-password`         |     ❌     |       —       | request reset; always `202` (anti-enumeration)   |
+| POST   | `/users/reset-password`          |     ❌     |       —       | reset via link token or email + OTP              |
 
 > Pattern to protect a group: `app.addHook('onRequest', verifyJwtMiddleware)`
 > at the start of the routes function. To require a role: add
@@ -284,6 +295,13 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
   failures the account is locked for `LOGIN_LOCKOUT_MINUTES`. In-memory `Map` today;
   swap for Redis by replacing `src/lib/login-attempt-tracker.ts` (same async
   interface). Returns `429 Too Many Requests`.
+- **Email-verification hardening:** the 6-digit OTP is **attempt-capped** (the
+  record dies after 5 wrong codes) and resends are **throttled** (60s cooldown),
+  blunting OTP brute-force and email-bombing.
+- **Password reset:** `forgot-password` always answers `202` regardless of
+  whether the email exists (anti-enumeration); tokens are stored as **SHA-256
+  hashes**, single-use, expiring (`RESET_EXPIRES_MINUTES`) and attempt-capped; a
+  successful reset triggers global logout and clears the login lockout.
 - **`@fastify/under-pressure`**: monitors event-loop lag and heap size; returns
   `503 Service Unavailable` automatically when thresholds are exceeded — circuit
   breaker against slow-query DoS.
@@ -303,6 +321,12 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
   RAM and the DB, keeping the denylist bounded.
 - **Flow:** `POST /logout` → `revoke(jti, exp)` → subsequent requests with that
   token are rejected (`401`) in `verifyJwtMiddleware`.
+- **Single-use refresh:** `PATCH /token/refresh` also revokes the presented
+  refresh `jti` before issuing the new pair (rotation = consumption).
+- **Global logout (`password_changed_at`):** a sibling hybrid RAM+DB registry
+  (`password-changed-registry.ts`) records each password change; tokens whose
+  `iat` predates it are rejected in `verifyJwtMiddleware`. Same Redis-swap seam
+  as the denylist.
 
 ### 5.6 Why CSRF protection is not required
 
@@ -340,15 +364,20 @@ browsers from sending the cookie on cross-origin non-safe requests.
 
 ### 6.3 Models
 
-- `User` (id uuid, unique email, password_hash, role, `is_verified` bool, created_at) 1—N `CheckIn`.
+- `User` (id uuid, unique email, password_hash, role, `is_verified` bool,
+  `password_changed_at?`, created_at) 1—N `CheckIn`.
 - `Gym` (id uuid, title, latitude/longitude decimal) 1—N `CheckIn`.
 - `CheckIn` (created_at, validated_at?) N—1 `User` and N—1 `Gym`.
 - `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — persisted denylist
   (table `revoked_tokens`).
 - `EmailVerification` (`id` uuid, `user_id` FK, `link_token` uuid unique,
-  `otp_code` 6-digit string, `expires_at`, `used_at?`, `created_at`) — stores
-  both the clickable link token and the OTP for the same verification event
-  (table `email_verifications`).
+  `otp_code` 6-digit string, `attempts`, `expires_at`, `used_at?`, `created_at`)
+  — stores both the clickable link token and the OTP for the same verification
+  event (table `email_verifications`).
+- `PasswordReset` (`id` uuid, `user_id` FK, `link_token_hash` unique,
+  `otp_code_hash`, `attempts`, `expires_at`, `used_at?`, `created_at`) — reset
+  tokens are stored **hashed** (SHA-256), so a DB leak yields no usable
+  link/code (table `password_resets`).
 
 ### 6.4 Pagination
 
@@ -452,10 +481,10 @@ To add a new resource (e.g. `Plan`):
 10. **E2E test**: `http/controllers/plans/create-controller.spec.ts`.
 
 > **Email-sending resources:** follow the `IEmailProvider` seam pattern in
-> `src/lib/email/`. Add a method to the interface, implement it in
-> `ConsoleEmailProvider` first, then swap for SMTP/SendGrid/Resend in production
-> by replacing `src/lib/email/index.ts` with a concrete provider — no call sites
-> change.
+> `src/lib/email/` (e.g. `sendVerificationEmail`, `sendPasswordResetEmail`). Add
+> a method to the interface, implement it in `ConsoleEmailProvider` first, then
+> swap for SMTP/SendGrid/Resend in production by replacing `src/lib/email/index.ts`
+> with a concrete provider — no call sites change.
 
 **Golden rule:** controllers never talk to Prisma; use-cases never talk to HTTP;
 dependencies always via **interface** + injection through the factory.
