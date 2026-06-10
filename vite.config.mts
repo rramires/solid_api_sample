@@ -24,7 +24,12 @@ export default defineConfig({
 				extends: true,
 				test: {
 					name: 'e2e',
-					dir: 'src/http/controllers',
+					// Controller e2e specs, plus prisma integration specs
+					// (*.int-spec.ts) that need the isolated test database.
+					include: [
+						'src/http/controllers/**/*.spec.ts',
+						'src/repositories/prisma/**/*.int-spec.ts',
+					],
 					environment:
 						'./prisma/vitest-environment/prisma-test-environment.ts',
 				},
