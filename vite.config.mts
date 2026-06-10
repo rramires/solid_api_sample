@@ -15,6 +15,8 @@ export default defineConfig({
 					include: [
 						'src/use-cases/**/*.spec.ts',
 						'src/utils/**/*.spec.ts',
+						'src/repositories/**/*.spec.ts',
+						'src/lib/**/*.spec.ts',
 					],
 				},
 			},

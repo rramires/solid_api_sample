@@ -18,4 +18,12 @@ jobs:
             # so tsc/ESLint breakage is invisible to the test step otherwise.
             - run: pnpm compile
             - run: pnpm lint
+            # Unit tests don't touch the DB, but importing env (e.g. via the
+            # send-verification use-case) validates these on load.
             - run: pnpm test
+              env:
+                  NODE_ENV: test
+                  JWT_SECRET: unit-tests-jwt-secret-min-20-chars
+                  ADMIN_NAME: Admin
+                  ADMIN_EMAIL: admin@example.com
+                  ADMIN_PASSWORD: Admin@12345

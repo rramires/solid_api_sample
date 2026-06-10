@@ -25,7 +25,6 @@ export async function authenticateController(request: FastifyRequest, reply: Fas
 		const token = await reply.jwtSign(
 			{
 				role: user.role,
-				is_verified: user.is_verified,
 				// jti enables per-token revocation via the denylist.
 				jti: randomUUID(),
 			},
@@ -39,7 +38,6 @@ export async function authenticateController(request: FastifyRequest, reply: Fas
 		const refreshToken = await reply.jwtSign(
 			{
 				role: user.role,
-				is_verified: user.is_verified,
 				jti: randomUUID(),
 			},
 			{

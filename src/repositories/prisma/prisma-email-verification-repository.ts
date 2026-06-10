@@ -27,16 +27,17 @@ export class PrismaEmailVerificationRepository
 		})
 	}
 
-	async findByOtpCode(userId: string, code: string) {
-		return prisma.emailVerification.findFirst({
-			where: { user_id: userId, otp_code: code },
-		})
-	}
-
 	async findLatestByUserId(userId: string) {
 		return prisma.emailVerification.findFirst({
 			where: { user_id: userId },
 			orderBy: { created_at: 'desc' },
+		})
+	}
+
+	async incrementAttempts(id: string) {
+		await prisma.emailVerification.update({
+			where: { id },
+			data: { attempts: { increment: 1 } },
 		})
 	}
 
