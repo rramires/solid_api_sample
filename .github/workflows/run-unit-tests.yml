@@ -27,3 +27,7 @@ jobs:
                   ADMIN_NAME: Admin
                   ADMIN_EMAIL: admin@example.com
                   ADMIN_PASSWORD: Admin@12345
+                  # Some unit specs import @/app, whose prisma adapter parses
+                  # DATABASE_URL at module load. Unit tests never connect, so a
+                  # syntactically-valid dummy is enough.
+                  DATABASE_URL: 'mysql://root:test@127.0.0.1:3306/test'
