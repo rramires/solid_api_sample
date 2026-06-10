@@ -40,6 +40,8 @@ const envSchema = z.object({
 		.default(24),
 	// When true, protected routes return 403 for unverified users.
 	REQUIRE_EMAIL_VERIFICATION: z.coerce.boolean().optional().default(false),
+	// Password-reset token/OTP validity in minutes (default: 60).
+	RESET_EXPIRES_MINUTES: z.coerce.number().int().positive().optional().default(60),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
 	ADMIN_NAME: z.string().min(1).max(255),
 	ADMIN_EMAIL: z.email(),

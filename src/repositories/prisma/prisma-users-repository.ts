@@ -39,7 +39,14 @@ export class PrismaUsersRepository implements IUsersRepository {
 		return user
 	}
 
-	async update(id: string, data: { is_verified?: boolean }): Promise<void> {
+	async update(
+		id: string,
+		data: {
+			is_verified?: boolean
+			password_hash?: string
+			password_changed_at?: Date
+		},
+	): Promise<void> {
 		await prisma.user.update({
 			where: { id },
 			data,
