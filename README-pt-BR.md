@@ -25,8 +25,11 @@ de segurança, camada de dados, CI/CD e observabilidade) consulte:
 - **Autenticação JWT com refresh tokens** — access token de curta duração mais
   um cookie httpOnly de refresh.
 - **RBAC** — papéis `MEMBER` / `ADMIN` aplicados por rota.
-- **Revogação de token** — logout adiciona o `jti` do token a uma denylist
-  híbrida (memória + banco de dados).
+- **Revogação e rotação de token** — logout revoga tanto o access quanto o
+  refresh token; refresh tokens são de uso único (rotacionados a cada refresh)
+  via denylist híbrida (memória + banco) por `jti`.
+- **Invalidação global de sessão** — um reset de senha invalida todo token
+  emitido antes, via um registro `password_changed_at`.
 - **Rate limiting** — limites globais e limites mais rígidos em rotas de
   autenticação.
 - **Hardening de segurança** — headers Helmet, CORS por ambiente, política de
@@ -37,7 +40,13 @@ de segurança, camada de dados, CI/CD e observabilidade) consulte:
 - **Bloqueio de login por conta** — após N tentativas falhas a conta é bloqueada
   por um período configurável (in-memory hoje, troca por Redis via `ILoginAttemptTracker`).
 - **Verificação de e-mail** — fluxo de link + OTP com seam de provedor de e-mail
-  (`IEmailProvider`); `ConsoleEmailProvider` imprime no stdout em dev.
+  (`IEmailProvider`); tentativas de OTP são limitadas e reenvios têm cooldown;
+  `ConsoleEmailProvider` imprime no stdout em dev. `is_verified` é lido do banco
+  (via cache), nunca confiado de um claim JWT desatualizado.
+- **Redefinição de senha** — `forgot-password` anti-enumeração (sempre responde
+  `202`) mais `reset-password` por link ou OTP; tokens armazenados como hashes
+  SHA-256, de uso único e com limite de tentativas; um reset bem-sucedido dispara
+  logout global.
 - **Proteção do event loop** — `@fastify/under-pressure` retorna `503`
   automaticamente quando o lag do event loop ou o uso de heap ultrapassa os limites.
 - **Testado** — suite unitária (sem banco) e suite e2e com banco isolado, ambas no CI.
@@ -96,6 +105,7 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `APP_URL`                    | não         | `http://localhost:3333` | URL pública usada nos e-mails de verificação                                                  |
 | `VERIFICATION_EXPIRES_HOURS` | não         | `24`                    | Validade do link/OTP de verificação em horas                                                  |
 | `REQUIRE_EMAIL_VERIFICATION` | não         | `false`                 | Quando `true`, bloqueia usuários não verificados em rotas protegidas                          |
+| `RESET_EXPIRES_MINUTES`      | não         | `60`                    | Validade do link/OTP de redefinição de senha em minutos                                       |
 
 ## Rotas da API
 
@@ -118,6 +128,8 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `GET`   | `/users/verify-email`            | –              | –       | Verificar e-mail via link token (`?token=`)           |
 | `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verificar e-mail via código OTP                       |
 | `POST`  | `/users/resend-verification`     | Bearer         | –       | Reenviar e-mail de verificação                        |
+| `POST`  | `/users/forgot-password`         | –              | –       | Solicitar reset; sempre `202` (rate limit)            |
+| `POST`  | `/users/reset-password`          | –              | –       | Resetar via link token ou email + OTP (rate limit)    |
 
 > O `role` (`MEMBER` \| `ADMIN`) é incorporado ao JWT no momento do login.
 > Promover um usuário **não** afeta tokens já emitidos — é necessário um novo
@@ -183,6 +195,26 @@ echo -e "\n=== 2. POST /users ===" && \
 curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
   -d '{"name":"Fulano","email":"fulano@email.com","password":"password123"}' | python3 -m json.tool
 
+# 2b. Login para obter um token, enviar e-mail de verificação e então verificar via link/OTP impresso no log do servidor
+echo -e "\n=== 2b. POST /users/send-verification (veja o link + OTP no log do servidor) ===" && \
+TOKEN_TMP=$(curl -s -X POST "$BASE/sessions" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"fulano@email.com","password":"password123"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/users/send-verification" -H "Authorization: Bearer $TOKEN_TMP" && \
+echo "(copie o token do log do servidor e rode:)" && \
+echo "  curl '$BASE/users/verify-email?token=<cole-o-token>'"
+
+# 2c. Testar bloqueio: senha errada N vezes -> esperado 429 na última tentativa
+echo -e "\n=== 2c. Teste de bloqueio de login (6 tentativas com senha errada) ===" && \
+for i in 1 2 3 4 5 6; do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/sessions" \
+    -H "Content-Type: application/json" \
+    -d '{"email":"fulano@email.com","password":"wrong"}')
+  echo "Tentativa $i: $STATUS"
+done
+
 # 3. Login como MEMBER (captura token + cookie de refresh)
 echo -e "\n=== 3. POST /sessions (member) ===" && \
 TOKEN=$(curl -s -c /tmp/cookies.txt -X POST "$BASE/sessions" \
@@ -230,6 +262,16 @@ curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -d '{"title":"Academia SOLID","description":"Treino funcional","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
   python3 -m json.tool
+
+# 11. Redefinição de senha: solicite um reset (sempre 202, mesmo para emails
+#     desconhecidos), copie o token impresso no log do servidor e redefina.
+echo -e "\n=== 11. POST /users/forgot-password (sempre 202) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/users/forgot-password" -H "Content-Type: application/json" \
+  -d '{"email":"fulano@email.com"}' && \
+echo "(copie o token de reset do log do servidor e rode:)" && \
+echo "  curl -X POST '$BASE/users/reset-password' -H 'Content-Type: application/json' \\" && \
+echo "    -d '{\"token\":\"<cole-o-token>\",\"newPassword\":\"newpass123\"}'"
 ```
 
 ## Licença

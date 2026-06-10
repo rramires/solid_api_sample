@@ -25,8 +25,11 @@ layer, CI/CD and operational concerns) see:
 - **JWT auth with refresh tokens** — short-lived access token plus an
   httpOnly refresh cookie.
 - **RBAC** — `MEMBER` / `ADMIN` roles enforced per route.
-- **Token revocation** — logout adds the token's `jti` to a hybrid
-  (in-memory + database) denylist.
+- **Token revocation & rotation** — logout revokes both the access and the
+  refresh token; refresh tokens are single-use (rotated on every refresh) via a
+  hybrid (in-memory + database) `jti` denylist.
+- **Global session invalidation** — a password reset invalidates every token
+  issued beforehand, via a `password_changed_at` registry.
 - **Rate limiting** — global limits plus stricter limits on auth routes.
 - **Security hardening** — Helmet headers, per-environment CORS, configurable
   password policy, request body size cap, and login timing equalization to
@@ -37,7 +40,13 @@ layer, CI/CD and operational concerns) see:
   for a configurable period (in-memory today, drop-in Redis replacement via
   `ILoginAttemptTracker`).
 - **Email verification** — link + OTP flow with a pluggable email provider seam
-  (`IEmailProvider`); `ConsoleEmailProvider` logs to stdout in dev.
+  (`IEmailProvider`); OTP attempts are capped and resends are throttled;
+  `ConsoleEmailProvider` logs to stdout in dev. `is_verified` is read from the
+  database (through a cache), never trusted from a stale JWT claim.
+- **Password reset** — anti-enumeration `forgot-password` (always answers
+  `202`) plus link- or OTP-based `reset-password`; tokens are stored as SHA-256
+  hashes, single-use and attempt-capped, and a successful reset triggers a
+  global logout.
 - **Event-loop protection** — `@fastify/under-pressure` returns `503`
   automatically when event-loop lag or heap usage exceeds configured thresholds.
 - **Tested** — unit suite (no DB) and isolated-database e2e suite, both in CI.
@@ -95,6 +104,7 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `APP_URL`                    | no       | `http://localhost:3333` | Public URL used in verification emails                                                       |
 | `VERIFICATION_EXPIRES_HOURS` | no       | `24`                    | Verification link/OTP validity in hours                                                      |
 | `REQUIRE_EMAIL_VERIFICATION` | no       | `false`                 | When `true`, unverified users are blocked on protected routes                                |
+| `RESET_EXPIRES_MINUTES`      | no       | `60`                    | Password-reset link/OTP validity in minutes                                                  |
 
 ## API routes
 
@@ -117,6 +127,8 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `GET`   | `/users/verify-email`            | –              | –       | Verify email via link token (`?token=`)              |
 | `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verify email via OTP code                            |
 | `POST`  | `/users/resend-verification`     | Bearer         | –       | Resend verification email                            |
+| `POST`  | `/users/forgot-password`         | –              | –       | Request a reset; always `202` (rate-limited)         |
+| `POST`  | `/users/reset-password`          | –              | –       | Reset via link token or email + OTP (rate-limited)   |
 
 > The `role` (`MEMBER` \| `ADMIN`) is embedded in the JWT at login time.
 > Promoting a user does **not** affect tokens already issued — a new login is
@@ -249,6 +261,16 @@ curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -d '{"title":"Academia SOLID","description":"Treino funcional","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
   python3 -m json.tool
+
+# 11. Password reset: request a reset (always 202, even for unknown emails),
+#     then copy the token printed to the server log and reset the password.
+echo -e "\n=== 11. POST /users/forgot-password (always 202) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/users/forgot-password" -H "Content-Type: application/json" \
+  -d '{"email":"fulano@email.com"}' && \
+echo "(copy the reset token from the server log and run:)" && \
+echo "  curl -X POST '$BASE/users/reset-password' -H 'Content-Type: application/json' \\" && \
+echo "    -d '{\"token\":\"<paste-token>\",\"newPassword\":\"newpass123\"}'"
 ```
 
 ## License
