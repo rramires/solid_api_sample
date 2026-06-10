@@ -14,6 +14,7 @@ class FakeEmailProvider implements IEmailProvider {
 	async sendVerificationEmail() {
 		this.sent += 1
 	}
+	async sendPasswordResetEmail() {}
 }
 
 let usersRepository: InMemoryUsersRepository
