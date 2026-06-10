@@ -68,6 +68,8 @@ model EmailVerification {
   user_id    String
   link_token String    @unique @default(uuid())
   otp_code   String
+  // Wrong-OTP counter; the record is invalidated once it reaches the cap.
+  attempts   Int       @default(0)
   expires_at DateTime
   used_at    DateTime?
   created_at DateTime  @default(now())

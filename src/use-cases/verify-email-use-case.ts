@@ -12,6 +12,10 @@ type VerifyByOtp = { userId: string; code: string }
 
 type VerifyEmailUseCaseRequest = VerifyByLink | VerifyByOtp
 
+// 6-digit OTP = 1M combinations; cap wrong guesses so it can't be brute-forced
+// under the global rate limit.
+const MAX_OTP_ATTEMPTS = 5
+
 export class VerifyEmailUseCase {
 	constructor(
 		private usersRepository: IUsersRepository,
@@ -30,11 +34,27 @@ export class VerifyEmailUseCase {
 			userId = record.user_id
 		} else {
 			userId = input.userId
-			record = await this.emailVerificationRepository.findByOtpCode(
-				userId,
-				input.code,
-			)
-			if (!record) {throw new InvalidVerificationTokenError()}
+			const active =
+				await this.emailVerificationRepository.findLatestByUserId(userId)
+			if (!active) {
+				throw new InvalidVerificationTokenError()
+			}
+			// Count the attempt only against a still-usable record; a wrong code
+			// invalidates the record once the cap is reached (used/expired records
+			// fall through to the shared checks below).
+			const usable = !active.used_at && active.expires_at >= new Date()
+			if (usable && active.otp_code !== input.code) {
+				// Compute the post-increment count up front: the in-memory repo
+				// mutates `active` by reference, so re-reading active.attempts after
+				// the call would double-count.
+				const attemptsAfter = active.attempts + 1
+				await this.emailVerificationRepository.incrementAttempts(active.id)
+				if (attemptsAfter >= MAX_OTP_ATTEMPTS) {
+					await this.emailVerificationRepository.markUsed(active.id)
+				}
+				throw new InvalidVerificationTokenError()
+			}
+			record = active
 		}
 
 		const user = await this.usersRepository.findById(userId)

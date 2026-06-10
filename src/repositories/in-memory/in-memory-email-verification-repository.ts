@@ -20,6 +20,7 @@ export class InMemoryEmailVerificationRepository
 			user_id: data.userId,
 			link_token: data.linkToken,
 			otp_code: data.otpCode,
+			attempts: 0,
 			expires_at: data.expiresAt,
 			used_at: null,
 			created_at: new Date(),
@@ -32,22 +33,18 @@ export class InMemoryEmailVerificationRepository
 		return this.items.find((r) => r.link_token === token) ?? null
 	}
 
-	async findByOtpCode(
-		userId: string,
-		code: string,
-	): Promise<EmailVerification | null> {
-		return (
-			this.items.find(
-				(r) => r.user_id === userId && r.otp_code === code,
-			) ?? null
-		)
-	}
-
 	async findLatestByUserId(userId: string): Promise<EmailVerification | null> {
 		const records = this.items
 			.filter((r) => r.user_id === userId)
 			.sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
 		return records[0] ?? null
+	}
+
+	async incrementAttempts(id: string): Promise<void> {
+		const record = this.items.find((r) => r.id === id)
+		if (record) {
+			record.attempts += 1
+		}
 	}
 
 	async markUsed(id: string): Promise<void> {
