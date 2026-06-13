@@ -90,9 +90,11 @@ src/
 ├── prisma-client/           # CLIENTE GERADO pelo Prisma 7 (output custom)
 ├── http/
 │   ├── controllers/
-│   │   ├── users/           # rotas + controllers de usuário/sessão
+│   │   ├── auth/            # rotas + controllers de auth (login, logout, refresh, me)
+│   │   ├── users/           # rotas de conta (cadastro, verificação de e-mail, reset de senha)
 │   │   ├── gyms/            # rotas + controllers de academias
-│   │   └── check-ins/       # rotas + controllers de check-ins
+│   │   ├── check-ins/       # rotas + controllers de check-ins
+│   │   └── health/          # healthcheck (/hello)
 │   └── middlewares/
 │       ├── verify-jwt-middleware.ts   # autenticação + checagem na denylist
 │       ├── verify-user-role.ts        # autorização (RBAC; 403 se papel errado)
@@ -167,7 +169,7 @@ Exemplo: **`POST /auth/login`** (login) e **`POST /gyms/:gymId/check-ins`** (rot
 
 ### 4.2 Exemplo detalhado — `POST /auth/login` (público)
 
-1. **Rota** (`users/routes.ts`): `app.post('/auth/login', authenticateController)` — sem hook de auth.
+1. **Rota** (`auth/routes.ts`): `app.post('/auth/login', authenticateController)` — rate limit estrito, sem hook JWT.
 2. **Controller** (`authenticate-controller.ts`):
     - Valida `{ email, password }` com Zod (`email()`, `min(6)`).
     - `makeAuthenticateUseCase()` → `AuthenticateUseCase` + `PrismaUsersRepository`.
