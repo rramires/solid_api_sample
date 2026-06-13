@@ -30,12 +30,12 @@ export async function usersRoutes(app: FastifyInstance) {
 		registerController,
 	)
 	app.post(
-		'/sessions',
+		'/auth/login',
 		{ onRequest: [strictAuthLimit(app)] },
 		authenticateController,
 	)
 	//
-	app.patch('/token/refresh', refreshController)
+	app.patch('/auth/refresh', refreshController)
 	// Password reset — both public, behind the strict auth limiter.
 	app.post(
 		'/users/forgot-password',
@@ -59,8 +59,12 @@ export async function usersRoutes(app: FastifyInstance) {
 	/**
 	 * Authenticated routes
 	 */
-	app.get('/me', { onRequest: [verifyJwtMiddleware] }, profileController)
-	app.post('/logout', { onRequest: [verifyJwtMiddleware] }, logoutController)
+	app.get('/auth/me', { onRequest: [verifyJwtMiddleware] }, profileController)
+	app.post(
+		'/auth/logout',
+		{ onRequest: [verifyJwtMiddleware] },
+		logoutController,
+	)
 	// Email verification — authenticated
 	app.post(
 		'/users/send-verification',

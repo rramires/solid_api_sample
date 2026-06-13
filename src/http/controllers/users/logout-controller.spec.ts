@@ -17,7 +17,7 @@ describe('Logout (e2e)', () => {
 		const { token } = await createAndAuthUser(app)
 
 		const response = await request(app.server)
-			.post('/logout')
+			.post('/auth/logout')
 			.set('Authorization', `Bearer ${token}`)
 			.send()
 
@@ -29,20 +29,20 @@ describe('Logout (e2e)', () => {
 
 		// The token works before logout.
 		const before = await request(app.server)
-			.get('/me')
+			.get('/auth/me')
 			.set('Authorization', `Bearer ${token}`)
 			.send()
 		expect(before.statusCode).toEqual(200)
 
 		// Revoke it.
 		await request(app.server)
-			.post('/logout')
+			.post('/auth/logout')
 			.set('Authorization', `Bearer ${token}`)
 			.send()
 
 		// The same token is now rejected.
 		const after = await request(app.server)
-			.get('/me')
+			.get('/auth/me')
 			.set('Authorization', `Bearer ${token}`)
 			.send()
 		expect(after.statusCode).toEqual(401)
@@ -54,7 +54,7 @@ describe('Logout (e2e)', () => {
 			.post('/users')
 			.send({ name: 'John Doe', email, password: 'abc12345' })
 
-		const authResponse = await request(app.server).post('/sessions').send({
+		const authResponse = await request(app.server).post('/auth/login').send({
 			email,
 			password: 'abc12345',
 		})
@@ -63,14 +63,14 @@ describe('Logout (e2e)', () => {
 
 		// Logout with the refresh cookie present revokes BOTH tokens.
 		await request(app.server)
-			.post('/logout')
+			.post('/auth/logout')
 			.set('Authorization', `Bearer ${token}`)
 			.set('Cookie', cookies)
 			.send()
 
 		// The old refresh cookie can no longer rotate.
 		const after = await request(app.server)
-			.patch('/token/refresh')
+			.patch('/auth/refresh')
 			.set('Cookie', cookies)
 			.send()
 		expect(after.statusCode).toEqual(401)

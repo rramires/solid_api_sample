@@ -25,7 +25,7 @@ describe('Register (e2e)', () => {
 		await request(app.server).post('/users').send(user)
 
 		// authenticate
-		const response = await request(app.server).post('/sessions').send({
+		const response = await request(app.server).post('/auth/login').send({
 			email: user.email,
 			password: user.password,
 		})

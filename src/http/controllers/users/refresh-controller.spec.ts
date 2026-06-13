@@ -25,7 +25,7 @@ describe('Refresh Token (e2e)', () => {
 		await request(app.server).post('/users').send(user)
 
 		// authenticate
-		const authResponse = await request(app.server).post('/sessions').send({
+		const authResponse = await request(app.server).post('/auth/login').send({
 			email: user.email,
 			password: user.password,
 		})
@@ -35,7 +35,7 @@ describe('Refresh Token (e2e)', () => {
 
 		// refresh cookie
 		const response = await request(app.server)
-			.patch('/token/refresh')
+			.patch('/auth/refresh')
 			.set('Cookie', cookies || [])
 			.send()
 
@@ -50,7 +50,7 @@ describe('Refresh Token (e2e)', () => {
 		const email = 'refresh-reuse@example.com'
 		await request(app.server).post('/users').send({ ...user, email })
 
-		const authResponse = await request(app.server).post('/sessions').send({
+		const authResponse = await request(app.server).post('/auth/login').send({
 			email,
 			password: user.password,
 		})
@@ -58,14 +58,14 @@ describe('Refresh Token (e2e)', () => {
 
 		// First refresh consumes (rotates) the presented refresh token.
 		const first = await request(app.server)
-			.patch('/token/refresh')
+			.patch('/auth/refresh')
 			.set('Cookie', oldCookies)
 			.send()
 		expect(first.status).toEqual(200)
 
 		// Reusing the SAME, now-rotated cookie must fail.
 		const reuse = await request(app.server)
-			.patch('/token/refresh')
+			.patch('/auth/refresh')
 			.set('Cookie', oldCookies)
 			.send()
 		expect(reuse.status).toEqual(401)

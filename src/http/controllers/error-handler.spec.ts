@@ -16,10 +16,10 @@ describe('Global error handler (e2e)', () => {
 	})
 
 	it('should return 429 when the strict auth limit is exceeded', async () => {
-		// strictAuthLimit on /sessions allows 5/min; the 6th hit must throttle.
+		// strictAuthLimit on /auth/login allows 5/min; the 6th hit must throttle.
 		let lastStatus = 0
 		for (let i = 0; i < 6; i++) {
-			const response = await request(app.server).post('/sessions').send({
+			const response = await request(app.server).post('/auth/login').send({
 				email: 'nobody@example.com',
 				password: 'wrong-password',
 			})

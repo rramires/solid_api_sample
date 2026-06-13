@@ -28,7 +28,7 @@ function lastResetEmail() {
 	return { token: token!, code: code! }
 }
 
-// /sessions is strict-rate-limited (5/min), so only authenticate when the test
+// /auth/login is strict-rate-limited (5/min), so only authenticate when the test
 // actually needs the access token; otherwise just register.
 async function registerUser(email: string, password: string) {
 	await request(app.server)
@@ -39,7 +39,7 @@ async function registerUser(email: string, password: string) {
 async function registerAndAuth(email: string, password: string) {
 	await registerUser(email, password)
 	const auth = await request(app.server)
-		.post('/sessions')
+		.post('/auth/login')
 		.send({ email, password })
 	return auth.body.token as string
 }
@@ -90,18 +90,18 @@ describe('Reset Password (e2e)', () => {
 
 		// Old password no longer works; the new one does.
 		const oldLogin = await request(app.server)
-			.post('/sessions')
+			.post('/auth/login')
 			.send({ email, password: 'abc12345' })
 		expect(oldLogin.statusCode).toEqual(401)
 
 		const newLogin = await request(app.server)
-			.post('/sessions')
+			.post('/auth/login')
 			.send({ email, password: 'newpass123' })
 		expect(newLogin.statusCode).toEqual(200)
 
 		// Access token issued before the reset is globally invalidated.
 		const me = await request(app.server)
-			.get('/me')
+			.get('/auth/me')
 			.set('Authorization', `Bearer ${oldToken}`)
 		expect(me.statusCode).toEqual(401)
 
@@ -127,7 +127,7 @@ describe('Reset Password (e2e)', () => {
 		expect(reset.statusCode).toEqual(204)
 
 		const newLogin = await request(app.server)
-			.post('/sessions')
+			.post('/auth/login')
 			.send({ email, password: 'newpass123' })
 		expect(newLogin.statusCode).toEqual(200)
 	})
