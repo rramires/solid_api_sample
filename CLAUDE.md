@@ -18,26 +18,35 @@ this file is about **process**.
   it is a local working document. Delete it (`rm PLAN.md`) only after every plan
   item is verified.
 
-## Golden workflow (every change)
+## Golden workflow (every change) — local, no PR
 
-1. **Branch per stage**, off `master`. **Never commit to `master`** (it is
-   protected and CI runs on PRs).
-2. **Checkpoint commits** — one commit per finished item, created **right after
-   its gate passes**. Never batch two items into one commit; never leave a
-   finished item uncommitted.
+This is a sample/reference project: keep it simple. Work on a **local branch**,
+commit per phase, and let the user own the merge and the push. **No pull
+requests, no GitHub merge step.**
+
+1. **Local branch per task**, off `master`. **Never commit directly to
+   `master`** — always branch first. Branches stay local until the user pushes.
+2. **Commit per phase** — one commit per finished, coherent step (a checkpoint),
+   created **right after its gate passes**. Conventional Commits. Never batch
+   unrelated work into one commit; never leave a finished phase uncommitted.
 3. **Gate before every commit** (must be green):
-    ```sh
-    pnpm lint && pnpm compile && pnpm test
-    ```
-    Changes that touch HTTP/routes also run the e2e suite before pushing
-    (MySQL up: `pnpm compose:up`):
-    ```sh
-    pnpm test:e2e
-    ```
-4. **One PR per group** (`gh pr create`) with a descriptive body + test plan.
-   Then **STOP and wait for the user to merge** on GitHub (CI must be green
-   there). After merge: `git checkout master && git pull`, delete the local
-   branch, `git remote prune origin`, start the next branch.
+   ```sh
+   pnpm lint && pnpm compile && pnpm test
+   ```
+   Changes that touch HTTP/routes also run the e2e suite (MySQL up:
+   `pnpm compose:up`):
+   ```sh
+   pnpm test:e2e
+   ```
+4. **When the task is done, STOP and wait for the user.** The user tests the
+   branch (and, for route-adding changes, runs the clean-DB walkthrough below).
+   - The user **explicitly authorizes the merge**; only then merge the branch
+     into `master` **locally** (`git checkout master && git merge <branch>`).
+   - **Only the user pushes.** Never run `git push`. After the user pushes and
+     confirms, delete the local branch (`git branch -d <branch>`).
+
+> `master` is no longer protected on GitHub, so the user can push it directly.
+> CI still runs on push — keep the gate green locally so push stays clean.
 
 ## Commit messages
 
