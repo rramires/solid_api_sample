@@ -8,8 +8,10 @@ import fastify from 'fastify'
 import { z, ZodError } from 'zod'
 
 import { env } from './env'
+import { authRoutes } from './http/controllers/auth/routes'
 import { checkInsRoutes } from './http/controllers/check-ins/routes'
 import { gymsRoutes } from './http/controllers/gyms/routes'
+import { healthRoutes } from './http/controllers/health/routes'
 import { usersRoutes } from './http/controllers/users/routes'
 import { prisma } from './lib/prisma'
 import { reportError } from './lib/report-error'
@@ -70,6 +72,8 @@ app.register(fastifyJwt, {
 })
 app.register(fastifyCookie)
 // Routes
+app.register(healthRoutes)
+app.register(authRoutes)
 app.register(usersRoutes)
 app.register(gymsRoutes)
 app.register(checkInsRoutes)
