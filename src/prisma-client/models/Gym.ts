@@ -288,7 +288,7 @@ export type GymCreateInput = {
   phone?: string | null
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
-  checkIns?: Prisma.CheckInCreateNestedManyWithoutGynInput
+  checkIns?: Prisma.CheckInCreateNestedManyWithoutGymInput
 }
 
 export type GymUncheckedCreateInput = {
@@ -298,7 +298,7 @@ export type GymUncheckedCreateInput = {
   phone?: string | null
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
-  checkIns?: Prisma.CheckInUncheckedCreateNestedManyWithoutGynInput
+  checkIns?: Prisma.CheckInUncheckedCreateNestedManyWithoutGymInput
 }
 
 export type GymUpdateInput = {
@@ -308,7 +308,7 @@ export type GymUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  checkIns?: Prisma.CheckInUpdateManyWithoutGynNestedInput
+  checkIns?: Prisma.CheckInUpdateManyWithoutGymNestedInput
 }
 
 export type GymUncheckedUpdateInput = {
@@ -318,7 +318,7 @@ export type GymUncheckedUpdateInput = {
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  checkIns?: Prisma.CheckInUncheckedUpdateManyWithoutGynNestedInput
+  checkIns?: Prisma.CheckInUncheckedUpdateManyWithoutGymNestedInput
 }
 
 export type GymCreateManyInput = {
