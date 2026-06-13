@@ -24,8 +24,11 @@ This is a sample/reference project: keep it simple. Work on a **local branch**,
 commit per phase, and let the user own the merge and the push. **No pull
 requests, no GitHub merge step.**
 
-1. **Local branch per task**, off `master`. **Never commit directly to
+1. **Local branch per task**, off `master`. **Never commit code directly to
    `master`** — always branch first. Branches stay local until the user pushes.
+   - **Exception — docs-only changes** (`README*`, `PROJECT*`, `CLAUDE.md`, with
+     **no code**) may be committed **straight to `master`**, no branch. The
+     push is still the user's.
 2. **Commit per phase** — one commit per finished, coherent step (a checkpoint),
    created **right after its gate passes**. Conventional Commits. Never batch
    unrelated work into one commit; never leave a finished phase uncommitted.
