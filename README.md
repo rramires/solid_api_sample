@@ -112,10 +112,10 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | ------- | -------------------------------- | -------------- | ------- | ---------------------------------------------------- |
 | `GET`   | `/hello`                         | –              | –       | Healthcheck                                          |
 | `POST`  | `/users`                         | –              | –       | Register a user (rate-limited)                       |
-| `POST`  | `/sessions`                      | –              | –       | Login → access token + refresh cookie (rate-limited) |
-| `PATCH` | `/token/refresh`                 | refresh cookie | –       | Rotate the access token                              |
-| `GET`   | `/me`                            | Bearer         | –       | Authenticated user profile                           |
-| `POST`  | `/logout`                        | Bearer         | –       | Revoke the current token (denylist)                  |
+| `POST`  | `/auth/login`                    | –              | –       | Login → access token + refresh cookie (rate-limited) |
+| `PATCH` | `/auth/refresh`                  | refresh cookie | –       | Rotate the access token                              |
+| `GET`   | `/auth/me`                       | Bearer         | –       | Authenticated user profile                           |
+| `POST`  | `/auth/logout`                   | Bearer         | –       | Revoke the current token (denylist)                  |
 | `GET`   | `/gyms/search`                   | Bearer         | –       | Search gyms by title                                 |
 | `GET`   | `/gyms/nearby`                   | Bearer         | –       | Gyms near a coordinate                               |
 | `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Create a gym                                         |
@@ -136,13 +136,13 @@ boot if any variable is invalid (Zod validation in `src/env`).
 
 ### Example responses
 
-`POST /sessions` → `200` (also sets the `refreshToken` httpOnly cookie):
+`POST /auth/login` → `200` (also sets the `refreshToken` httpOnly cookie):
 
 ```json
 { "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
 ```
 
-`GET /me` → `200`:
+`GET /auth/me` → `200`:
 
 ```json
 { "user": { "id": "3fa2...c9", "name": "Fulano" } }
@@ -196,7 +196,7 @@ curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
 
 # 2b. Login to get a token, send verification email, then verify via the link/OTP printed to the server log
 echo -e "\n=== 2b. POST /users/send-verification (check server log for link + OTP) ===" && \
-TOKEN_TMP=$(curl -s -X POST "$BASE/sessions" \
+TOKEN_TMP=$(curl -s -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"fulano@email.com","password":"password123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
@@ -208,27 +208,27 @@ echo "  curl '$BASE/users/verify-email?token=<paste-token>'"
 # 2c. Test lockout: try wrong password N times -> expected 429 on the last attempt
 echo -e "\n=== 2c. Login lockout test (6 attempts with wrong password) ===" && \
 for i in 1 2 3 4 5 6; do
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/sessions" \
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/auth/login" \
     -H "Content-Type: application/json" \
     -d '{"email":"fulano@email.com","password":"wrong"}')
   echo "Attempt $i: $STATUS"
 done
 
 # 3. Login as MEMBER (captures token + refresh cookie)
-echo -e "\n=== 3. POST /sessions (member) ===" && \
-TOKEN=$(curl -s -c /tmp/cookies.txt -X POST "$BASE/sessions" \
+echo -e "\n=== 3. POST /auth/login (member) ===" && \
+TOKEN=$(curl -s -c /tmp/cookies.txt -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"fulano@email.com","password":"password123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 echo "Token: ${TOKEN:0:40}..."
 
 # 4. Authenticated profile
-echo -e "\n=== 4. GET /me ===" && \
-curl -s "$BASE/me" -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+echo -e "\n=== 4. GET /auth/me ===" && \
+curl -s "$BASE/auth/me" -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
 
 # 5. Refresh the access token via the refresh cookie
-echo -e "\n=== 5. PATCH /token/refresh ===" && \
-curl -s -b /tmp/cookies.txt -c /tmp/cookies.txt -X PATCH "$BASE/token/refresh" | python3 -m json.tool
+echo -e "\n=== 5. PATCH /auth/refresh ===" && \
+curl -s -b /tmp/cookies.txt -c /tmp/cookies.txt -X PATCH "$BASE/auth/refresh" | python3 -m json.tool
 
 # 6. Create a gym as MEMBER -> expected 401 (role ADMIN required)
 echo -e "\n=== 6. POST /gyms (expected 401 - MEMBER) ===" && \
@@ -238,18 +238,18 @@ curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   python3 -m json.tool
 
 # 7. Logout -> revokes the current token (denylist)
-echo -e "\n=== 7. POST /logout ===" && \
+echo -e "\n=== 7. POST /auth/logout ===" && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
-  -X POST "$BASE/logout" -H "Authorization: Bearer $TOKEN"
+  -X POST "$BASE/auth/logout" -H "Authorization: Bearer $TOKEN"
 
 # 8. Reuse the revoked token -> expected 401 (token is denylisted)
-echo -e "\n=== 8. GET /me with revoked token (expected 401) ===" && \
+echo -e "\n=== 8. GET /auth/me with revoked token (expected 401) ===" && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
-  "$BASE/me" -H "Authorization: Bearer $TOKEN"
+  "$BASE/auth/me" -H "Authorization: Bearer $TOKEN"
 
 # 9. Login as the seeded ADMIN (use your ADMIN_EMAIL / ADMIN_PASSWORD)
-echo -e "\n=== 9. POST /sessions (admin) ===" && \
-ADMIN_TOKEN=$(curl -s -X POST "$BASE/sessions" \
+echo -e "\n=== 9. POST /auth/login (admin) ===" && \
+ADMIN_TOKEN=$(curl -s -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@example.com","password":"Admin@12345"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \

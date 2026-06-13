@@ -123,7 +123,7 @@ src/
 
 ## 4. Full Request Lifecycle
 
-Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (protected route).
+Example: **`POST /auth/login`** (login) and **`POST /gyms/:gymId/check-ins`** (protected route).
 
 ### 4.1 General flow (all routes)
 
@@ -140,7 +140,7 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
      • @fastify/cookie      → cookie parsing (refreshToken)
         │
 4. Route `onRequest` hooks (if any):
-     • strictAuthLimit(app)          → strict rate limit (5/min) on /users and /sessions
+     • strictAuthLimit(app)          → strict rate limit (5/min) on /users and /auth/login
      • verifyJwtMiddleware           → authentication (401 if invalid or revoked)
      • verifyUserRole(Role.ADMIN)    → authorization (403 if wrong role)
         │
@@ -165,9 +165,9 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
      • Unhandled error       → 500 (request.log.error in dev; reportError() in prod)
 ```
 
-### 4.2 Detailed example — `POST /sessions` (public)
+### 4.2 Detailed example — `POST /auth/login` (public)
 
-1. **Route** (`users/routes.ts`): `app.post('/sessions', authenticateController)` — no auth hook.
+1. **Route** (`users/routes.ts`): `app.post('/auth/login', authenticateController)` — no auth hook.
 2. **Controller** (`authenticate-controller.ts`):
     - Validates `{ email, password }` with Zod (`email()`, `min(6)`).
     - `makeAuthenticateUseCase()` → `AuthenticateUseCase` + `PrismaUsersRepository`.
@@ -209,11 +209,11 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
   `signed:false` (it's a JWT, already self-validating).
 - `request.jwtVerify()` decodes and validates signature/expiration; the typed
   payload (`@types/fastify-jwt.d.ts`) ensures `request.user = { sub, role }`.
-- **`PATCH /token/refresh`**: uses `jwtVerify({ onlyCookie: true })` and
+- **`PATCH /auth/refresh`**: uses `jwtVerify({ onlyCookie: true })` and
   **rotates** both tokens. Refresh tokens are **single-use** — the presented
   `jti` is revoked before the new pair is issued, so a stolen refresh cookie
   cannot be replayed.
-- **`jti` + denylist**: every token carries a `jti`. **`POST /logout`** revokes
+- **`jti` + denylist**: every token carries a `jti`. **`POST /auth/logout`** revokes
   **both** the access and the refresh `jti` (until `exp`) and clears the cookie;
   `verifyJwtMiddleware` rejects (`401`) any revoked token. Details in §5.5.
 - **`is_verified` is not a JWT claim**: `verifyEmailVerified` reads the real
@@ -238,10 +238,10 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 | ------ | -------------------------------- | :--------: | :-----------: | ------------------------------------------------ |
 | GET    | `/hello`                         |     ❌     |       —       | health/test                                      |
 | POST   | `/users`                         |     ❌     |       —       | registration (public)                            |
-| POST   | `/sessions`                      |     ❌     |       —       | login                                            |
-| PATCH  | `/token/refresh`                 |   cookie   |       —       | token rotation                                   |
-| GET    | `/me`                            |     ✅     |       —       | own profile                                      |
-| POST   | `/logout`                        |     ✅     |       —       | revokes current token (denylist) + clears cookie |
+| POST   | `/auth/login`                    |     ❌     |       —       | login                                            |
+| PATCH  | `/auth/refresh`                  |   cookie   |       —       | token rotation                                   |
+| GET    | `/auth/me`                       |     ✅     |       —       | own profile                                      |
+| POST   | `/auth/logout`                   |     ✅     |       —       | revokes current token (denylist) + clears cookie |
 | GET    | `/gyms/search`                   |     ✅     |       —       | search by name                                   |
 | GET    | `/gyms/nearby`                   |     ✅     |       —       | search by proximity                              |
 | POST   | `/gyms`                          |     ✅     |   **ADMIN**   | create a gym                                     |
@@ -274,7 +274,7 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
   the request body → prevents IDOR/identity spoofing.
 - **`httpOnly` cookie** → refresh token not accessible via JavaScript (anti-XSS).
 - **Rate limiting** (`@fastify/rate-limit`): global per-IP limit (100/min) +
-  strict limit (5/min) on `/users` and `/sessions` via `strictAuthLimit` →
+  strict limit (5/min) on `/users` and `/auth/login` via `strictAuthLimit` →
   mitigates password brute-force and registration/enumeration abuse.
 - **Per-environment CORS** (`@fastify/cors`) with `credentials:true` (required
   for the refresh cookie). In production the origin comes from `CORS_ORIGIN`
@@ -319,9 +319,9 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
   updates the `Map`; `load()` warms RAM from the DB on boot.
 - **Periodic cleanup** (`setInterval(...).unref()`) removes expired entries from
   RAM and the DB, keeping the denylist bounded.
-- **Flow:** `POST /logout` → `revoke(jti, exp)` → subsequent requests with that
+- **Flow:** `POST /auth/logout` → `revoke(jti, exp)` → subsequent requests with that
   token are rejected (`401`) in `verifyJwtMiddleware`.
-- **Single-use refresh:** `PATCH /token/refresh` also revokes the presented
+- **Single-use refresh:** `PATCH /auth/refresh` also revokes the presented
   refresh `jti` before issuing the new pair (rotation = consumption).
 - **Global logout (`password_changed_at`):** a sibling hybrid RAM+DB registry
   (`password-changed-registry.ts`) records each password change; tokens whose
@@ -332,7 +332,7 @@ Example: **`POST /sessions`** (login) and **`POST /gyms/:gymId/check-ins`** (pro
 
 All authenticated routes use the `Authorization: Bearer` header — cross-site
 requests cannot set custom headers, so CSRF is not applicable.
-The only cookie-based route (`PATCH /token/refresh`) is protected by the
+The only cookie-based route (`PATCH /auth/refresh`) is protected by the
 `sameSite` attribute on the refresh cookie (`lax` or `strict`), which prevents
 browsers from sending the cookie on cross-origin non-safe requests.
 
