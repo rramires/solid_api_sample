@@ -4,7 +4,7 @@ import { IGymsRepository } from '@/repositories/i-gyms-repository'
 import { getDistanceBetweenCoordinates } from '@/utils/get-distance-between-coordinates'
 
 import { MaxCheckInsReachedError } from './errors/max-check-ins-reached-error'
-import { MaxDistanceError } from './errors/max-distance.error'
+import { MaxDistanceError } from './errors/max-distance-error'
 import { ResourceNotFoundError } from './errors/resource-not-found-error'
 
 interface CheckInUseCaseRequest {

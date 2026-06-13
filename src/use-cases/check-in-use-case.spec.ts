@@ -6,7 +6,7 @@ import getTestCoordinates from '@/utils/tests/get-test-coordinates'
 
 import { CheckInUseCase } from './check-in-use-case'
 import { MaxCheckInsReachedError } from './errors/max-check-ins-reached-error'
-import { MaxDistanceError } from './errors/max-distance.error'
+import { MaxDistanceError } from './errors/max-distance-error'
 import { ResourceNotFoundError } from './errors/resource-not-found-error'
 
 let checkInsRepository: InMemoryCheckInsRepository
