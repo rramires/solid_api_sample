@@ -86,6 +86,14 @@ coherent (routes table, env table, features, models, error-handler behavior).
 `PROJECT*.md` = architecture reference; `README*.md` = setup + usage + smoke
 test. Run `pnpm exec prettier --check` on the docs before committing.
 
+**Always finish with a docs review.** At the very end of every task — before
+declaring it done — re-read `README` + `PROJECT` (both languages) and confirm
+they still match the code you touched: routes table, env table, features,
+models, the folder tree (`PROJECT` §3), the request-lifecycle file references
+(§4.x), and the README curl smoke block. Structural changes (renamed/moved/
+added routes or folders, renamed files) are the usual source of doc drift and
+are easy to miss mid-task — this final pass exists to catch them.
+
 ## Large changes that add routes — final manual verification
 
 Before finishing such a change, on a **clean database**, exercise every route
