@@ -29,7 +29,7 @@ describe('Profile (e2e)', () => {
 		expect(response.statusCode).toEqual(200)
 		expect(response.body.user).toEqual(
 			expect.objectContaining({
-				name: user.name,
+				username: user.username,
 			}),
 		)
 	})

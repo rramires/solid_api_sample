@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect,it } from 'vitest'
 import { app } from '@/app'
 
 const user = {
-	name: 'John Doe',
+	username: 'johndoe',
 	email: 'johndoe@example.com',
 	password: '12345678',
 }

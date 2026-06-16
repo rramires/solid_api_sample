@@ -24,7 +24,7 @@ jobs:
               env:
                   NODE_ENV: test
                   JWT_SECRET: unit-tests-jwt-secret-min-20-chars
-                  ADMIN_NAME: Admin
+                  ADMIN_USERNAME: admin
                   ADMIN_EMAIL: admin@example.com
                   ADMIN_PASSWORD: Admin@12345
                   # Some unit specs import @/app, whose prisma adapter parses

@@ -10,7 +10,7 @@ import { GetUserProfileUseCase } from './get-user-profile-use-case'
 
 let usersRepository: InMemoryUsersRepository
 const newUser = {
-	name: 'Jhon Doe',
+	username: 'johndoe',
 	email: 'jhondoe@email.com',
 	password: 'abc123',
 }
@@ -21,7 +21,7 @@ describe('Get User Profile Use Case', () => {
 	beforeEach(async () => {
 		usersRepository = new InMemoryUsersRepository()
 		createdUser = await usersRepository.create({
-			name: newUser.name,
+			username: newUser.username,
 			email: newUser.email,
 			password_hash: await hash(newUser.password, 12),
 		})
@@ -36,7 +36,7 @@ describe('Get User Profile Use Case', () => {
 		})
 		// check
 		expect(user.id).toEqual(expect.any(String))
-		expect(user.name).toEqual(createdUser.name)
+		expect(user.username).toEqual(createdUser.username)
 	})
 
 	it('should not be able to get user profile with wrong id', async () => {

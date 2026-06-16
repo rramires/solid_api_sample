@@ -7,7 +7,13 @@ import { makeRegisterUseCase } from '@/use-cases/factories/make-register-use-cas
 
 export async function registerController(request: FastifyRequest, reply: FastifyReply) {
 	const bodySchema = z.object({
-		name: z.string().min(1).max(255),
+		// 3-30 chars, letters/numbers/underscore only, stored lowercase.
+		username: z
+			.string()
+			.min(env.MIN_TEXT_LENGTH)
+			.max(30)
+			.regex(/^[a-zA-Z0-9_]+$/, 'letters, numbers, underscore only')
+			.transform((s) => s.toLowerCase()),
 		email: z.email(),
 		// Minimum length is configurable; 72 is the bcrypt input ceiling (anti-DoS).
 		// bcrypt counts BYTES, not chars: .max(72) is a cheap pre-filter; the refine
@@ -18,13 +24,13 @@ export async function registerController(request: FastifyRequest, reply: Fastify
 			.max(72)
 			.refine((p) => Buffer.byteLength(p, 'utf8') <= 72, 'Password too long'),
 	})
-	const { name, email, password } = bodySchema.parse(request.body)
+	const { username, email, password } = bodySchema.parse(request.body)
 
 	try {
 		const registerUseCase = makeRegisterUseCase()
 
 		const { user } = await registerUseCase.execute({
-			name,
+			username,
 			email,
 			password,
 		})

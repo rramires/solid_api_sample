@@ -16,7 +16,7 @@ async function seedAdminRole() {
 		where: { email: env.ADMIN_EMAIL },
 		update: {},
 		create: {
-			name: env.ADMIN_NAME,
+			username: env.ADMIN_USERNAME,
 			email: env.ADMIN_EMAIL,
 			password_hash,
 			role: Role.ADMIN,

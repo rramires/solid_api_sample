@@ -19,10 +19,10 @@ enum Role {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  password_hash String
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  username      String   @unique @db.VarChar(30)
+  email         String   @unique @db.VarChar(254)
+  password_hash String   @db.VarChar(60)
   role          Role     @default(MEMBER)
   is_verified   Boolean  @default(false)
   created_at    DateTime @default(now())
@@ -43,19 +43,19 @@ model CheckIn {
   validated_at DateTime?
 
   user    User   @relation(fields: [user_id], references: [id])
-  user_id String
+  user_id String @db.VarChar(36)
 
   gym    Gym    @relation(fields: [gym_id], references: [id])
-  gym_id String
+  gym_id String @db.VarChar(36)
 
   @@map("check_ins")
 }
 
 model Gym {
-  id          String  @id @default(uuid())
-  title       String
-  description String?
-  phone       String?
+  id          String  @id @default(uuid()) @db.VarChar(36)
+  title       String  @db.VarChar(100)
+  description String? @db.VarChar(500)
+  phone       String? @db.VarChar(20)
   latitude    Decimal
   longitude   Decimal
 
@@ -65,8 +65,8 @@ model Gym {
 }
 
 model EmailVerification {
-  id         String    @id @default(uuid())
-  user_id    String
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  user_id    String    @db.VarChar(36)
   link_token String    @unique @default(uuid())
   otp_code   String
   // Wrong-OTP counter; the record is invalidated once it reaches the cap.
@@ -81,8 +81,8 @@ model EmailVerification {
 }
 
 model PasswordReset {
-  id              String    @id @default(uuid())
-  user_id         String
+  id              String    @id @default(uuid()) @db.VarChar(36)
+  user_id         String    @db.VarChar(36)
   link_token_hash String    @unique // sha256 hex of the UUID sent by email
   otp_code_hash   String // sha256 hex of the 6-digit code
   attempts        Int       @default(0)

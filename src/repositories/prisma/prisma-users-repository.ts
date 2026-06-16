@@ -22,13 +22,22 @@ export class PrismaUsersRepository implements IUsersRepository {
 		return user
 	}
 
+	async findByUsername(username: string) {
+		const user = await prisma.user.findUnique({
+			where: {
+				username,
+			},
+		})
+		return user
+	}
+
 	async create(data: Prisma.UserCreateInput) {
 		const user = await prisma.user.create({
 			data,
 			// Never return password_hash to callers
 			select: {
 				id: true,
-				name: true,
+				username: true,
 				email: true,
 				role: true,
 				is_verified: true,

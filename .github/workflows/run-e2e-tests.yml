@@ -40,6 +40,6 @@ jobs:
                   PORT: 3333
                   JWT_SECRET: ${{ secrets.JWT_SECRET }}
                   DATABASE_URL: 'mysql://root:docker123@127.0.0.1:3306/gympass-db'
-                  ADMIN_NAME: Admin
+                  ADMIN_USERNAME: admin
                   ADMIN_EMAIL: admin@example.com
                   ADMIN_PASSWORD: Admin@12345

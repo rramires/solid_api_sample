@@ -20,7 +20,7 @@ describe('Register Use Case', () => {
 	it('should be possible to hash the password when registering a new user', async () => {
 		const password = 'abc123'
 		await sut.execute({
-			name: 'Jhon Doe',
+			username: 'johndoe',
 			email: 'jhondoe@email.com',
 			password,
 		})
@@ -36,7 +36,7 @@ describe('Register Use Case', () => {
 
 	it('should not be able to register with same email twice', async () => {
 		const newUser = {
-			name: 'Jhon Doe',
+			username: 'johndoe',
 			email: 'jhondoe@email.com',
 			password: 'abc123',
 		}
@@ -50,7 +50,7 @@ describe('Register Use Case', () => {
 	it('should be able to register', async () => {
 		// add
 		const { user } = await sut.execute({
-			name: 'Jhon Doe',
+			username: 'johndoe',
 			email: 'jhondoe@email.com',
 			password: 'abc123',
 		})

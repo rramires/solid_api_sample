@@ -45,7 +45,11 @@ describe('Verify Email (e2e)', () => {
 		const email = 'verify-flow@example.com'
 		await request(app.server)
 			.post('/users')
-			.send({ name: 'John Doe', email, password: 'abc12345' })
+			.send({
+				username: email.split('@')[0].replace(/[^a-z0-9_]/gi, '_'),
+				email,
+				password: 'abc12345',
+			})
 		const auth = await request(app.server)
 			.post('/auth/login')
 			.send({ email, password: 'abc12345' })

@@ -5,7 +5,7 @@ import { IUsersRepository, PublicUser } from '@/repositories/i-users-repository'
 import { UserAlreadyExistsError } from './errors/user-already-exists-error'
 
 interface RegisterUseCaseRequest {
-	name: string
+	username: string
 	email: string
 	password: string
 }
@@ -27,15 +27,17 @@ export class RegisterUseCase {
 	*/
 
 	async execute({
-		name,
+		username,
 		email,
 		password,
 	}: RegisterUseCaseRequest): Promise<RegisterUseCaseResponse> {
-		// check email
+		// check email and username — both are unique
 		const userWithSameEmail = await this.usersRepository.findByEmail(email)
-		if (userWithSameEmail) {
+		const userWithSameUsername =
+			await this.usersRepository.findByUsername(username)
+		if (userWithSameEmail || userWithSameUsername) {
 			// Hash anyway so the response timing matches a real registration and
-			// does not reveal that the email already exists. The result is discarded.
+			// does not reveal that the email/username already exists. Discarded.
 			await hash(password, 12)
 			throw new UserAlreadyExistsError()
 		}
@@ -43,7 +45,7 @@ export class RegisterUseCase {
 		const password_hash = await hash(password, 12)
 		// call persistence
 		const user = await this.usersRepository.create({
-			name,
+			username,
 			email,
 			password_hash,
 		})

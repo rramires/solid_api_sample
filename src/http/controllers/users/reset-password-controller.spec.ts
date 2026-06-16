@@ -33,7 +33,11 @@ function lastResetEmail() {
 async function registerUser(email: string, password: string) {
 	await request(app.server)
 		.post('/users')
-		.send({ name: 'John Doe', email, password })
+		.send({
+			username: email.split('@')[0].replace(/[^a-z0-9_]/gi, '_'),
+			email,
+			password,
+		})
 }
 
 async function registerAndAuth(email: string, password: string) {

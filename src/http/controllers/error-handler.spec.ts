@@ -33,7 +33,7 @@ describe('Global error handler (e2e)', () => {
 		const response = await request(app.server)
 			.post('/users')
 			.send({
-				name: 'x'.repeat(20_000), // BODY_LIMIT defaults to 16_384 bytes
+				username: 'x'.repeat(20_000), // BODY_LIMIT defaults to 16_384 bytes
 				email: 'big@example.com',
 				password: '12345678',
 			})

@@ -35,7 +35,7 @@ describe('Send Verification Use Case', () => {
 		)
 
 		const user = await usersRepository.create({
-			name: 'John Doe',
+			username: 'johndoe',
 			email: 'johndoe@example.com',
 			password_hash: await hash('abc12345', 12),
 		})

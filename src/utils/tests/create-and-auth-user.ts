@@ -6,7 +6,7 @@ import { Role } from '@/prisma-client/enums'
 
 export default async function createAndAuthUser(app: FastifyInstance, isAdmin = false) {
 	const newUser = {
-		name: 'John Doe',
+		username: 'johndoe',
 		email: 'johndoe@example.com',
 		password: 'abc12345',
 	}

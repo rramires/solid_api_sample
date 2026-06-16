@@ -8,6 +8,9 @@ const envSchema = z.object({
 	JWT_SECRET: z.string().min(20, 'Minimum 20 characters'),
 	CORS_ORIGIN: z.string().optional(),
 	PASSWORD_MIN_LENGTH: z.coerce.number().int().min(8).max(72).default(8),
+	// Minimum length for "name-of-things" text fields (username, gym title,
+	// search query). Floor of 3 — boot fails if set lower.
+	MIN_TEXT_LENGTH: z.coerce.number().int().min(3).default(3),
 	BODY_LIMIT: z.coerce.number().int().positive().default(16_384),
 	LOG_LEVEL: z
 		.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
@@ -43,7 +46,13 @@ const envSchema = z.object({
 	// Password-reset token/OTP validity in minutes (default: 60).
 	RESET_EXPIRES_MINUTES: z.coerce.number().int().positive().optional().default(60),
 	// ADMIN seed credentials. Required so the app fails fast on misconfiguration.
-	ADMIN_NAME: z.string().min(1).max(255),
+	// Username rules mirror the register controller: 3–30, [a-zA-Z0-9_], lowercased.
+	ADMIN_USERNAME: z
+		.string()
+		.regex(/^[a-zA-Z0-9_]+$/, 'letters, numbers, underscore only')
+		.min(3)
+		.max(30)
+		.transform((s) => s.toLowerCase()),
 	ADMIN_EMAIL: z.email(),
 	// Strong password policy: min 10 chars, with upper, lower, number and special.
 	ADMIN_PASSWORD: z

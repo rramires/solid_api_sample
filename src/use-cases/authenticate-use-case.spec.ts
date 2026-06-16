@@ -12,7 +12,7 @@ import { TooManyAttemptsError } from './errors/too-many-attempts-error'
 let usersRepository: InMemoryUsersRepository
 let loginAttemptTracker: InMemoryLoginAttemptTracker
 const newUser = {
-	name: 'Jhon Doe',
+	username: 'johndoe',
 	email: 'jhondoe@email.com',
 	password: 'abc123',
 }
@@ -23,7 +23,7 @@ describe('Authenticate Use Case', () => {
 		usersRepository = new InMemoryUsersRepository()
 		loginAttemptTracker = new InMemoryLoginAttemptTracker()
 		await usersRepository.create({
-			name: newUser.name,
+			username: newUser.username,
 			email: newUser.email,
 			password_hash: await hash(newUser.password, 12),
 		})

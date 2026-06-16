@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect,it } from 'vitest'
 import { app } from '@/app'
 
 const user = {
-	name: 'John Doe',
+	username: 'johndoe',
 	email: 'johndoe@example.com',
 	password: '12345678',
 }
@@ -48,7 +48,9 @@ describe('Refresh Token (e2e)', () => {
 
 	it('should reject reuse of an old refresh cookie (single-use)', async () => {
 		const email = 'refresh-reuse@example.com'
-		await request(app.server).post('/users').send({ ...user, email })
+		await request(app.server)
+			.post('/users')
+			.send({ ...user, username: 'refreshreuse', email })
 
 		const authResponse = await request(app.server).post('/auth/login').send({
 			email,

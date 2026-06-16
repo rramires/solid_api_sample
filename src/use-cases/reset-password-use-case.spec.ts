@@ -45,7 +45,7 @@ describe('Reset Password Use Case', () => {
 		)
 
 		const user = await usersRepository.create({
-			name: 'John Doe',
+			username: 'johndoe',
 			email: EMAIL,
 			password_hash: await hash('oldpass123', 12),
 		})

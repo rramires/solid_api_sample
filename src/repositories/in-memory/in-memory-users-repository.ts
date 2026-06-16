@@ -12,7 +12,7 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		// new user
 		const user = {
 			id: randomUUID(),
-			name: data.name,
+			username: data.username,
 			email: data.email,
 			password_hash: data.password_hash,
 			role: data.role ?? 'MEMBER',
@@ -25,7 +25,7 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		// Mirror the prisma repository: never expose password_hash
 		return {
 			id: user.id,
-			name: user.name,
+			username: user.username,
 			email: user.email,
 			role: user.role,
 			is_verified: user.is_verified,
@@ -44,6 +44,16 @@ export class InMemoryUsersRepository implements IUsersRepository {
 	async findByEmail(email: string): Promise<User | null> {
 		// find by email
 		const user = this.items.find((item) => item.email === email)
+
+		return user || null
+	}
+
+	async findByUsername(username: string): Promise<User | null> {
+		// find by username (case-insensitive, mirrors lowercased storage)
+		const lower = username.toLowerCase()
+		const user = this.items.find(
+			(item) => item.username.toLowerCase() === lower,
+		)
 
 		return user || null
 	}

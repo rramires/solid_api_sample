@@ -10,12 +10,12 @@ export async function profileController(request: FastifyRequest, reply: FastifyR
 		const { user } = await getUserProfile.execute({
 			userId: request.user.sub,
 		})
-		const { id, name } = user
+		const { id, username } = user
 
 		return reply.status(200).send({
 			user: {
 				id,
-				name,
+				username,
 			},
 		})
 	} catch (err) {
