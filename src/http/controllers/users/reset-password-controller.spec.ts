@@ -44,7 +44,7 @@ async function registerAndAuth(email: string, password: string) {
 	await registerUser(email, password)
 	const auth = await request(app.server)
 		.post('/auth/login')
-		.send({ email, password })
+		.send({ identifier: email, password })
 	return auth.body.token as string
 }
 
@@ -95,12 +95,12 @@ describe('Reset Password (e2e)', () => {
 		// Old password no longer works; the new one does.
 		const oldLogin = await request(app.server)
 			.post('/auth/login')
-			.send({ email, password: 'abc12345' })
+			.send({ identifier: email, password: 'abc12345' })
 		expect(oldLogin.statusCode).toEqual(401)
 
 		const newLogin = await request(app.server)
 			.post('/auth/login')
-			.send({ email, password: 'newpass123' })
+			.send({ identifier: email, password: 'newpass123' })
 		expect(newLogin.statusCode).toEqual(200)
 
 		// Access token issued before the reset is globally invalidated.
@@ -132,7 +132,7 @@ describe('Reset Password (e2e)', () => {
 
 		const newLogin = await request(app.server)
 			.post('/auth/login')
-			.send({ email, password: 'newpass123' })
+			.send({ identifier: email, password: 'newpass123' })
 		expect(newLogin.statusCode).toEqual(200)
 	})
 })

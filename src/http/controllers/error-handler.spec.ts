@@ -20,7 +20,7 @@ describe('Global error handler (e2e)', () => {
 		let lastStatus = 0
 		for (let i = 0; i < 6; i++) {
 			const response = await request(app.server).post('/auth/login').send({
-				email: 'nobody@example.com',
+				identifier: 'nobody@example.com',
 				password: 'wrong-password',
 			})
 			lastStatus = response.statusCode

@@ -59,7 +59,7 @@ describe('Logout (e2e)', () => {
 			})
 
 		const authResponse = await request(app.server).post('/auth/login').send({
-			email,
+			identifier: email,
 			password: 'abc12345',
 		})
 		const cookies = authResponse.get('Set-Cookie') || []

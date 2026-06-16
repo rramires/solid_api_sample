@@ -26,7 +26,7 @@ describe('Refresh Token (e2e)', () => {
 
 		// authenticate
 		const authResponse = await request(app.server).post('/auth/login').send({
-			email: user.email,
+			identifier: user.email,
 			password: user.password,
 		})
 
@@ -53,7 +53,7 @@ describe('Refresh Token (e2e)', () => {
 			.send({ ...user, username: 'refreshreuse', email })
 
 		const authResponse = await request(app.server).post('/auth/login').send({
-			email,
+			identifier: email,
 			password: user.password,
 		})
 		const oldCookies = authResponse.get('Set-Cookie') || []

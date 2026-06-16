@@ -28,7 +28,7 @@ export default async function createAndAuthUser(app: FastifyInstance, isAdmin = 
 
 	// authenticate
 	const authResponse = await request(app.server).post('/auth/login').send({
-		email: newUser.email,
+		identifier: newUser.email,
 		password: newUser.password,
 	})
 	const { token } = authResponse.body

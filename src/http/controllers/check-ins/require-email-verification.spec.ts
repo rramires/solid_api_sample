@@ -30,7 +30,7 @@ describe('Require email verification (e2e)', () => {
 			})
 		const auth = await request(app.server)
 			.post('/auth/login')
-			.send({ email, password: 'abc12345' })
+			.send({ identifier: email, password: 'abc12345' })
 		return auth.body.token as string
 	}
 
