@@ -171,11 +171,15 @@ Example: **`POST /auth/login`** (login) and **`POST /gyms/:gymId/check-ins`** (p
 
 1. **Route** (`auth/routes.ts`): `app.post('/auth/login', authenticateController)` — strict rate limit, no JWT hook.
 2. **Controller** (`authenticate-controller.ts`):
-    - Validates `{ email, password }` with Zod (`email()`, `min(6)`).
+    - Validates `{ identifier, password }` with Zod (`identifier` accepts an email **or** a username).
     - `makeAuthenticateUseCase()` → `AuthenticateUseCase` + `PrismaUsersRepository`.
 3. **Use-case** (`authenticate-use-case.ts`):
-    - `findByEmail` → if not found, throws `InvalidCredentialsError`.
+    - Resolves the account by email or username (`identifier` containing `@` →
+      `findByEmail`; otherwise `findByUsername`, lowercased for case-insensitive login).
+      If not found, throws `InvalidCredentialsError`.
     - `bcrypt.compare(password, hash)` → if no match, same generic error.
+    - Lockout is keyed by **`user.id`** (not the identifier string), so a lock
+      can't be bypassed by alternating between a user's email and username.
 4. **Token emission** (back in the controller):
     - `token` (access): payload `{ role, jti }`, `sub = user.id`, **expires in 4h**.
     - `refreshToken`: payload `{ role, jti }`, `sub`, **expires in 7d**.
@@ -197,6 +201,33 @@ Example: **`POST /auth/login`** (login) and **`POST /gyms/:gymId/check-ins`** (p
     - Is there already a check-in **on the same day**? Then `MaxCheckInsReachedError`.
     - If all ok → creates the check-in.
 5. Response `201` with the created check-in.
+
+### 4.4 Input validation (request)
+
+Every controller validates `body`/`params`/`query` with a **Zod schema**
+(`bodySchema`/`querySchema`). These schemas are the **single source of truth**
+for input rules — field lengths, formats, charset, nullability — and are
+**parametrized by env** (`MIN_TEXT_LENGTH`, `PASSWORD_MIN_LENGTH`), so this doc
+does **not** restate the literal values (they would drift). Read the rules at
+the source via this route → controller index:
+
+| Route                       | Controller (Zod schema)                                  |
+| --------------------------- | -------------------------------------------------------- |
+| `POST /users`               | `src/http/controllers/users/register-controller.ts`      |
+| `POST /auth/login`          | `src/http/controllers/auth/authenticate-controller.ts`   |
+| `POST /gyms`                | `src/http/controllers/gyms/create-controller.ts`         |
+| `GET /gyms/search`          | `src/http/controllers/gyms/search-controller.ts`         |
+| `GET /gyms/nearby`          | `src/http/controllers/gyms/nearby-controller.ts`         |
+| `POST /gyms/:gymId/check-ins` | `src/http/controllers/check-ins/check-in-controller.ts`|
+| `GET` / `POST /users/verify-email[/otp]` | `src/http/controllers/users/verify-email-controller.ts` |
+| `POST /users/forgot-password` | `src/http/controllers/users/forgot-password-controller.ts` |
+| `POST /users/reset-password` | `src/http/controllers/users/reset-password-controller.ts` |
+
+Notable shapes: `username` (3–`MIN_TEXT_LENGTH` floor … 30, `[a-zA-Z0-9_]`,
+stored lowercase), login `identifier` (email or username), gym `title`
+(≥ `MIN_TEXT_LENGTH`), gym `phone` (optional; `^\+?[\d\s().-]{7,20}$`), search
+`query` (≥ `MIN_TEXT_LENGTH`). Zod `max` values mirror the `@db.VarChar(n)`
+column lengths (see §6.3).
 
 ---
 
@@ -244,7 +275,7 @@ Example: **`POST /auth/login`** (login) and **`POST /gyms/:gymId/check-ins`** (p
 | PATCH  | `/auth/refresh`                  |   cookie   |       —       | token rotation                                   |
 | GET    | `/auth/me`                       |     ✅     |       —       | own profile                                      |
 | POST   | `/auth/logout`                   |     ✅     |       —       | revokes current token (denylist) + clears cookie |
-| GET    | `/gyms/search`                   |     ✅     |       —       | search by name                                   |
+| GET    | `/gyms/search`                   |     ✅     |       —       | search by title                                  |
 | GET    | `/gyms/nearby`                   |     ✅     |       —       | search by proximity                              |
 | POST   | `/gyms`                          |     ✅     |   **ADMIN**   | create a gym                                     |
 | GET    | `/check-ins/history`             |     ✅     |       —       | own history                                      |
@@ -366,9 +397,15 @@ browsers from sending the cookie on cross-origin non-safe requests.
 
 ### 6.3 Models
 
-- `User` (id uuid, unique email, password_hash, role, `is_verified` bool,
-  `password_changed_at?`, created_at) 1—N `CheckIn`.
-- `Gym` (id uuid, title, latitude/longitude decimal) 1—N `CheckIn`.
+- `User` (id uuid, **unique `username`**, unique email, password_hash, role,
+  `is_verified` bool, `password_changed_at?`, created_at) 1—N `CheckIn`.
+  `username` is unique (b-tree index via `@unique`), stored lowercase.
+- `Gym` (id uuid, title, description?, phone?, latitude/longitude decimal) 1—N `CheckIn`.
+
+Column lengths are pinned via Prisma `@db.VarChar(n)` so each matches its Zod
+`max` (no Zod-allows-more-than-DB mismatch): `username` 30, `email` 254,
+`password_hash` 60, all uuid `id`/FK columns 36; gym `title` 100,
+`description` 500, `phone` 20.
 - `CheckIn` (created_at, validated_at?) N—1 `User` and N—1 `Gym`.
 - `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — persisted denylist
   (table `revoked_tokens`).
@@ -391,7 +428,7 @@ browsers from sending the cookie on cross-origin non-safe requests.
 
 - `prisma/seed-adm-role.ts`: **idempotent** `upsert` of the `ADMIN` user
   (`update: {}` → never resets the password of an already existing admin).
-- Credentials **only via env** (`ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
+- Credentials **only via env** (`ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
   validated by global Zod (fail-fast); password with bcrypt 12 rounds.
 - Registered in `prisma.config.ts` (`migrations.seed`) and in the
   `pnpm seed-adm-role` script (`prisma db seed`). The `migrate deploy` used in
@@ -437,10 +474,11 @@ browsers from sending the cookie on cross-origin non-safe requests.
 Everything that changes between environments is an **env var validated on boot**
 (`src/env/index.ts`); the app **does not start** with invalid config. Variables:
 `NODE_ENV`, `PORT`, `JWT_SECRET` (≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`,
-`BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`, `MAX_EVENT_LOOP_DELAY`,
-`MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`, `APP_URL`,
-`VERIFICATION_EXPIRES_HOURS`, `REQUIRE_EMAIL_VERIFICATION`,
-`ADMIN_NAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Every new env var must also be
+`MIN_TEXT_LENGTH` (floor 3), `BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`,
+`MAX_EVENT_LOOP_DELAY`, `MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`,
+`LOGIN_LOCKOUT_MINUTES`, `APP_URL`, `VERIFICATION_EXPIRES_HOURS`,
+`REQUIRE_EMAIL_VERIFICATION`,
+`ADMIN_USERNAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Every new env var must also be
 added to `.env.example`** (with a comment explaining format/example).
 
 ### 9.2 Logs (pino) and error seam

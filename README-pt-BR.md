@@ -92,9 +92,10 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `DATABASE_URL`               | sim         | –                       | ex. `mysql://root:docker123@localhost:3306/gympass-db`                                        |
 | `CORS_ORIGIN`                | não         | –                       | Origens permitidas separadas por vírgula (somente produção)                                   |
 | `PASSWORD_MIN_LENGTH`        | não         | `8`                     | Tamanho mínimo de senha no cadastro (8–72)                                                    |
+| `MIN_TEXT_LENGTH`            | não         | `3`                     | Tamanho mínimo de campos de texto "nome das coisas" (username, título de gym, busca); piso 3  |
 | `BODY_LIMIT`                 | não         | `16384`                 | Tamanho máximo do body da requisição, em bytes                                                |
 | `LOG_LEVEL`                  | não         | `info`                  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                      |
-| `ADMIN_NAME`                 | sim         | –                       | Nome de exibição do ADMIN seed                                                                |
+| `ADMIN_USERNAME`             | sim         | –                       | Username do ADMIN seed (3–30, letras/números/underscore, gravado lowercase)                  |
 | `ADMIN_EMAIL`                | sim         | –                       | Email do ADMIN (login)                                                                        |
 | `ADMIN_PASSWORD`             | sim         | –                       | Senha do ADMIN: mín. 10 chars com maiúscula, minúscula, número e especial (ex. `Admin@12345`) |
 | `TRUST_PROXY`                | não         | –                       | `false` \| `true` \| IP do proxy; ative atrás de Nginx/Cloudflare/ALB                         |
@@ -146,16 +147,22 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 `GET /auth/me` → `200`:
 
 ```json
-{ "user": { "id": "3fa2...c9", "name": "Fulano" } }
+{ "user": { "id": "3fa2...c9", "username": "fulano" } }
 ```
 
 Uma validação com falha retorna `400` com os problemas; um token inválido ou
 revogado retorna `401`; a ausência do papel `ADMIN` retorna `403`.
 
+> As **regras de validação de entrada** (tamanhos, formatos, `username`/
+> `identifier`, `MIN_TEXT_LENGTH`) são definidas pelo schema Zod de cada rota.
+> Os schemas Zod são a fonte única de verdade — veja **Regras de validação
+> (entrada)** em [PROJECT-pt-BR.md](PROJECT-pt-BR.md#44-regras-de-validação-entrada)
+> para o índice rota → controller.
+
 ## Usuário ADMIN
 
 Não existe endpoint para criar admins. O ADMIN único é provisionado pelo
-**seed**, que lê `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` e é
+**seed**, que lê `ADMIN_USERNAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` e é
 **idempotente** (executar novamente nunca sobrescreve um admin existente):
 
 ```sh
@@ -190,16 +197,16 @@ BASE="http://127.0.0.1:3333"
 # 1. Healthcheck
 echo "=== 1. GET /hello ===" && curl -s "$BASE/hello" && echo
 
-# 2. Cadastrar um MEMBER normal (senha >= 8 chars)
+# 2. Cadastrar um MEMBER normal (username 3-30 [a-z0-9_], senha >= 8 chars)
 echo -e "\n=== 2. POST /users ===" && \
 curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
-  -d '{"name":"Fulano","email":"fulano@email.com","password":"password123"}' | python3 -m json.tool
+  -d '{"username":"fulano","email":"fulano@email.com","password":"password123"}' | python3 -m json.tool
 
 # 2b. Login para obter um token, enviar e-mail de verificação e então verificar via link/OTP impresso no log do servidor
 echo -e "\n=== 2b. POST /users/send-verification (veja o link + OTP no log do servidor) ===" && \
 TOKEN_TMP=$(curl -s -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"fulano@email.com","password":"password123"}' | \
+  -d '{"identifier":"fulano@email.com","password":"password123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
   -X POST "$BASE/users/send-verification" -H "Authorization: Bearer $TOKEN_TMP" && \
@@ -211,15 +218,15 @@ echo -e "\n=== 2c. Teste de bloqueio de login (6 tentativas com senha errada) ==
 for i in 1 2 3 4 5 6; do
   STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/auth/login" \
     -H "Content-Type: application/json" \
-    -d '{"email":"fulano@email.com","password":"wrong"}')
+    -d '{"identifier":"fulano@email.com","password":"wrong"}')
   echo "Tentativa $i: $STATUS"
 done
 
-# 3. Login como MEMBER (captura token + cookie de refresh)
-echo -e "\n=== 3. POST /auth/login (member) ===" && \
+# 3. Login como MEMBER por USERNAME (identifier aceita e-mail OU username)
+echo -e "\n=== 3. POST /auth/login (member, por username) ===" && \
 TOKEN=$(curl -s -c /tmp/cookies.txt -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"fulano@email.com","password":"password123"}' | \
+  -d '{"identifier":"fulano","password":"password123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 echo "Token: ${TOKEN:0:40}..."
 
@@ -248,11 +255,11 @@ echo -e "\n=== 8. GET /auth/me com token revogado (esperado 401) ===" && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
   "$BASE/auth/me" -H "Authorization: Bearer $TOKEN"
 
-# 9. Login como ADMIN (use seu ADMIN_EMAIL / ADMIN_PASSWORD)
+# 9. Login como ADMIN (identifier = ADMIN_USERNAME ou ADMIN_EMAIL)
 echo -e "\n=== 9. POST /auth/login (admin) ===" && \
 ADMIN_TOKEN=$(curl -s -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@example.com","password":"Admin@12345"}' | \
+  -d '{"identifier":"admin@example.com","password":"Admin@12345"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 echo "Admin token: ${ADMIN_TOKEN:0:40}..."
 

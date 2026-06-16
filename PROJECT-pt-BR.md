@@ -171,11 +171,15 @@ Exemplo: **`POST /auth/login`** (login) e **`POST /gyms/:gymId/check-ins`** (rot
 
 1. **Rota** (`auth/routes.ts`): `app.post('/auth/login', authenticateController)` — rate limit estrito, sem hook JWT.
 2. **Controller** (`authenticate-controller.ts`):
-    - Valida `{ email, password }` com Zod (`email()`, `min(6)`).
+    - Valida `{ identifier, password }` com Zod (`identifier` aceita e-mail **ou** username).
     - `makeAuthenticateUseCase()` → `AuthenticateUseCase` + `PrismaUsersRepository`.
 3. **Use-case** (`authenticate-use-case.ts`):
-    - `findByEmail` → se não existir, lança `InvalidCredentialsError`.
+    - Resolve a conta por e-mail ou username (`identifier` com `@` → `findByEmail`;
+      senão `findByUsername`, em lowercase para login case-insensitive). Se não
+      existir, lança `InvalidCredentialsError`.
     - `bcrypt.compare(password, hash)` → se não bater, mesmo erro genérico.
+    - O lockout é chaveado por **`user.id`** (não pela string do identifier), então
+      não dá pra burlar um bloqueio alternando entre e-mail e username da conta.
 4. **Emissão de tokens** (de volta no controller):
     - `token` (access): payload `{ role, jti }`, `sub = user.id`, **expira em 4h**.
     - `refreshToken`: payload `{ role, jti }`, `sub`, **expira em 7d**.
@@ -197,6 +201,33 @@ Exemplo: **`POST /auth/login`** (login) e **`POST /gyms/:gymId/check-ins`** (rot
     - Já existe check-in **no mesmo dia**? então `MaxCheckInsReachedError`.
     - Caso ok → cria o check-in.
 5. Resposta `201` com o check-in criado.
+
+### 4.4 Regras de validação (entrada)
+
+Todo controller valida `body`/`params`/`query` com um **schema Zod**
+(`bodySchema`/`querySchema`). Esses schemas são a **fonte única de verdade** das
+regras de entrada — tamanhos, formatos, charset, nulabilidade — e são
+**parametrizados por env** (`MIN_TEXT_LENGTH`, `PASSWORD_MIN_LENGTH`), então este
+doc **não** repete os valores literais (eles driftariam). Leia as regras na
+fonte via este índice rota → controller:
+
+| Rota                        | Controller (schema Zod)                                  |
+| --------------------------- | -------------------------------------------------------- |
+| `POST /users`               | `src/http/controllers/users/register-controller.ts`      |
+| `POST /auth/login`          | `src/http/controllers/auth/authenticate-controller.ts`   |
+| `POST /gyms`                | `src/http/controllers/gyms/create-controller.ts`         |
+| `GET /gyms/search`          | `src/http/controllers/gyms/search-controller.ts`         |
+| `GET /gyms/nearby`          | `src/http/controllers/gyms/nearby-controller.ts`         |
+| `POST /gyms/:gymId/check-ins` | `src/http/controllers/check-ins/check-in-controller.ts`|
+| `GET` / `POST /users/verify-email[/otp]` | `src/http/controllers/users/verify-email-controller.ts` |
+| `POST /users/forgot-password` | `src/http/controllers/users/forgot-password-controller.ts` |
+| `POST /users/reset-password` | `src/http/controllers/users/reset-password-controller.ts` |
+
+Formatos notáveis: `username` (piso `MIN_TEXT_LENGTH` … 30, `[a-zA-Z0-9_]`,
+gravado lowercase), `identifier` de login (e-mail ou username), `title` de gym
+(≥ `MIN_TEXT_LENGTH`), `phone` de gym (opcional; `^\+?[\d\s().-]{7,20}$`),
+`query` de busca (≥ `MIN_TEXT_LENGTH`). Os `max` do Zod espelham os tamanhos de
+coluna `@db.VarChar(n)` (ver §6.3).
 
 ---
 
@@ -244,7 +275,7 @@ Exemplo: **`POST /auth/login`** (login) e **`POST /gyms/:gymId/check-ins`** (rot
 | PATCH  | `/auth/refresh`                  |   cookie   |       —       | rotação de token                                |
 | GET    | `/auth/me`                       |     ✅     |       —       | perfil próprio                                  |
 | POST   | `/auth/logout`                   |     ✅     |       —       | revoga o token atual (denylist) + limpa cookie  |
-| GET    | `/gyms/search`                   |     ✅     |       —       | busca por nome                                  |
+| GET    | `/gyms/search`                   |     ✅     |       —       | busca por título                                |
 | GET    | `/gyms/nearby`                   |     ✅     |       —       | busca por proximidade                           |
 | POST   | `/gyms`                          |     ✅     |   **ADMIN**   | cadastrar academia                              |
 | GET    | `/check-ins/history`             |     ✅     |       —       | histórico próprio                               |
@@ -358,9 +389,15 @@ enviar o cookie em requisições cross-origin não seguras.
 
 ### 6.3 Modelos
 
-- `User` (id uuid, email único, password_hash, role, `is_verified` bool,
-  `password_changed_at?`, created_at) 1—N `CheckIn`.
-- `Gym` (id uuid, title, latitude/longitude decimal) 1—N `CheckIn`.
+- `User` (id uuid, **`username` único**, email único, password_hash, role,
+  `is_verified` bool, `password_changed_at?`, created_at) 1—N `CheckIn`.
+  `username` é único (índice b-tree via `@unique`), gravado em lowercase.
+- `Gym` (id uuid, title, description?, phone?, latitude/longitude decimal) 1—N `CheckIn`.
+
+Os tamanhos de coluna são fixados com Prisma `@db.VarChar(n)` para casar com o
+`max` do Zod (sem descompasso "Zod permite mais que o banco"): `username` 30,
+`email` 254, `password_hash` 60, todas as colunas uuid `id`/FK 36; gym `title`
+100, `description` 500, `phone` 20.
 - `CheckIn` (created_at, validated_at?) N—1 `User` e N—1 `Gym`.
 - `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — denylist persistida
   (tabela `revoked_tokens`).
@@ -382,7 +419,7 @@ enviar o cookie em requisições cross-origin não seguras.
 
 - `prisma/seed-adm-role.ts`: `upsert` **idempotente** do usuário `ADMIN`
   (`update: {}` → nunca reseta a senha de um admin já existente).
-- Credenciais **só via env** (`ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
+- Credenciais **só via env** (`ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
   validadas no Zod global (fail-fast); senha com bcrypt 12 rounds.
 - Registrado em `prisma.config.ts` (`migrations.seed`) e no script
   `pnpm seed-adm-role` (`prisma db seed`). O `migrate deploy` usado nos testes
@@ -426,11 +463,11 @@ enviar o cookie em requisições cross-origin não seguras.
 
 Tudo que muda entre ambientes é **env validado no boot** (`src/env/index.ts`); o
 app **não sobe** com config inválida. Variáveis: `NODE_ENV`, `PORT`, `JWT_SECRET`
-(≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `BODY_LIMIT`, `LOG_LEVEL`,
-`TRUST_PROXY`, `MAX_EVENT_LOOP_DELAY`, `MAX_HEAP_USED_BYTES`,
-`LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`, `APP_URL`,
+(≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `MIN_TEXT_LENGTH` (piso 3),
+`BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`, `MAX_EVENT_LOOP_DELAY`,
+`MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`, `APP_URL`,
 `VERIFICATION_EXPIRES_HOURS`, `REQUIRE_EMAIL_VERIFICATION`,
-`ADMIN_NAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Toda nova env entra também no
+`ADMIN_USERNAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Toda nova env entra também no
 `.env.example`** (com comentário explicando formato/exemplo).
 
 ### 9.2 Logs (pino) e seam de erro

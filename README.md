@@ -91,9 +91,10 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `DATABASE_URL`               | yes      | –                       | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                      |
 | `CORS_ORIGIN`                | no       | –                       | Comma-separated allowed origins (production only)                                            |
 | `PASSWORD_MIN_LENGTH`        | no       | `8`                     | Minimum registration password length (8–72)                                                  |
+| `MIN_TEXT_LENGTH`            | no       | `3`                     | Minimum length for text "name-of-things" fields (username, gym title, search); floor of 3    |
 | `BODY_LIMIT`                 | no       | `16384`                 | Max request body size, in bytes                                                              |
 | `LOG_LEVEL`                  | no       | `info`                  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                     |
-| `ADMIN_NAME`                 | yes      | –                       | Seed ADMIN display name                                                                      |
+| `ADMIN_USERNAME`             | yes      | –                       | Seed ADMIN username (3–30, letters/numbers/underscore, stored lowercase)                     |
 | `ADMIN_EMAIL`                | yes      | –                       | Seed ADMIN email (login)                                                                     |
 | `ADMIN_PASSWORD`             | yes      | –                       | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
 | `TRUST_PROXY`                | no       | –                       | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB                       |
@@ -145,16 +146,22 @@ boot if any variable is invalid (Zod validation in `src/env`).
 `GET /auth/me` → `200`:
 
 ```json
-{ "user": { "id": "3fa2...c9", "name": "Fulano" } }
+{ "user": { "id": "3fa2...c9", "username": "fulano" } }
 ```
 
 A failed validation returns `400` with the issues; an unauthorized or revoked
 token returns `401`; a missing `ADMIN` role returns `403`.
 
+> **Input validation rules** (field lengths, formats, `username`/`identifier`
+> shapes, `MIN_TEXT_LENGTH`) are defined by each route's Zod schema. The Zod
+> schemas are the single source of truth — see **Input validation (request)** in
+> [PROJECT.md](PROJECT.md#44-input-validation-request) for the route → controller
+> index.
+
 ## ADMIN user
 
 There is no endpoint to create admins. The single ADMIN is provisioned by the
-**seed**, which reads `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` and is
+**seed**, which reads `ADMIN_USERNAME` / `ADMIN_EMAIL` / `ADMIN_PASSWORD` and is
 **idempotent** (re-running it never resets an existing admin):
 
 ```sh
@@ -189,16 +196,16 @@ BASE="http://127.0.0.1:3333"
 # 1. Healthcheck
 echo "=== 1. GET /hello ===" && curl -s "$BASE/hello" && echo
 
-# 2. Register a regular MEMBER (password >= 8 chars)
+# 2. Register a regular MEMBER (username 3-30 [a-z0-9_], password >= 8 chars)
 echo -e "\n=== 2. POST /users ===" && \
 curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
-  -d '{"name":"Fulano","email":"fulano@email.com","password":"password123"}' | python3 -m json.tool
+  -d '{"username":"fulano","email":"fulano@email.com","password":"password123"}' | python3 -m json.tool
 
 # 2b. Login to get a token, send verification email, then verify via the link/OTP printed to the server log
 echo -e "\n=== 2b. POST /users/send-verification (check server log for link + OTP) ===" && \
 TOKEN_TMP=$(curl -s -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"fulano@email.com","password":"password123"}' | \
+  -d '{"identifier":"fulano@email.com","password":"password123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
   -X POST "$BASE/users/send-verification" -H "Authorization: Bearer $TOKEN_TMP" && \
@@ -210,15 +217,15 @@ echo -e "\n=== 2c. Login lockout test (6 attempts with wrong password) ===" && \
 for i in 1 2 3 4 5 6; do
   STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE/auth/login" \
     -H "Content-Type: application/json" \
-    -d '{"email":"fulano@email.com","password":"wrong"}')
+    -d '{"identifier":"fulano@email.com","password":"wrong"}')
   echo "Attempt $i: $STATUS"
 done
 
-# 3. Login as MEMBER (captures token + refresh cookie)
-echo -e "\n=== 3. POST /auth/login (member) ===" && \
+# 3. Login as MEMBER by USERNAME (identifier accepts email OR username)
+echo -e "\n=== 3. POST /auth/login (member, by username) ===" && \
 TOKEN=$(curl -s -c /tmp/cookies.txt -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"fulano@email.com","password":"password123"}' | \
+  -d '{"identifier":"fulano","password":"password123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 echo "Token: ${TOKEN:0:40}..."
 
@@ -247,11 +254,11 @@ echo -e "\n=== 8. GET /auth/me with revoked token (expected 401) ===" && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
   "$BASE/auth/me" -H "Authorization: Bearer $TOKEN"
 
-# 9. Login as the seeded ADMIN (use your ADMIN_EMAIL / ADMIN_PASSWORD)
+# 9. Login as the seeded ADMIN (identifier = ADMIN_USERNAME or ADMIN_EMAIL)
 echo -e "\n=== 9. POST /auth/login (admin) ===" && \
 ADMIN_TOKEN=$(curl -s -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@example.com","password":"Admin@12345"}' | \
+  -d '{"identifier":"admin@example.com","password":"Admin@12345"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 echo "Admin token: ${ADMIN_TOKEN:0:40}..."
 
