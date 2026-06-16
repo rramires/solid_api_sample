@@ -211,17 +211,17 @@ regras de entrada — tamanhos, formatos, charset, nulabilidade — e são
 doc **não** repete os valores literais (eles driftariam). Leia as regras na
 fonte via este índice rota → controller:
 
-| Rota                        | Controller (schema Zod)                                  |
-| --------------------------- | -------------------------------------------------------- |
-| `POST /users`               | `src/http/controllers/users/register-controller.ts`      |
-| `POST /auth/login`          | `src/http/controllers/auth/authenticate-controller.ts`   |
-| `POST /gyms`                | `src/http/controllers/gyms/create-controller.ts`         |
-| `GET /gyms/search`          | `src/http/controllers/gyms/search-controller.ts`         |
-| `GET /gyms/nearby`          | `src/http/controllers/gyms/nearby-controller.ts`         |
-| `POST /gyms/:gymId/check-ins` | `src/http/controllers/check-ins/check-in-controller.ts`|
-| `GET` / `POST /users/verify-email[/otp]` | `src/http/controllers/users/verify-email-controller.ts` |
-| `POST /users/forgot-password` | `src/http/controllers/users/forgot-password-controller.ts` |
-| `POST /users/reset-password` | `src/http/controllers/users/reset-password-controller.ts` |
+| Rota                                     | Controller (schema Zod)                                    |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| `POST /users`                            | `src/http/controllers/users/register-controller.ts`        |
+| `POST /auth/login`                       | `src/http/controllers/auth/authenticate-controller.ts`     |
+| `POST /gyms`                             | `src/http/controllers/gyms/create-controller.ts`           |
+| `GET /gyms/search`                       | `src/http/controllers/gyms/search-controller.ts`           |
+| `GET /gyms/nearby`                       | `src/http/controllers/gyms/nearby-controller.ts`           |
+| `POST /gyms/:gymId/check-ins`            | `src/http/controllers/check-ins/check-in-controller.ts`    |
+| `GET` / `POST /users/verify-email[/otp]` | `src/http/controllers/users/verify-email-controller.ts`    |
+| `POST /users/forgot-password`            | `src/http/controllers/users/forgot-password-controller.ts` |
+| `POST /users/reset-password`             | `src/http/controllers/users/reset-password-controller.ts`  |
 
 Formatos notáveis: `username` (piso `MIN_TEXT_LENGTH` … 30, `[a-zA-Z0-9_]`,
 gravado lowercase), `identifier` de login (e-mail ou username), `title` de gym
@@ -398,6 +398,7 @@ Os tamanhos de coluna são fixados com Prisma `@db.VarChar(n)` para casar com o
 `max` do Zod (sem descompasso "Zod permite mais que o banco"): `username` 30,
 `email` 254, `password_hash` 60, todas as colunas uuid `id`/FK 36; gym `title`
 100, `description` 500, `phone` 20.
+
 - `CheckIn` (created_at, validated_at?) N—1 `User` e N—1 `Gym`.
 - `RevokedToken` (`jti` PK, `expires_at`, `created_at`) — denylist persistida
   (tabela `revoked_tokens`).

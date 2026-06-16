@@ -95,7 +95,7 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `MIN_TEXT_LENGTH`            | não         | `3`                     | Tamanho mínimo de campos de texto "nome das coisas" (username, título de gym, busca); piso 3  |
 | `BODY_LIMIT`                 | não         | `16384`                 | Tamanho máximo do body da requisição, em bytes                                                |
 | `LOG_LEVEL`                  | não         | `info`                  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                      |
-| `ADMIN_USERNAME`             | sim         | –                       | Username do ADMIN seed (3–30, letras/números/underscore, gravado lowercase)                  |
+| `ADMIN_USERNAME`             | sim         | –                       | Username do ADMIN seed (3–30, letras/números/underscore, gravado lowercase)                   |
 | `ADMIN_EMAIL`                | sim         | –                       | Email do ADMIN (login)                                                                        |
 | `ADMIN_PASSWORD`             | sim         | –                       | Senha do ADMIN: mín. 10 chars com maiúscula, minúscula, número e especial (ex. `Admin@12345`) |
 | `TRUST_PROXY`                | não         | –                       | `false` \| `true` \| IP do proxy; ative atrás de Nginx/Cloudflare/ALB                         |
@@ -238,8 +238,8 @@ curl -s "$BASE/auth/me" -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
 echo -e "\n=== 5. PATCH /auth/refresh ===" && \
 curl -s -b /tmp/cookies.txt -c /tmp/cookies.txt -X PATCH "$BASE/auth/refresh" | python3 -m json.tool
 
-# 6. Criar academia como MEMBER -> esperado 401 (papel ADMIN obrigatório)
-echo -e "\n=== 6. POST /gyms (esperado 401 - MEMBER) ===" && \
+# 6. Criar academia como MEMBER -> esperado 403 (papel ADMIN obrigatório)
+echo -e "\n=== 6. POST /gyms (esperado 403 - MEMBER) ===" && \
 curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"title":"Academia Teste","description":"Teste","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \

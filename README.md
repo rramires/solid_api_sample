@@ -237,8 +237,8 @@ curl -s "$BASE/auth/me" -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
 echo -e "\n=== 5. PATCH /auth/refresh ===" && \
 curl -s -b /tmp/cookies.txt -c /tmp/cookies.txt -X PATCH "$BASE/auth/refresh" | python3 -m json.tool
 
-# 6. Create a gym as MEMBER -> expected 401 (role ADMIN required)
-echo -e "\n=== 6. POST /gyms (expected 401 - MEMBER) ===" && \
+# 6. Create a gym as MEMBER -> expected 403 (role ADMIN required)
+echo -e "\n=== 6. POST /gyms (expected 403 - MEMBER) ===" && \
 curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"title":"Test Gym","description":"Test","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
