@@ -4,7 +4,10 @@ import request from 'supertest'
 import { prisma } from '@/lib/prisma'
 import { Role } from '@/prisma-client/enums'
 
-export default async function createAndAuthUser(app: FastifyInstance, isAdmin = false) {
+export default async function createAndAuthUser(
+	app: FastifyInstance,
+	isAdmin = false,
+) {
 	const newUser = {
 		username: 'johndoe',
 		email: 'johndoe@example.com',

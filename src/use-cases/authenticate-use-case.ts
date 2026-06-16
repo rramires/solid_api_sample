@@ -10,7 +10,8 @@ import { TooManyAttemptsError } from './errors/too-many-attempts-error'
 // Pre-computed bcrypt hash (12 rounds) of a random value. Used to always run a
 // compare() even when the user does not exist, so login timing does not reveal
 // whether an email is registered (prevents user enumeration).
-const DUMMY_HASH = '$2b$12$v6ELSEn6AsBGZKxCwXkv/u447hl94qlLF/HJm4kuvRsw1GEMvlLJ.'
+const DUMMY_HASH =
+	'$2b$12$v6ELSEn6AsBGZKxCwXkv/u447hl94qlLF/HJm4kuvRsw1GEMvlLJ.'
 
 interface AuthenticateUseCaseRequest {
 	// Email OR username. A username can never contain '@', so the presence of
@@ -38,7 +39,9 @@ export class AuthenticateUseCase {
 		// identifier before the username lookup (case-insensitive login).
 		const user = identifier.includes('@')
 			? await this.usersRepository.findByEmail(identifier)
-			: await this.usersRepository.findByUsername(identifier.toLowerCase())
+			: await this.usersRepository.findByUsername(
+					identifier.toLowerCase(),
+				)
 
 		// Lockout is keyed by account id (not the identifier string) so an attacker
 		// can't sidestep a lock by alternating between a user's email and username.

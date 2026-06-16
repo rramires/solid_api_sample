@@ -26,7 +26,10 @@ export class ValidateCheckInUseCase {
 			throw new ResourceNotFoundError()
 		}
 
-		const delayFromCheckInCreation = dayjs(new Date()).diff(checkIn.created_at, 'minutes')
+		const delayFromCheckInCreation = dayjs(new Date()).diff(
+			checkIn.created_at,
+			'minutes',
+		)
 
 		if (delayFromCheckInCreation > 20) {
 			throw new LateCheckInValidationError()

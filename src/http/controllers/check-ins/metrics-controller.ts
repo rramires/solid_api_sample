@@ -1,8 +1,11 @@
-import { FastifyReply,FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 
 import { makeGetUserMetricsUseCase } from '@/use-cases/factories/make-get-user-metrics-use-case'
 
-export async function metricsController(request: FastifyRequest, reply: FastifyReply) {
+export async function metricsController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const { sub: userId } = request.user
 
 	const getUserMetricsUseCase = makeGetUserMetricsUseCase()

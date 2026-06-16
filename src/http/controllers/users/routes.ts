@@ -18,7 +18,11 @@ export async function usersRoutes(app: FastifyInstance) {
 	 * Account management. Auth (login/logout/refresh/me) lives in auth/routes.ts.
 	 */
 	// Public — registration and password reset, all rate-limited.
-	app.post('/users', { onRequest: [strictAuthLimit(app)] }, registerController)
+	app.post(
+		'/users',
+		{ onRequest: [strictAuthLimit(app)] },
+		registerController,
+	)
 	app.post(
 		'/users/forgot-password',
 		{ onRequest: [strictAuthLimit(app)] },

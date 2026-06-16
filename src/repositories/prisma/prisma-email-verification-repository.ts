@@ -2,9 +2,7 @@ import { prisma } from '@/lib/prisma'
 
 import { IEmailVerificationRepository } from '../i-email-verification-repository'
 
-export class PrismaEmailVerificationRepository
-	implements IEmailVerificationRepository
-{
+export class PrismaEmailVerificationRepository implements IEmailVerificationRepository {
 	async create(data: {
 		userId: string
 		linkToken: string

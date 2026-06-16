@@ -2,7 +2,10 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 
 import { tokenDenylist } from '@/lib/token-denylist'
 
-export async function logoutController(request: FastifyRequest, reply: FastifyReply) {
+export async function logoutController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const { jti, exp } = request.user
 
 	// Revoke the current access token until it would have expired anyway, so the
@@ -14,10 +17,14 @@ export async function logoutController(request: FastifyRequest, reply: FastifyRe
 	const refreshCookie = request.cookies.refreshToken
 	if (refreshCookie) {
 		try {
-			const refresh = request.server.jwt.verify<{ jti: string; exp: number }>(
-				refreshCookie,
+			const refresh = request.server.jwt.verify<{
+				jti: string
+				exp: number
+			}>(refreshCookie)
+			await tokenDenylist.revoke(
+				refresh.jti,
+				new Date(refresh.exp * 1000),
 			)
-			await tokenDenylist.revoke(refresh.jti, new Date(refresh.exp * 1000))
 		} catch {
 			// expired/invalid refresh cookie — nothing to revoke
 		}

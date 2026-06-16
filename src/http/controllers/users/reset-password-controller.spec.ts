@@ -82,9 +82,7 @@ describe('Reset Password (e2e)', () => {
 		const email = 'link@example.com'
 		const oldToken = await registerAndAuth(email, 'abc12345')
 
-		await request(app.server)
-			.post('/users/forgot-password')
-			.send({ email })
+		await request(app.server).post('/users/forgot-password').send({ email })
 		const { token } = lastResetEmail()
 
 		const reset = await request(app.server)
@@ -120,9 +118,7 @@ describe('Reset Password (e2e)', () => {
 		const email = 'otp@example.com'
 		await registerUser(email, 'abc12345')
 
-		await request(app.server)
-			.post('/users/forgot-password')
-			.send({ email })
+		await request(app.server).post('/users/forgot-password').send({ email })
 		const { code } = lastResetEmail()
 
 		const reset = await request(app.server)

@@ -1,10 +1,13 @@
-import { FastifyReply,FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
 import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 import { makeValidateCheckInUseCase } from '@/use-cases/factories/make-validate-check-in-use-case'
 
-export async function validateController(request: FastifyRequest, reply: FastifyReply) {
+export async function validateController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const paramsSchema = z.object({
 		checkInId: z.uuid(),
 	})

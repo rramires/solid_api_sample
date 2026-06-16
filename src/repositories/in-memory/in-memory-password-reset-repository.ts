@@ -4,9 +4,7 @@ import { PasswordReset } from '@/prisma-client'
 
 import { IPasswordResetRepository } from '../i-password-reset-repository'
 
-export class InMemoryPasswordResetRepository
-	implements IPasswordResetRepository
-{
+export class InMemoryPasswordResetRepository implements IPasswordResetRepository {
 	public items: PasswordReset[] = []
 
 	async create(data: {
@@ -38,10 +36,14 @@ export class InMemoryPasswordResetRepository
 		return (
 			this.items
 				.filter(
-					(r) => r.user_id === userId && !r.used_at && r.expires_at >= now,
+					(r) =>
+						r.user_id === userId &&
+						!r.used_at &&
+						r.expires_at >= now,
 				)
-				.sort((a, b) => b.created_at.getTime() - a.created_at.getTime())[0] ??
-			null
+				.sort(
+					(a, b) => b.created_at.getTime() - a.created_at.getTime(),
+				)[0] ?? null
 		)
 	}
 

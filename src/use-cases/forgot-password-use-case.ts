@@ -36,10 +36,13 @@ export class ForgotPasswordUseCase {
 		}
 
 		// Cooldown: a fresh active reset already exists → silent return (no oracle).
-		const active = await this.passwordResetRepository.findActiveByUserId(user.id)
+		const active = await this.passwordResetRepository.findActiveByUserId(
+			user.id,
+		)
 		if (
 			active &&
-			Date.now() - active.created_at.getTime() < RESET_COOLDOWN_SECONDS * 1000
+			Date.now() - active.created_at.getTime() <
+				RESET_COOLDOWN_SECONDS * 1000
 		) {
 			return
 		}

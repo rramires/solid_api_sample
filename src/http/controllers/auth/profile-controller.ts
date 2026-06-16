@@ -1,9 +1,12 @@
-import { FastifyReply,FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 
 import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 import { makeGetUserProfileUseCase } from '@/use-cases/factories/make-get-user-profile-use-case'
 
-export async function profileController(request: FastifyRequest, reply: FastifyReply) {
+export async function profileController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const getUserProfile = makeGetUserProfileUseCase()
 
 	try {

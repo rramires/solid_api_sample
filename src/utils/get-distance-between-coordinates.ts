@@ -6,7 +6,10 @@ export interface ICoordinate {
 /**
  * Returns the distance between two coordinates in kilometers
  */
-export function getDistanceBetweenCoordinates(from: ICoordinate, to: ICoordinate) {
+export function getDistanceBetweenCoordinates(
+	from: ICoordinate,
+	to: ICoordinate,
+) {
 	if (from.latitude === to.latitude && from.longitude === to.longitude) {
 		return 0
 	}

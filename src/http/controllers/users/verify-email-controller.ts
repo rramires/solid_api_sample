@@ -47,7 +47,10 @@ export async function verifyEmailByOtpController(
 
 	try {
 		const useCase = makeVerifyEmailUseCase()
-		const { userId } = await useCase.execute({ userId: request.user.sub, code })
+		const { userId } = await useCase.execute({
+			userId: request.user.sub,
+			code,
+		})
 		// Refresh the read-through cache so the middleware unblocks immediately.
 		verifiedCache.set(userId, true)
 		return reply.status(204).send()

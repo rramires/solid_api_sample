@@ -4,7 +4,7 @@ import { Gym, Prisma } from '@/prisma-client'
 import { GymCreateInput } from '@/prisma-client/models'
 import { getDistanceBetweenCoordinates } from '@/utils/get-distance-between-coordinates'
 
-import { IFindManyNearbyParams,IGymsRepository } from '../i-gyms-repository'
+import { IFindManyNearbyParams, IGymsRepository } from '../i-gyms-repository'
 
 const PAGE_SIZE = 20
 const DISTANCE_IN_KILOMETERS = 10

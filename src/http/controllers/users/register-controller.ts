@@ -1,11 +1,14 @@
-import { FastifyReply,FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
 import { env } from '@/env'
 import { UserAlreadyExistsError } from '@/use-cases/errors/user-already-exists-error'
 import { makeRegisterUseCase } from '@/use-cases/factories/make-register-use-case'
 
-export async function registerController(request: FastifyRequest, reply: FastifyReply) {
+export async function registerController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const bodySchema = z.object({
 		// 3-30 chars, letters/numbers/underscore only, stored lowercase.
 		username: z
@@ -22,7 +25,10 @@ export async function registerController(request: FastifyRequest, reply: Fastify
 			.string()
 			.min(env.PASSWORD_MIN_LENGTH)
 			.max(72)
-			.refine((p) => Buffer.byteLength(p, 'utf8') <= 72, 'Password too long'),
+			.refine(
+				(p) => Buffer.byteLength(p, 'utf8') <= 72,
+				'Password too long',
+			),
 	})
 	const { username, email, password } = bodySchema.parse(request.body)
 

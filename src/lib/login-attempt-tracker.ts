@@ -6,4 +6,7 @@ import { InMemoryLoginAttemptTracker } from '@/repositories/in-memory/in-memory-
 import { ILoginAttemptTracker } from '../repositories/i-login-attempt-tracker'
 
 export const loginAttemptTracker: ILoginAttemptTracker =
-	new InMemoryLoginAttemptTracker(env.LOGIN_MAX_ATTEMPTS, env.LOGIN_LOCKOUT_MINUTES)
+	new InMemoryLoginAttemptTracker(
+		env.LOGIN_MAX_ATTEMPTS,
+		env.LOGIN_LOCKOUT_MINUTES,
+	)

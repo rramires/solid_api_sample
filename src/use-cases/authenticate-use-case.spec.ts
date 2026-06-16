@@ -97,7 +97,10 @@ describe('Authenticate Use Case', () => {
 		}
 		// ...must also block a login attempt made via the username (same account).
 		await expect(
-			sut.execute({ identifier: newUser.username, password: newUser.password }),
+			sut.execute({
+				identifier: newUser.username,
+				password: newUser.password,
+			}),
 		).rejects.toBeInstanceOf(TooManyAttemptsError)
 	})
 
@@ -107,7 +110,10 @@ describe('Authenticate Use Case', () => {
 			await loginAttemptTracker.recordFailure(userId)
 		}
 		await expect(
-			sut.execute({ identifier: newUser.email, password: newUser.password }),
+			sut.execute({
+				identifier: newUser.email,
+				password: newUser.password,
+			}),
 		).rejects.toBeInstanceOf(TooManyAttemptsError)
 	})
 
@@ -125,7 +131,10 @@ describe('Authenticate Use Case', () => {
 
 		// Subsequent authentication must still work (counter was cleared).
 		await expect(
-			sut.execute({ identifier: newUser.email, password: newUser.password }),
+			sut.execute({
+				identifier: newUser.email,
+				password: newUser.password,
+			}),
 		).resolves.toBeDefined()
 	})
 })

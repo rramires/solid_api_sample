@@ -9,7 +9,8 @@ let gymsRepository: InMemoryGymsRepository
 let sut: FetchNearbyGymsUseCase
 
 // get test positions
-const { coordinates, coordinatesPlus5km, coordinatesPlus10km } = getTestCoordinates()
+const { coordinates, coordinatesPlus5km, coordinatesPlus10km } =
+	getTestCoordinates()
 
 describe('Fetch Gyms Nearby Use Case', () => {
 	beforeEach(async () => {

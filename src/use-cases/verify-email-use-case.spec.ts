@@ -76,17 +76,17 @@ describe('Verify Email Use Case (OTP attempts)', () => {
 		// before the used guard, so unverify to isolate the used-record path.
 		await usersRepository.update(userId, { is_verified: false })
 
-		await expect(sut.execute({ token: 'link-token' })).rejects.toBeInstanceOf(
-			InvalidVerificationTokenError,
-		)
+		await expect(
+			sut.execute({ token: 'link-token' }),
+		).rejects.toBeInstanceOf(InvalidVerificationTokenError)
 	})
 
 	it('should reject when the user is already verified', async () => {
 		await usersRepository.update(userId, { is_verified: true })
 
-		await expect(sut.execute({ token: 'link-token' })).rejects.toBeInstanceOf(
-			AlreadyVerifiedError,
-		)
+		await expect(
+			sut.execute({ token: 'link-token' }),
+		).rejects.toBeInstanceOf(AlreadyVerifiedError)
 	})
 
 	it('should invalidate the record after 5 wrong OTP attempts', async () => {

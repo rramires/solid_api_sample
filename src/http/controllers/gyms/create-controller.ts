@@ -1,10 +1,13 @@
-import { FastifyReply,FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
 import { env } from '@/env'
 import { makeCreateGymUseCase } from '@/use-cases/factories/make-create-gym-use-case'
 
-export async function createController(request: FastifyRequest, reply: FastifyReply) {
+export async function createController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const bodySchema = z.object({
 		title: z.string().min(env.MIN_TEXT_LENGTH).max(100),
 		description: z.string().max(500).nullable(),
@@ -21,7 +24,9 @@ export async function createController(request: FastifyRequest, reply: FastifyRe
 			return Math.abs(value) <= 180
 		}),
 	})
-	const { title, description, phone, latitude, longitude } = bodySchema.parse(request.body)
+	const { title, description, phone, latitude, longitude } = bodySchema.parse(
+		request.body,
+	)
 
 	const createGymUseCase = makeCreateGymUseCase()
 	const { gym } = await createGymUseCase.execute({

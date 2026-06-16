@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { afterAll, beforeAll, describe, expect,it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '@/app'
 
@@ -25,10 +25,12 @@ describe('Refresh Token (e2e)', () => {
 		await request(app.server).post('/users').send(user)
 
 		// authenticate
-		const authResponse = await request(app.server).post('/auth/login').send({
-			identifier: user.email,
-			password: user.password,
-		})
+		const authResponse = await request(app.server)
+			.post('/auth/login')
+			.send({
+				identifier: user.email,
+				password: user.password,
+			})
 
 		// get header cookies
 		const cookies = authResponse.get('Set-Cookie')
@@ -43,7 +45,9 @@ describe('Refresh Token (e2e)', () => {
 		expect(response.body).toEqual({
 			token: expect.any(String),
 		})
-		expect(response.get('Set-Cookie')).toEqual([expect.stringContaining('refreshToken=')])
+		expect(response.get('Set-Cookie')).toEqual([
+			expect.stringContaining('refreshToken='),
+		])
 	})
 
 	it('should reject reuse of an old refresh cookie (single-use)', async () => {
@@ -52,10 +56,12 @@ describe('Refresh Token (e2e)', () => {
 			.post('/users')
 			.send({ ...user, username: 'refreshreuse', email })
 
-		const authResponse = await request(app.server).post('/auth/login').send({
-			identifier: email,
-			password: user.password,
-		})
+		const authResponse = await request(app.server)
+			.post('/auth/login')
+			.send({
+				identifier: email,
+				password: user.password,
+			})
 		const oldCookies = authResponse.get('Set-Cookie') || []
 
 		// First refresh consumes (rotates) the presented refresh token.

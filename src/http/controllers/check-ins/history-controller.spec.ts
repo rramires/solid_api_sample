@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { afterAll, beforeAll, describe, expect,it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '@/app'
 import createAndAuthUser from '@/utils/tests/create-and-auth-user'

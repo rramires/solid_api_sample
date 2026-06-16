@@ -1,10 +1,13 @@
-import { FastifyReply,FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
 import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 import { makeCheckInUseCase } from '@/use-cases/factories/make-check-in-use-case'
 
-export async function checkInController(request: FastifyRequest, reply: FastifyReply) {
+export async function checkInController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const { sub: userId } = request.user
 
 	const paramsSchema = z.object({

@@ -4,9 +4,7 @@ import { EmailVerification } from '@/prisma-client'
 
 import { IEmailVerificationRepository } from '../i-email-verification-repository'
 
-export class InMemoryEmailVerificationRepository
-	implements IEmailVerificationRepository
-{
+export class InMemoryEmailVerificationRepository implements IEmailVerificationRepository {
 	public items: EmailVerification[] = []
 
 	async create(data: {
@@ -33,7 +31,9 @@ export class InMemoryEmailVerificationRepository
 		return this.items.find((r) => r.link_token === token) ?? null
 	}
 
-	async findLatestByUserId(userId: string): Promise<EmailVerification | null> {
+	async findLatestByUserId(
+		userId: string,
+	): Promise<EmailVerification | null> {
 		const records = this.items
 			.filter((r) => r.user_id === userId)
 			.sort((a, b) => b.created_at.getTime() - a.created_at.getTime())

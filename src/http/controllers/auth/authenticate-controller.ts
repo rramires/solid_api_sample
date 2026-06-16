@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
-import { FastifyReply,FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
 import { env } from '@/env'
@@ -8,7 +8,10 @@ import { InvalidCredentialsError } from '@/use-cases/errors/invalid-credentials-
 import { TooManyAttemptsError } from '@/use-cases/errors/too-many-attempts-error'
 import { makeAuthenticateUseCase } from '@/use-cases/factories/make-authenticate-use-case'
 
-export async function authenticateController(request: FastifyRequest, reply: FastifyReply) {
+export async function authenticateController(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	const bodySchema = z.object({
 		// Accepts an email or a username.
 		identifier: z.string().min(1),

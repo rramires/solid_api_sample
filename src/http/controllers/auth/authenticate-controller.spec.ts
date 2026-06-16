@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { afterAll, beforeAll, describe, expect,it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '@/app'
 
@@ -39,7 +39,11 @@ describe('Register (e2e)', () => {
 	it('should be able to authenticate by username', async () => {
 		await request(app.server)
 			.post('/users')
-			.send({ ...user, username: 'janedoe', email: 'janedoe@example.com' })
+			.send({
+				...user,
+				username: 'janedoe',
+				email: 'janedoe@example.com',
+			})
 
 		const response = await request(app.server).post('/auth/login').send({
 			identifier: 'janedoe',

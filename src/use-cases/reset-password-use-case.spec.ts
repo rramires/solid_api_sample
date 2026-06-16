@@ -65,7 +65,11 @@ describe('Reset Password Use Case', () => {
 	it('should reset the password via the OTP', async () => {
 		await seedReset()
 
-		await sut.execute({ email: EMAIL, code: CODE, newPassword: 'newpass123' })
+		await sut.execute({
+			email: EMAIL,
+			code: CODE,
+			newPassword: 'newpass123',
+		})
 
 		const user = await usersRepository.findById(userId)
 		expect(await compare('newpass123', user!.password_hash)).toBe(true)
@@ -93,13 +97,21 @@ describe('Reset Password Use Case', () => {
 
 		for (let i = 0; i < 5; i++) {
 			await expect(
-				sut.execute({ email: EMAIL, code: '000000', newPassword: 'newpass123' }),
+				sut.execute({
+					email: EMAIL,
+					code: '000000',
+					newPassword: 'newpass123',
+				}),
 			).rejects.toBeInstanceOf(InvalidResetTokenError)
 		}
 
 		// Record is dead — even the correct code fails afterwards.
 		await expect(
-			sut.execute({ email: EMAIL, code: CODE, newPassword: 'newpass123' }),
+			sut.execute({
+				email: EMAIL,
+				code: CODE,
+				newPassword: 'newpass123',
+			}),
 		).rejects.toBeInstanceOf(InvalidResetTokenError)
 		expect(resetRepository.items[0].attempts).toBe(5)
 	})

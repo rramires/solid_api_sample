@@ -25,7 +25,9 @@ export class SendVerificationUseCase {
 
 	async execute({ userId }: SendVerificationUseCaseRequest): Promise<void> {
 		const user = await this.usersRepository.findById(userId)
-		if (!user) {throw new ResourceNotFoundError()}
+		if (!user) {
+			throw new ResourceNotFoundError()
+		}
 
 		// Cooldown: refuse a new email while a fresh, still-usable record exists.
 		const latest =

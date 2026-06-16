@@ -22,7 +22,9 @@ export class VerifyEmailUseCase {
 		private emailVerificationRepository: IEmailVerificationRepository,
 	) {}
 
-	async execute(input: VerifyEmailUseCaseRequest): Promise<{ userId: string }> {
+	async execute(
+		input: VerifyEmailUseCaseRequest,
+	): Promise<{ userId: string }> {
 		let record: EmailVerification | null
 		let userId: string
 
@@ -30,12 +32,16 @@ export class VerifyEmailUseCase {
 			record = await this.emailVerificationRepository.findByLinkToken(
 				input.token,
 			)
-			if (!record) {throw new InvalidVerificationTokenError()}
+			if (!record) {
+				throw new InvalidVerificationTokenError()
+			}
 			userId = record.user_id
 		} else {
 			userId = input.userId
 			const active =
-				await this.emailVerificationRepository.findLatestByUserId(userId)
+				await this.emailVerificationRepository.findLatestByUserId(
+					userId,
+				)
 			if (!active) {
 				throw new InvalidVerificationTokenError()
 			}
@@ -48,7 +54,9 @@ export class VerifyEmailUseCase {
 				// mutates `active` by reference, so re-reading active.attempts after
 				// the call would double-count.
 				const attemptsAfter = active.attempts + 1
-				await this.emailVerificationRepository.incrementAttempts(active.id)
+				await this.emailVerificationRepository.incrementAttempts(
+					active.id,
+				)
 				if (attemptsAfter >= MAX_OTP_ATTEMPTS) {
 					await this.emailVerificationRepository.markUsed(active.id)
 				}
@@ -58,13 +66,21 @@ export class VerifyEmailUseCase {
 		}
 
 		const user = await this.usersRepository.findById(userId)
-		if (!user) {throw new ResourceNotFoundError()}
+		if (!user) {
+			throw new ResourceNotFoundError()
+		}
 
-		if (user.is_verified) {throw new AlreadyVerifiedError()}
+		if (user.is_verified) {
+			throw new AlreadyVerifiedError()
+		}
 
-		if (record.used_at) {throw new InvalidVerificationTokenError()}
+		if (record.used_at) {
+			throw new InvalidVerificationTokenError()
+		}
 
-		if (record.expires_at < new Date()) {throw new VerificationTokenExpiredError()}
+		if (record.expires_at < new Date()) {
+			throw new VerificationTokenExpiredError()
+		}
 
 		await this.emailVerificationRepository.markUsed(record.id)
 		await this.usersRepository.update(userId, { is_verified: true })

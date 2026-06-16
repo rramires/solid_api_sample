@@ -39,17 +39,18 @@ export class CheckInUseCase {
 
 		const distance = getDistanceBetweenCoordinates(
 			{ latitude: userLatitude, longitude: userLongitude },
-			{ latitude: gym.latitude.toNumber(), longitude: gym.longitude.toNumber() },
+			{
+				latitude: gym.latitude.toNumber(),
+				longitude: gym.longitude.toNumber(),
+			},
 		)
 
 		if (distance > MAX_DISTANCE_IN_KILOMETERS) {
 			throw new MaxDistanceError()
 		}
 
-		const checkInOnSameDay = await this.checkInsRepository.findByUserIdOnDate(
-			userId,
-			new Date(),
-		)
+		const checkInOnSameDay =
+			await this.checkInsRepository.findByUserIdOnDate(userId, new Date())
 		if (checkInOnSameDay) {
 			throw new MaxCheckInsReachedError()
 		}

@@ -17,5 +17,9 @@ export async function gymsRoutes(app: FastifyInstance) {
 	app.get('/gyms/search', searchController)
 	app.get('/gyms/nearby', nearbyController)
 	//
-	app.post('/gyms', { onRequest: [verifyUserRole(Role.ADMIN)] }, createController)
+	app.post(
+		'/gyms',
+		{ onRequest: [verifyUserRole(Role.ADMIN)] },
+		createController,
+	)
 }

@@ -12,10 +12,16 @@ describe('PrismaTokenDenylist (integration)', () => {
 
 	it('should warm live entries and prune expired ones on load', async () => {
 		await prisma.revokedToken.create({
-			data: { jti: 'live-jti', expires_at: new Date(Date.now() + 60_000) },
+			data: {
+				jti: 'live-jti',
+				expires_at: new Date(Date.now() + 60_000),
+			},
 		})
 		await prisma.revokedToken.create({
-			data: { jti: 'dead-jti', expires_at: new Date(Date.now() - 60_000) },
+			data: {
+				jti: 'dead-jti',
+				expires_at: new Date(Date.now() - 60_000),
+			},
 		})
 
 		const denylist = new PrismaTokenDenylist()

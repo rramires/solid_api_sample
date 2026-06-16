@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { afterAll, beforeAll, describe, expect,it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '@/app'
 import createAndAuthUser from '@/utils/tests/create-and-auth-user'
@@ -54,6 +54,8 @@ describe('Validate check-in (e2e)', () => {
 		const { validated_at } = response.body.checkIn
 
 		expect(response.statusCode).toEqual(200)
-		expect(new Date(validated_at).getTime()).toBeGreaterThan(new Date(0).getTime())
+		expect(new Date(validated_at).getTime()).toBeGreaterThan(
+			new Date(0).getTime(),
+		)
 	})
 })

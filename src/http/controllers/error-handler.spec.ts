@@ -19,10 +19,12 @@ describe('Global error handler (e2e)', () => {
 		// strictAuthLimit on /auth/login allows 5/min; the 6th hit must throttle.
 		let lastStatus = 0
 		for (let i = 0; i < 6; i++) {
-			const response = await request(app.server).post('/auth/login').send({
-				identifier: 'nobody@example.com',
-				password: 'wrong-password',
-			})
+			const response = await request(app.server)
+				.post('/auth/login')
+				.send({
+					identifier: 'nobody@example.com',
+					password: 'wrong-password',
+				})
 			lastStatus = response.statusCode
 		}
 

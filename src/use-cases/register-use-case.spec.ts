@@ -44,7 +44,9 @@ describe('Register Use Case', () => {
 		await sut.execute(newUser)
 
 		// add same email - return error
-		await expect(sut.execute(newUser)).rejects.toBeInstanceOf(UserAlreadyExistsError)
+		await expect(sut.execute(newUser)).rejects.toBeInstanceOf(
+			UserAlreadyExistsError,
+		)
 	})
 
 	it('should be able to register', async () => {

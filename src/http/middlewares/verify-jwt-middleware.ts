@@ -3,7 +3,10 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { passwordChangedRegistry } from '@/lib/password-changed-registry'
 import { tokenDenylist } from '@/lib/token-denylist'
 
-export async function verifyJwtMiddleware(request: FastifyRequest, reply: FastifyReply) {
+export async function verifyJwtMiddleware(
+	request: FastifyRequest,
+	reply: FastifyReply,
+) {
 	try {
 		await request.jwtVerify()
 	} catch {
