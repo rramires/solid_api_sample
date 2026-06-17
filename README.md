@@ -83,29 +83,30 @@ pnpm dev              # start dev server
 Copy `.env.example` to `.env` and fill in the values. The app **fails fast** at
 boot if any variable is invalid (Zod validation in `src/env`).
 
-| Variable                     | Required | Default                 | Description                                                                                  |
-| ---------------------------- | -------- | ----------------------- | -------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                   | yes      | –                       | `development` \| `test` \| `production`                                                      |
-| `PORT`                       | no       | `3333`                  | HTTP port                                                                                    |
-| `JWT_SECRET`                 | yes      | –                       | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod)                       |
-| `DATABASE_URL`               | yes      | –                       | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                      |
-| `CORS_ORIGIN`                | no       | –                       | Comma-separated allowed origins (production only)                                            |
-| `PASSWORD_MIN_LENGTH`        | no       | `8`                     | Minimum registration password length (8–72)                                                  |
-| `MIN_TEXT_LENGTH`            | no       | `3`                     | Minimum length for text "name-of-things" fields (username, gym title, search); floor of 3    |
-| `BODY_LIMIT`                 | no       | `16384`                 | Max request body size, in bytes                                                              |
-| `LOG_LEVEL`                  | no       | `info`                  | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                     |
-| `ADMIN_USERNAME`             | yes      | –                       | Seed ADMIN username (3–30, letters/numbers/underscore, stored lowercase)                     |
-| `ADMIN_EMAIL`                | yes      | –                       | Seed ADMIN email (login)                                                                     |
-| `ADMIN_PASSWORD`             | yes      | –                       | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
-| `TRUST_PROXY`                | no       | –                       | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB                       |
-| `MAX_EVENT_LOOP_DELAY`       | no       | `1000`                  | Event-loop lag threshold in ms before returning 503                                          |
-| `MAX_HEAP_USED_BYTES`        | no       | `209715200`             | Heap threshold in bytes before returning 503 (default 200 MB)                                |
-| `LOGIN_MAX_ATTEMPTS`         | no       | `5`                     | Failed login attempts before account lockout                                                 |
-| `LOGIN_LOCKOUT_MINUTES`      | no       | `15`                    | Account lockout duration in minutes                                                          |
-| `APP_URL`                    | no       | `http://localhost:3333` | Public URL used in verification emails                                                       |
-| `VERIFICATION_EXPIRES_HOURS` | no       | `24`                    | Verification link/OTP validity in hours                                                      |
-| `REQUIRE_EMAIL_VERIFICATION` | no       | `false`                 | When `true`, unverified users are blocked on protected routes                                |
-| `RESET_EXPIRES_MINUTES`      | no       | `60`                    | Password-reset link/OTP validity in minutes                                                  |
+| Variable                     | Required | Default                    | Description                                                                                  |
+| ---------------------------- | -------- | -------------------------- | -------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                   | yes      | –                          | `development` \| `test` \| `production`                                                      |
+| `PORT`                       | no       | `3333`                     | HTTP port                                                                                    |
+| `JWT_SECRET`                 | yes      | –                          | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod)                       |
+| `DATABASE_URL`               | yes      | –                          | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                      |
+| `CORS_ORIGIN`                | no       | –                          | Comma-separated allowed origins (production only)                                            |
+| `PASSWORD_MIN_LENGTH`        | no       | `8`                        | Minimum register/reset password length (8–72)                                                |
+| `PASSWORD_PATTERN`           | no       | upper/lower/number/special | Password complexity regex for register/reset; see `.env.example` for the literal             |
+| `MIN_TEXT_LENGTH`            | no       | `3`                        | Minimum length for text "name-of-things" fields (username, gym title, search); floor of 3    |
+| `BODY_LIMIT`                 | no       | `16384`                    | Max request body size, in bytes                                                              |
+| `LOG_LEVEL`                  | no       | `info`                     | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                     |
+| `ADMIN_USERNAME`             | yes      | –                          | Seed ADMIN username (3–30, letters/numbers/underscore, stored lowercase)                     |
+| `ADMIN_EMAIL`                | yes      | –                          | Seed ADMIN email (login)                                                                     |
+| `ADMIN_PASSWORD`             | yes      | –                          | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
+| `TRUST_PROXY`                | no       | –                          | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB                       |
+| `MAX_EVENT_LOOP_DELAY`       | no       | `1000`                     | Event-loop lag threshold in ms before returning 503                                          |
+| `MAX_HEAP_USED_BYTES`        | no       | `209715200`                | Heap threshold in bytes before returning 503 (default 200 MB)                                |
+| `LOGIN_MAX_ATTEMPTS`         | no       | `5`                        | Failed login attempts before account lockout                                                 |
+| `LOGIN_LOCKOUT_MINUTES`      | no       | `15`                       | Account lockout duration in minutes                                                          |
+| `APP_URL`                    | no       | `http://localhost:3333`    | Public URL used in verification emails                                                       |
+| `VERIFICATION_EXPIRES_HOURS` | no       | `24`                       | Verification link/OTP validity in hours                                                      |
+| `REQUIRE_EMAIL_VERIFICATION` | no       | `false`                    | When `true`, unverified users are blocked on protected routes                                |
+| `RESET_EXPIRES_MINUTES`      | no       | `60`                       | Password-reset link/OTP validity in minutes                                                  |
 
 ## API routes
 
@@ -187,8 +188,9 @@ pnpm test:e2e  # e2e suite (MySQL up)
 
 With the server running (`pnpm dev`) and the ADMIN seeded
 (`pnpm seed-adm-role`), run the block below. It exercises the public routes,
-RBAC, token refresh and token revocation. Registration passwords must be at
-least `PASSWORD_MIN_LENGTH` (default 8) characters.
+RBAC, token refresh and token revocation. Register/reset passwords must meet
+`PASSWORD_MIN_LENGTH` (default 8) **and** the `PASSWORD_PATTERN` complexity
+policy (default: an uppercase, a lowercase, a number and a special character).
 
 ```sh
 BASE="http://127.0.0.1:3333"
@@ -196,16 +198,16 @@ BASE="http://127.0.0.1:3333"
 # 1. Healthcheck
 echo "=== 1. GET /hello ===" && curl -s "$BASE/hello" && echo
 
-# 2. Register a regular MEMBER (username 3-30 [a-z0-9_], password >= 8 chars)
+# 2. Register a regular MEMBER (username 3-30 [a-z0-9_]; password: min 8 + upper/lower/number/special)
 echo -e "\n=== 2. POST /users ===" && \
 curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
-  -d '{"username":"fulano","email":"fulano@email.com","password":"password123"}' | python3 -m json.tool
+  -d '{"username":"fulano","email":"fulano@email.com","password":"Fulano@123"}' | python3 -m json.tool
 
 # 2b. Login to get a token, send verification email, then verify via the link/OTP printed to the server log
 echo -e "\n=== 2b. POST /users/send-verification (check server log for link + OTP) ===" && \
 TOKEN_TMP=$(curl -s -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"identifier":"fulano@email.com","password":"password123"}' | \
+  -d '{"identifier":"fulano@email.com","password":"Fulano@123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
   -X POST "$BASE/users/send-verification" -H "Authorization: Bearer $TOKEN_TMP" && \
@@ -225,7 +227,7 @@ done
 echo -e "\n=== 3. POST /auth/login (member, by username) ===" && \
 TOKEN=$(curl -s -c /tmp/cookies.txt -X POST "$BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"identifier":"fulano","password":"password123"}' | \
+  -d '{"identifier":"fulano","password":"Fulano@123"}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['token'])") && \
 echo "Token: ${TOKEN:0:40}..."
 
@@ -277,7 +279,7 @@ curl -s -o /dev/null -w "status: %{http_code}\n" \
   -d '{"email":"fulano@email.com"}' && \
 echo "(copy the reset token from the server log and run:)" && \
 echo "  curl -X POST '$BASE/users/reset-password' -H 'Content-Type: application/json' \\" && \
-echo "    -d '{\"token\":\"<paste-token>\",\"newPassword\":\"newpass123\"}'"
+echo "    -d '{\"token\":\"<paste-token>\",\"newPassword\":\"Newpass@1\"}'"
 ```
 
 ## License

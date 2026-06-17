@@ -86,7 +86,8 @@ src/
 ├── lib/
 │   ├── prisma.ts            # Singleton do PrismaClient + driver adapter MySQL
 │   ├── report-error.ts      # Seam de report de erro (porta única p/ Sentry/Datadog)
-│   └── token-denylist.ts    # Singleton da denylist de tokens revogados (híbrida RAM+DB)
+│   ├── token-denylist.ts    # Singleton da denylist de tokens revogados (híbrida RAM+DB)
+│   └── email/              # seam do provedor de e-mail (IEmailProvider + ConsoleEmailProvider)
 ├── prisma-client/           # CLIENTE GERADO pelo Prisma 7 (output custom)
 ├── http/
 │   ├── controllers/
@@ -95,10 +96,13 @@ src/
 │   │   ├── gyms/            # rotas + controllers de academias
 │   │   ├── check-ins/       # rotas + controllers de check-ins
 │   │   └── health/          # healthcheck (/hello)
-│   └── middlewares/
-│       ├── verify-jwt-middleware.ts   # autenticação + checagem na denylist
-│       ├── verify-user-role.ts        # autorização (RBAC; 403 se papel errado)
-│       └── rate-limit.ts              # limite estrito p/ rotas de auth
+│   ├── middlewares/
+│   │   ├── verify-jwt-middleware.ts   # autenticação + checagem na denylist
+│   │   ├── verify-user-role.ts        # autorização (RBAC; 403 se papel errado)
+│   │   ├── verify-email-verified.ts   # bloqueia não verificados (REQUIRE_EMAIL_VERIFICATION)
+│   │   └── rate-limit.ts              # limite estrito p/ rotas de auth
+│   └── schemas/
+│       └── password-schema.ts         # schema Zod de senha compartilhado (cadastro + reset)
 ├── use-cases/
 │   ├── *-use-case.ts        # regras de negócio puras (sem HTTP, sem Prisma direto)
 │   ├── *.spec.ts            # testes unitários (usam repos in-memory)
@@ -110,7 +114,9 @@ src/
 │   ├── prisma/             # implementações de produção (inclui denylist híbrida RAM+DB)
 │   └── in-memory/          # implementações para teste unitário
 └── utils/
-    └── get-distance-between-coordinates.ts   # haversine (regra geográfica)
+    ├── get-distance-between-coordinates.ts   # haversine (regra geográfica)
+    ├── sha256.ts                             # helper de hash de token/OTP
+    └── tests/                                # helpers de teste e2e (create-and-auth-user, coords)
 ```
 
 ### Convenção de nomes
@@ -207,7 +213,8 @@ Exemplo: **`POST /auth/login`** (login) e **`POST /gyms/:gymId/check-ins`** (rot
 Todo controller valida `body`/`params`/`query` com um **schema Zod**
 (`bodySchema`/`querySchema`). Esses schemas são a **fonte única de verdade** das
 regras de entrada — tamanhos, formatos, charset, nulabilidade — e são
-**parametrizados por env** (`MIN_TEXT_LENGTH`, `PASSWORD_MIN_LENGTH`), então este
+**parametrizados por env** (`MIN_TEXT_LENGTH`, `PASSWORD_MIN_LENGTH`,
+`PASSWORD_PATTERN`), então este
 doc **não** repete os valores literais (eles driftariam). Leia as regras na
 fonte via este índice rota → controller:
 
@@ -224,10 +231,12 @@ fonte via este índice rota → controller:
 | `POST /users/reset-password`             | `src/http/controllers/users/reset-password-controller.ts`  |
 
 Formatos notáveis: `username` (piso `MIN_TEXT_LENGTH` … 30, `[a-zA-Z0-9_]`,
-gravado lowercase), `identifier` de login (e-mail ou username), `title` de gym
-(≥ `MIN_TEXT_LENGTH`), `phone` de gym (opcional; `^\+?[\d\s().-]{7,20}$`),
-`query` de busca (≥ `MIN_TEXT_LENGTH`). Os `max` do Zod espelham os tamanhos de
-coluna `@db.VarChar(n)` (ver §6.3).
+gravado lowercase), `identifier` de login (e-mail ou username), `password`
+(cadastro + reset, schema compartilhado: ≥ `PASSWORD_MIN_LENGTH`, ≤ 72,
+complexidade `PASSWORD_PATTERN`), `title` de gym (≥ `MIN_TEXT_LENGTH`), `phone`
+de gym (opcional; `^\+?[\d\s().-]{7,20}$`), `query` de busca
+(≥ `MIN_TEXT_LENGTH`). Os `max` do Zod espelham os tamanhos de coluna
+`@db.VarChar(n)` (ver §6.3).
 
 ---
 
@@ -315,10 +324,12 @@ coluna `@db.VarChar(n)` (ver §6.3).
 - **Tempo de login uniforme (anti-enumeração):** o login **sempre** roda
   `bcrypt.compare` — contra um `DUMMY_HASH` fixo quando o e-mail não existe — para
   que o tempo de resposta não revele se a conta existe.
-- **Política de senha configurável:** registro com
+- **Política de senha configurável:** cadastro **e** reset de senha compartilham
+  um único schema (`src/http/schemas/password-schema.ts`):
   `min(PASSWORD_MIN_LENGTH).max(72)` (72 = limite do bcrypt; evita DoS por string
-  gigante). A senha do ADMIN exige complexidade (≥10, maiúscula, minúscula, número
-  e especial).
+  gigante) mais a regex de complexidade `PASSWORD_PATTERN` (padrão: maiúscula,
+  minúscula, número e especial). A senha de seed do ADMIN tem política própria
+  mais estrita (≥10, maiúscula, minúscula, número e especial), validada no `env`.
 - **`bodyLimit` configurável** (`BODY_LIMIT`, default 16 KB) limita o tamanho do
   corpo da request.
 - **`.max()` por campo em todas as entradas de texto** previne overflow de colunas
@@ -464,7 +475,8 @@ Os tamanhos de coluna são fixados com Prisma `@db.VarChar(n)` para casar com o
 
 Tudo que muda entre ambientes é **env validado no boot** (`src/env/index.ts`); o
 app **não sobe** com config inválida. Variáveis: `NODE_ENV`, `PORT`, `JWT_SECRET`
-(≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `MIN_TEXT_LENGTH` (piso 3),
+(≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `PASSWORD_PATTERN`,
+`MIN_TEXT_LENGTH` (piso 3),
 `BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`, `MAX_EVENT_LOOP_DELAY`,
 `MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`, `APP_URL`,
 `VERIFICATION_EXPIRES_HOURS`, `REQUIRE_EMAIL_VERIFICATION`,
