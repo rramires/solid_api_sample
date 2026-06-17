@@ -9,11 +9,12 @@ this file is about **process**.
 - **Do not execute, edit, or commit anything until the user explicitly says
   so.** Discuss first; act only on an explicit go-ahead.
 - For any non-trivial work, **clarify every open question first**. Only once all
-  doubts are resolved, write a **`PLAN.md`** at the repo root (groups, checkpoint
+  doubts are resolved, write a **`PLAN.md`** at the repo root (groups, phase
   commits, gates, docs, final verification).
-- After writing `PLAN.md`, **ask whether the user wants a resume prompt** — a
-  self-contained prompt carrying every instruction needed to execute the plan,
-  so the user can compact the current session and paste it into a fresh one.
+- After writing `PLAN.md`, **offer `/checkpoint`** to emit the resume prompt — a
+  self-contained prompt (it folds in the plan's remaining steps) so the user can
+  compact the current session and paste it into a fresh one. The `checkpoint`
+  skill owns resume-prompt generation; don't hand-roll one here.
 - **`PLAN.md` is NEVER committed.** It is in `.gitignore` and must stay there —
   it is a local working document. Delete it (`rm PLAN.md`) only after every plan
   item is verified.
@@ -29,7 +30,7 @@ requests, no GitHub merge step.**
    - **Exception — docs-only changes** (`README*`, `PROJECT*`, `CLAUDE.md`, with
      **no code**) may be committed **straight to `master`**, no branch. The
      push is still the user's.
-2. **Commit per phase** — one commit per finished, coherent step (a checkpoint),
+2. **Commit per phase** — one commit per finished, coherent step (a phase commit),
    created **right after its gate passes**. Conventional Commits. Never batch
    unrelated work into one commit; never leave a finished phase uncommitted.
 3. **Gate before every commit** (must be green):
@@ -55,7 +56,7 @@ requests, no GitHub merge step.**
 
 Conventional Commits, matching the change: `fix(scope): …`, `feat(auth): …`,
 `test: …`, `docs: …`, `ci: …`, `chore: …`. Intermediate fixes found mid-group
-get their own `fix(scope): …` checkpoint commit. End every commit with:
+get their own `fix(scope): …` phase commit. End every commit with:
 
 ```
 Co-Authored-By: Claude <noreply@anthropic.com>
