@@ -8,6 +8,21 @@ const envSchema = z.object({
 	JWT_SECRET: z.string().min(20, 'Minimum 20 characters'),
 	CORS_ORIGIN: z.string().optional(),
 	PASSWORD_MIN_LENGTH: z.coerce.number().int().min(8).max(72).default(8),
+	// Password complexity regex (length comes from PASSWORD_MIN_LENGTH above).
+	// Default requires an uppercase, a lowercase, a number and a special char.
+	// Validated at boot (must compile) and exposed as a RegExp.
+	PASSWORD_PATTERN: z
+		.string()
+		.default('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$')
+		.refine((p) => {
+			try {
+				new RegExp(p)
+				return true
+			} catch {
+				return false
+			}
+		}, 'Must be a valid regular expression')
+		.transform((p) => new RegExp(p)),
 	// Minimum length for "name-of-things" text fields (username, gym title,
 	// search query). Floor of 3 — boot fails if set lower.
 	MIN_TEXT_LENGTH: z.coerce.number().int().min(3).default(3),
@@ -34,7 +49,7 @@ const envSchema = z.object({
 		.optional()
 		.default(15),
 	// Email verification settings.
-	APP_URL: z.string().url().optional().default('http://localhost:3333'),
+	APP_URL: z.url().optional().default('http://localhost:3333'),
 	VERIFICATION_EXPIRES_HOURS: z.coerce
 		.number()
 		.int()
