@@ -64,7 +64,7 @@ describe('Reset Password (e2e)', () => {
 	})
 
 	it('should answer 202 with the same body for known and unknown emails', async () => {
-		await registerUser('known@example.com', 'abc12345')
+		await registerUser('known@example.com', 'Abc@1234')
 
 		const known = await request(app.server)
 			.post('/users/forgot-password')
@@ -80,25 +80,25 @@ describe('Reset Password (e2e)', () => {
 
 	it('should reset via the link, log out old tokens and rotate the password', async () => {
 		const email = 'link@example.com'
-		const oldToken = await registerAndAuth(email, 'abc12345')
+		const oldToken = await registerAndAuth(email, 'Abc@1234')
 
 		await request(app.server).post('/users/forgot-password').send({ email })
 		const { token } = lastResetEmail()
 
 		const reset = await request(app.server)
 			.post('/users/reset-password')
-			.send({ token, newPassword: 'newpass123' })
+			.send({ token, newPassword: 'Newpass@1' })
 		expect(reset.statusCode).toEqual(204)
 
 		// Old password no longer works; the new one does.
 		const oldLogin = await request(app.server)
 			.post('/auth/login')
-			.send({ identifier: email, password: 'abc12345' })
+			.send({ identifier: email, password: 'Abc@1234' })
 		expect(oldLogin.statusCode).toEqual(401)
 
 		const newLogin = await request(app.server)
 			.post('/auth/login')
-			.send({ identifier: email, password: 'newpass123' })
+			.send({ identifier: email, password: 'Newpass@1' })
 		expect(newLogin.statusCode).toEqual(200)
 
 		// Access token issued before the reset is globally invalidated.
@@ -110,25 +110,25 @@ describe('Reset Password (e2e)', () => {
 		// The reset token is single-use.
 		const reuse = await request(app.server)
 			.post('/users/reset-password')
-			.send({ token, newPassword: 'another123' })
+			.send({ token, newPassword: 'Another@1' })
 		expect(reuse.statusCode).toEqual(400)
 	})
 
 	it('should reset via the OTP code', async () => {
 		const email = 'otp@example.com'
-		await registerUser(email, 'abc12345')
+		await registerUser(email, 'Abc@1234')
 
 		await request(app.server).post('/users/forgot-password').send({ email })
 		const { code } = lastResetEmail()
 
 		const reset = await request(app.server)
 			.post('/users/reset-password')
-			.send({ email, code, newPassword: 'newpass123' })
+			.send({ email, code, newPassword: 'Newpass@1' })
 		expect(reset.statusCode).toEqual(204)
 
 		const newLogin = await request(app.server)
 			.post('/auth/login')
-			.send({ identifier: email, password: 'newpass123' })
+			.send({ identifier: email, password: 'Newpass@1' })
 		expect(newLogin.statusCode).toEqual(200)
 	})
 })

@@ -48,11 +48,11 @@ describe('Verify Email (e2e)', () => {
 			.send({
 				username: email.split('@')[0].replace(/[^a-z0-9_]/gi, '_'),
 				email,
-				password: 'abc12345',
+				password: 'Abc@1234',
 			})
 		const auth = await request(app.server)
 			.post('/auth/login')
-			.send({ identifier: email, password: 'abc12345' })
+			.send({ identifier: email, password: 'Abc@1234' })
 		const token = auth.body.token as string
 
 		const send = await request(app.server)

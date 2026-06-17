@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
 import { env } from '@/env'
+import { passwordSchema } from '@/http/schemas/password-schema'
 import { UserAlreadyExistsError } from '@/use-cases/errors/user-already-exists-error'
 import { makeRegisterUseCase } from '@/use-cases/factories/make-register-use-case'
 
@@ -18,17 +19,8 @@ export async function registerController(
 			.regex(/^[a-zA-Z0-9_]+$/, 'letters, numbers, underscore only')
 			.transform((s) => s.toLowerCase()),
 		email: z.email(),
-		// Minimum length is configurable; 72 is the bcrypt input ceiling (anti-DoS).
-		// bcrypt counts BYTES, not chars: .max(72) is a cheap pre-filter; the refine
-		// enforces the true 72-byte limit (multibyte chars can exceed it).
-		password: z
-			.string()
-			.min(env.PASSWORD_MIN_LENGTH)
-			.max(72)
-			.refine(
-				(p) => Buffer.byteLength(p, 'utf8') <= 72,
-				'Password too long',
-			),
+		// Length + complexity policy (env-driven); see password-schema.ts.
+		password: passwordSchema,
 	})
 	const { username, email, password } = bodySchema.parse(request.body)
 

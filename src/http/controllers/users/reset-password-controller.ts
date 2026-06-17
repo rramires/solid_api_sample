@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
-import { env } from '@/env'
+import { passwordSchema } from '@/http/schemas/password-schema'
 import { InvalidResetTokenError } from '@/use-cases/errors/invalid-reset-token-error'
 import { ResetTokenExpiredError } from '@/use-cases/errors/reset-token-expired-error'
 import { makeResetPasswordUseCase } from '@/use-cases/factories/make-reset-password-use-case'
@@ -10,12 +10,6 @@ export async function resetPasswordController(
 	request: FastifyRequest,
 	reply: FastifyReply,
 ) {
-	const passwordSchema = z
-		.string()
-		.min(env.PASSWORD_MIN_LENGTH)
-		.max(72)
-		.refine((p) => Buffer.byteLength(p, 'utf8') <= 72, 'Password too long')
-
 	// Two ways to reset: a link token (UUID) or an email + 6-digit OTP.
 	const bodySchema = z.union([
 		z.object({ token: z.uuid(), newPassword: passwordSchema }),

@@ -11,7 +11,7 @@ export default async function createAndAuthUser(
 	const newUser = {
 		username: 'johndoe',
 		email: 'johndoe@example.com',
-		password: 'abc12345',
+		password: 'Abc@1234',
 	}
 	// create user
 	const response = await request(app.server).post('/users').send(newUser)

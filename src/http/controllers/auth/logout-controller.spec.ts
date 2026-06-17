@@ -55,14 +55,14 @@ describe('Logout (e2e)', () => {
 			.send({
 				username: email.split('@')[0].replace(/[^a-z0-9_]/gi, '_'),
 				email,
-				password: 'abc12345',
+				password: 'Abc@1234',
 			})
 
 		const authResponse = await request(app.server)
 			.post('/auth/login')
 			.send({
 				identifier: email,
-				password: 'abc12345',
+				password: 'Abc@1234',
 			})
 		const cookies = authResponse.get('Set-Cookie') || []
 		const { token } = authResponse.body
