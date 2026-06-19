@@ -1,6 +1,6 @@
 # HANDOFF — solid_api_sample
 
-_Atualizado: 2026-06-19 @ 8783685 (branch master)_
+_Atualizado: 2026-06-19 @ 7c5e23c (branch master)_
 
 ## Resume prompt (cole em qualquer sessão / modelo)
 
@@ -9,13 +9,10 @@ _Atualizado: 2026-06-19 @ 8783685 (branch master)_
 
 ## Estado atual
 
-- Branch / commit: `master` @ `8783685` (2026-06-19); árvore limpa após este commit.
-- `feat/auth-me-is-verified` já foi **mergeada no master (fast-forward)**. A branch local
-  ainda existe — apagar (`git branch -d feat/auth-me-is-verified`) **só depois do push**.
-- **master está à frente do `origin/master` (vários commits), NÃO pushado.** Push é do
-  usuário. Próximo passo: **usuário pusha o master**, depois apaga a branch.
-- Em andamento: **nada**. Feature concluída + mergeada.
-- O que entrou nesta leva (já no master):
+- Branch / commit: `master` @ `7c5e23c` (2026-06-19); árvore limpa.
+- `master` já **pushado** pelo usuário (`origin/master` em sync). Em andamento: **nada**.
+- Próximo passo: aguardando próxima tarefa.
+- Feature `auth-me-is-verified` **concluída, mergeada (FF) e no remoto**:
   - `GET /auth/me` retorna `is_verified` **e** `role`, lidos **fresh do banco** — front usa
     p/ banner "verifique e-mail" + UI de RBAC.
   - Docs do gate `REQUIRE_EMAIL_VERIFICATION` (matriz de rotas + smoke) no README + PROJECT
@@ -23,6 +20,8 @@ _Atualizado: 2026-06-19 @ 8783685 (branch master)_
   - Comentário do `APP_URL` no `.env.example` (prefixa links de verify **e** reset).
   - Verificado: gate verde (lint + compile + unit 61 + e2e 30) + smoke manual dos 2 estados
     da flag.
+- Branch local apagada. **Pendência opcional (push do usuário):** a branch remota
+  `origin/feat/auth-me-is-verified` ainda existe — `git push origin --delete feat/auth-me-is-verified`.
 
 ## Threads abertas
 
