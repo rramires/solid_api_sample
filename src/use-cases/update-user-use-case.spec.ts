@@ -14,6 +14,8 @@ import { UpdateUserUseCase } from './update-user-use-case'
 class CapturingEmailProvider implements IEmailProvider {
 	public resets: { to: string; linkToken: string; otpCode: string }[] = []
 	async sendVerificationEmail() {}
+	async sendEmailChangeConfirmation() {}
+	async sendEmailChangeAlert() {}
 	async sendPasswordResetEmail(params: {
 		to: string
 		linkToken: string

@@ -5,6 +5,7 @@ import { verifyJwtMiddleware } from '@/http/middlewares/verify-jwt-middleware'
 import { verifyUserRole } from '@/http/middlewares/verify-user-role'
 import { Role } from '@/prisma-client'
 
+import { confirmEmailChangeByLinkController } from './confirm-email-change-by-link-controller'
 import { forgotPasswordController } from './forgot-password-controller'
 import { listController } from './list-controller'
 import { registerController } from './register-controller'
@@ -54,6 +55,9 @@ export async function usersRoutes(app: FastifyInstance) {
 	)
 	// Email verification — link click is public; OTP/send/resend are authenticated.
 	app.get('/users/verify-email', verifyEmailByLinkController)
+	// Email change — public link confirm (the token is the proof). The request
+	// and OTP confirm are authenticated and live in auth/routes.ts.
+	app.get('/users/confirm-email-change', confirmEmailChangeByLinkController)
 	app.post(
 		'/users/send-verification',
 		{ onRequest: [verifyJwtMiddleware] },

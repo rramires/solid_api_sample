@@ -33,6 +33,7 @@ model User {
   checkIns            CheckIn[]
   email_verifications EmailVerification[]
   password_resets     PasswordReset[]
+  email_changes       EmailChange[]
 
   @@map("users")
 }
@@ -78,6 +79,26 @@ model EmailVerification {
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("email_verifications")
+}
+
+// Self-service email change (pattern A): the proven address is never
+// overwritten until the new one is confirmed. Mirrors EmailVerification, plus
+// the pending new_email being confirmed.
+model EmailChange {
+  id         String    @id @default(uuid()) @db.VarChar(36)
+  user_id    String    @db.VarChar(36)
+  new_email  String    @db.VarChar(254)
+  link_token String    @unique @default(uuid())
+  otp_code   String
+  // Wrong-OTP counter; the record is invalidated once it reaches the cap.
+  attempts   Int       @default(0)
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("email_changes")
 }
 
 model PasswordReset {

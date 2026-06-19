@@ -11,6 +11,8 @@ import { ForgotPasswordUseCase } from './forgot-password-use-case'
 class CapturingEmailProvider implements IEmailProvider {
 	public resets: { to: string; linkToken: string; otpCode: string }[] = []
 	async sendVerificationEmail() {}
+	async sendEmailChangeConfirmation() {}
+	async sendEmailChangeAlert() {}
 	async sendPasswordResetEmail(params: {
 		to: string
 		linkToken: string

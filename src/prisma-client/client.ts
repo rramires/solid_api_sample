@@ -62,6 +62,11 @@ export type Gym = Prisma.GymModel
  */
 export type EmailVerification = Prisma.EmailVerificationModel
 /**
+ * Model EmailChange
+ * 
+ */
+export type EmailChange = Prisma.EmailChangeModel
+/**
  * Model PasswordReset
  * 
  */

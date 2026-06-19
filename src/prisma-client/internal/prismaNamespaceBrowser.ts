@@ -55,6 +55,7 @@ export const ModelName = {
   CheckIn: 'CheckIn',
   Gym: 'Gym',
   EmailVerification: 'EmailVerification',
+  EmailChange: 'EmailChange',
   PasswordReset: 'PasswordReset',
   RevokedToken: 'RevokedToken'
 } as const
@@ -124,6 +125,21 @@ export const EmailVerificationScalarFieldEnum = {
 } as const
 
 export type EmailVerificationScalarFieldEnum = (typeof EmailVerificationScalarFieldEnum)[keyof typeof EmailVerificationScalarFieldEnum]
+
+
+export const EmailChangeScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  new_email: 'new_email',
+  link_token: 'link_token',
+  otp_code: 'otp_code',
+  attempts: 'attempts',
+  expires_at: 'expires_at',
+  used_at: 'used_at',
+  created_at: 'created_at'
+} as const
+
+export type EmailChangeScalarFieldEnum = (typeof EmailChangeScalarFieldEnum)[keyof typeof EmailChangeScalarFieldEnum]
 
 
 export const PasswordResetScalarFieldEnum = {
@@ -202,6 +218,17 @@ export const EmailVerificationOrderByRelevanceFieldEnum = {
 } as const
 
 export type EmailVerificationOrderByRelevanceFieldEnum = (typeof EmailVerificationOrderByRelevanceFieldEnum)[keyof typeof EmailVerificationOrderByRelevanceFieldEnum]
+
+
+export const EmailChangeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  new_email: 'new_email',
+  link_token: 'link_token',
+  otp_code: 'otp_code'
+} as const
+
+export type EmailChangeOrderByRelevanceFieldEnum = (typeof EmailChangeOrderByRelevanceFieldEnum)[keyof typeof EmailChangeOrderByRelevanceFieldEnum]
 
 
 export const PasswordResetOrderByRelevanceFieldEnum = {

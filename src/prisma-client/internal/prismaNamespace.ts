@@ -388,6 +388,7 @@ export const ModelName = {
   CheckIn: 'CheckIn',
   Gym: 'Gym',
   EmailVerification: 'EmailVerification',
+  EmailChange: 'EmailChange',
   PasswordReset: 'PasswordReset',
   RevokedToken: 'RevokedToken'
 } as const
@@ -405,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "checkIn" | "gym" | "emailVerification" | "passwordReset" | "revokedToken"
+    modelProps: "user" | "checkIn" | "gym" | "emailVerification" | "emailChange" | "passwordReset" | "revokedToken"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -673,6 +674,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EmailChange: {
+      payload: Prisma.$EmailChangePayload<ExtArgs>
+      fields: Prisma.EmailChangeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailChangeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailChangeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload>
+        }
+        findFirst: {
+          args: Prisma.EmailChangeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailChangeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload>
+        }
+        findMany: {
+          args: Prisma.EmailChangeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload>[]
+        }
+        create: {
+          args: Prisma.EmailChangeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload>
+        }
+        createMany: {
+          args: Prisma.EmailChangeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmailChangeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload>
+        }
+        update: {
+          args: Prisma.EmailChangeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailChangeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailChangeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmailChangeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangePayload>
+        }
+        aggregate: {
+          args: Prisma.EmailChangeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailChange>
+        }
+        groupBy: {
+          args: Prisma.EmailChangeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailChangeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailChangeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailChangeCountAggregateOutputType> | number
+        }
+      }
+    }
     PasswordReset: {
       payload: Prisma.$PasswordResetPayload<ExtArgs>
       fields: Prisma.PasswordResetFieldRefs
@@ -895,6 +962,21 @@ export const EmailVerificationScalarFieldEnum = {
 export type EmailVerificationScalarFieldEnum = (typeof EmailVerificationScalarFieldEnum)[keyof typeof EmailVerificationScalarFieldEnum]
 
 
+export const EmailChangeScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  new_email: 'new_email',
+  link_token: 'link_token',
+  otp_code: 'otp_code',
+  attempts: 'attempts',
+  expires_at: 'expires_at',
+  used_at: 'used_at',
+  created_at: 'created_at'
+} as const
+
+export type EmailChangeScalarFieldEnum = (typeof EmailChangeScalarFieldEnum)[keyof typeof EmailChangeScalarFieldEnum]
+
+
 export const PasswordResetScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -971,6 +1053,17 @@ export const EmailVerificationOrderByRelevanceFieldEnum = {
 } as const
 
 export type EmailVerificationOrderByRelevanceFieldEnum = (typeof EmailVerificationOrderByRelevanceFieldEnum)[keyof typeof EmailVerificationOrderByRelevanceFieldEnum]
+
+
+export const EmailChangeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  new_email: 'new_email',
+  link_token: 'link_token',
+  otp_code: 'otp_code'
+} as const
+
+export type EmailChangeOrderByRelevanceFieldEnum = (typeof EmailChangeOrderByRelevanceFieldEnum)[keyof typeof EmailChangeOrderByRelevanceFieldEnum]
 
 
 export const PasswordResetOrderByRelevanceFieldEnum = {
@@ -1158,6 +1251,7 @@ export type GlobalOmitConfig = {
   checkIn?: Prisma.CheckInOmit
   gym?: Prisma.GymOmit
   emailVerification?: Prisma.EmailVerificationOmit
+  emailChange?: Prisma.EmailChangeOmit
   passwordReset?: Prisma.PasswordResetOmit
   revokedToken?: Prisma.RevokedTokenOmit
 }

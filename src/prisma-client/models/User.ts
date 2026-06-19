@@ -209,6 +209,7 @@ export type UserWhereInput = {
   checkIns?: Prisma.CheckInListRelationFilter
   email_verifications?: Prisma.EmailVerificationListRelationFilter
   password_resets?: Prisma.PasswordResetListRelationFilter
+  email_changes?: Prisma.EmailChangeListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -223,6 +224,7 @@ export type UserOrderByWithRelationInput = {
   checkIns?: Prisma.CheckInOrderByRelationAggregateInput
   email_verifications?: Prisma.EmailVerificationOrderByRelationAggregateInput
   password_resets?: Prisma.PasswordResetOrderByRelationAggregateInput
+  email_changes?: Prisma.EmailChangeOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -241,6 +243,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   checkIns?: Prisma.CheckInListRelationFilter
   email_verifications?: Prisma.EmailVerificationListRelationFilter
   password_resets?: Prisma.PasswordResetListRelationFilter
+  email_changes?: Prisma.EmailChangeListRelationFilter
 }, "id" | "username" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -283,6 +286,7 @@ export type UserCreateInput = {
   checkIns?: Prisma.CheckInCreateNestedManyWithoutUserInput
   email_verifications?: Prisma.EmailVerificationCreateNestedManyWithoutUserInput
   password_resets?: Prisma.PasswordResetCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -297,6 +301,7 @@ export type UserUncheckedCreateInput = {
   checkIns?: Prisma.CheckInUncheckedCreateNestedManyWithoutUserInput
   email_verifications?: Prisma.EmailVerificationUncheckedCreateNestedManyWithoutUserInput
   password_resets?: Prisma.PasswordResetUncheckedCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -311,6 +316,7 @@ export type UserUpdateInput = {
   checkIns?: Prisma.CheckInUpdateManyWithoutUserNestedInput
   email_verifications?: Prisma.EmailVerificationUpdateManyWithoutUserNestedInput
   password_resets?: Prisma.PasswordResetUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -325,6 +331,7 @@ export type UserUncheckedUpdateInput = {
   checkIns?: Prisma.CheckInUncheckedUpdateManyWithoutUserNestedInput
   email_verifications?: Prisma.EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
   password_resets?: Prisma.PasswordResetUncheckedUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -452,6 +459,20 @@ export type UserUpdateOneRequiredWithoutEmail_verificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmail_verificationsInput, Prisma.UserUpdateWithoutEmail_verificationsInput>, Prisma.UserUncheckedUpdateWithoutEmail_verificationsInput>
 }
 
+export type UserCreateNestedOneWithoutEmail_changesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmail_changesInput, Prisma.UserUncheckedCreateWithoutEmail_changesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmail_changesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEmail_changesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmail_changesInput, Prisma.UserUncheckedCreateWithoutEmail_changesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmail_changesInput
+  upsert?: Prisma.UserUpsertWithoutEmail_changesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmail_changesInput, Prisma.UserUpdateWithoutEmail_changesInput>, Prisma.UserUncheckedUpdateWithoutEmail_changesInput>
+}
+
 export type UserCreateNestedOneWithoutPassword_resetsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPassword_resetsInput, Prisma.UserUncheckedCreateWithoutPassword_resetsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPassword_resetsInput
@@ -477,6 +498,7 @@ export type UserCreateWithoutCheckInsInput = {
   password_changed_at?: Date | string | null
   email_verifications?: Prisma.EmailVerificationCreateNestedManyWithoutUserInput
   password_resets?: Prisma.PasswordResetCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCheckInsInput = {
@@ -490,6 +512,7 @@ export type UserUncheckedCreateWithoutCheckInsInput = {
   password_changed_at?: Date | string | null
   email_verifications?: Prisma.EmailVerificationUncheckedCreateNestedManyWithoutUserInput
   password_resets?: Prisma.PasswordResetUncheckedCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCheckInsInput = {
@@ -519,6 +542,7 @@ export type UserUpdateWithoutCheckInsInput = {
   password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email_verifications?: Prisma.EmailVerificationUpdateManyWithoutUserNestedInput
   password_resets?: Prisma.PasswordResetUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCheckInsInput = {
@@ -532,6 +556,7 @@ export type UserUncheckedUpdateWithoutCheckInsInput = {
   password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   email_verifications?: Prisma.EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
   password_resets?: Prisma.PasswordResetUncheckedUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutEmail_verificationsInput = {
@@ -545,6 +570,7 @@ export type UserCreateWithoutEmail_verificationsInput = {
   password_changed_at?: Date | string | null
   checkIns?: Prisma.CheckInCreateNestedManyWithoutUserInput
   password_resets?: Prisma.PasswordResetCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEmail_verificationsInput = {
@@ -558,6 +584,7 @@ export type UserUncheckedCreateWithoutEmail_verificationsInput = {
   password_changed_at?: Date | string | null
   checkIns?: Prisma.CheckInUncheckedCreateNestedManyWithoutUserInput
   password_resets?: Prisma.PasswordResetUncheckedCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEmail_verificationsInput = {
@@ -587,6 +614,7 @@ export type UserUpdateWithoutEmail_verificationsInput = {
   password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkIns?: Prisma.CheckInUpdateManyWithoutUserNestedInput
   password_resets?: Prisma.PasswordResetUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmail_verificationsInput = {
@@ -599,6 +627,79 @@ export type UserUncheckedUpdateWithoutEmail_verificationsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkIns?: Prisma.CheckInUncheckedUpdateManyWithoutUserNestedInput
+  password_resets?: Prisma.PasswordResetUncheckedUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutEmail_changesInput = {
+  id?: string
+  username: string
+  email: string
+  password_hash: string
+  role?: $Enums.Role
+  is_verified?: boolean
+  created_at?: Date | string
+  password_changed_at?: Date | string | null
+  checkIns?: Prisma.CheckInCreateNestedManyWithoutUserInput
+  email_verifications?: Prisma.EmailVerificationCreateNestedManyWithoutUserInput
+  password_resets?: Prisma.PasswordResetCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutEmail_changesInput = {
+  id?: string
+  username: string
+  email: string
+  password_hash: string
+  role?: $Enums.Role
+  is_verified?: boolean
+  created_at?: Date | string
+  password_changed_at?: Date | string | null
+  checkIns?: Prisma.CheckInUncheckedCreateNestedManyWithoutUserInput
+  email_verifications?: Prisma.EmailVerificationUncheckedCreateNestedManyWithoutUserInput
+  password_resets?: Prisma.PasswordResetUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutEmail_changesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmail_changesInput, Prisma.UserUncheckedCreateWithoutEmail_changesInput>
+}
+
+export type UserUpsertWithoutEmail_changesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEmail_changesInput, Prisma.UserUncheckedUpdateWithoutEmail_changesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmail_changesInput, Prisma.UserUncheckedCreateWithoutEmail_changesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEmail_changesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEmail_changesInput, Prisma.UserUncheckedUpdateWithoutEmail_changesInput>
+}
+
+export type UserUpdateWithoutEmail_changesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkIns?: Prisma.CheckInUpdateManyWithoutUserNestedInput
+  email_verifications?: Prisma.EmailVerificationUpdateManyWithoutUserNestedInput
+  password_resets?: Prisma.PasswordResetUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEmail_changesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  is_verified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  checkIns?: Prisma.CheckInUncheckedUpdateManyWithoutUserNestedInput
+  email_verifications?: Prisma.EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
   password_resets?: Prisma.PasswordResetUncheckedUpdateManyWithoutUserNestedInput
 }
 
@@ -613,6 +714,7 @@ export type UserCreateWithoutPassword_resetsInput = {
   password_changed_at?: Date | string | null
   checkIns?: Prisma.CheckInCreateNestedManyWithoutUserInput
   email_verifications?: Prisma.EmailVerificationCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPassword_resetsInput = {
@@ -626,6 +728,7 @@ export type UserUncheckedCreateWithoutPassword_resetsInput = {
   password_changed_at?: Date | string | null
   checkIns?: Prisma.CheckInUncheckedCreateNestedManyWithoutUserInput
   email_verifications?: Prisma.EmailVerificationUncheckedCreateNestedManyWithoutUserInput
+  email_changes?: Prisma.EmailChangeUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPassword_resetsInput = {
@@ -655,6 +758,7 @@ export type UserUpdateWithoutPassword_resetsInput = {
   password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkIns?: Prisma.CheckInUpdateManyWithoutUserNestedInput
   email_verifications?: Prisma.EmailVerificationUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPassword_resetsInput = {
@@ -668,6 +772,7 @@ export type UserUncheckedUpdateWithoutPassword_resetsInput = {
   password_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   checkIns?: Prisma.CheckInUncheckedUpdateManyWithoutUserNestedInput
   email_verifications?: Prisma.EmailVerificationUncheckedUpdateManyWithoutUserNestedInput
+  email_changes?: Prisma.EmailChangeUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -679,12 +784,14 @@ export type UserCountOutputType = {
   checkIns: number
   email_verifications: number
   password_resets: number
+  email_changes: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   checkIns?: boolean | UserCountOutputTypeCountCheckInsArgs
   email_verifications?: boolean | UserCountOutputTypeCountEmail_verificationsArgs
   password_resets?: boolean | UserCountOutputTypeCountPassword_resetsArgs
+  email_changes?: boolean | UserCountOutputTypeCountEmail_changesArgs
 }
 
 /**
@@ -718,6 +825,13 @@ export type UserCountOutputTypeCountPassword_resetsArgs<ExtArgs extends runtime.
   where?: Prisma.PasswordResetWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountEmail_changesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmailChangeWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -731,6 +845,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   checkIns?: boolean | Prisma.User$checkInsArgs<ExtArgs>
   email_verifications?: boolean | Prisma.User$email_verificationsArgs<ExtArgs>
   password_resets?: boolean | Prisma.User$password_resetsArgs<ExtArgs>
+  email_changes?: boolean | Prisma.User$email_changesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -752,6 +867,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   checkIns?: boolean | Prisma.User$checkInsArgs<ExtArgs>
   email_verifications?: boolean | Prisma.User$email_verificationsArgs<ExtArgs>
   password_resets?: boolean | Prisma.User$password_resetsArgs<ExtArgs>
+  email_changes?: boolean | Prisma.User$email_changesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -761,6 +877,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     checkIns: Prisma.$CheckInPayload<ExtArgs>[]
     email_verifications: Prisma.$EmailVerificationPayload<ExtArgs>[]
     password_resets: Prisma.$PasswordResetPayload<ExtArgs>[]
+    email_changes: Prisma.$EmailChangePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1114,6 +1231,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   checkIns<T extends Prisma.User$checkInsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$checkInsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CheckInPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   email_verifications<T extends Prisma.User$email_verificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$email_verificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmailVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   password_resets<T extends Prisma.User$password_resetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$password_resetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  email_changes<T extends Prisma.User$email_changesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$email_changesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmailChangePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1568,6 +1686,30 @@ export type User$password_resetsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.PasswordResetScalarFieldEnum | Prisma.PasswordResetScalarFieldEnum[]
+}
+
+/**
+ * User.email_changes
+ */
+export type User$email_changesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmailChange
+   */
+  select?: Prisma.EmailChangeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmailChange
+   */
+  omit?: Prisma.EmailChangeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmailChangeInclude<ExtArgs> | null
+  where?: Prisma.EmailChangeWhereInput
+  orderBy?: Prisma.EmailChangeOrderByWithRelationInput | Prisma.EmailChangeOrderByWithRelationInput[]
+  cursor?: Prisma.EmailChangeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmailChangeScalarFieldEnum | Prisma.EmailChangeScalarFieldEnum[]
 }
 
 /**
