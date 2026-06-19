@@ -30,6 +30,9 @@ describe('Profile (e2e)', () => {
 		expect(response.body.user).toEqual(
 			expect.objectContaining({
 				username: user.username,
+				// Freshly registered user is not verified yet — the frontend uses
+				// this flag to show the "confirm your email" banner.
+				is_verified: false,
 			}),
 		)
 	})

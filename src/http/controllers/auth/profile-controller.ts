@@ -13,12 +13,16 @@ export async function profileController(
 		const { user } = await getUserProfile.execute({
 			userId: request.user.sub,
 		})
-		const { id, username } = user
+		const { id, username, is_verified } = user
 
+		// is_verified lets the frontend show an "unverified email" banner/nag.
+		// Read fresh from the DB here (not from a JWT claim) so it clears the
+		// moment the user verifies — same reason verifyEmailVerified reads the DB.
 		return reply.status(200).send({
 			user: {
 				id,
 				username,
+				is_verified,
 			},
 		})
 	} catch (err) {
