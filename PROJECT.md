@@ -93,7 +93,7 @@ src/
 │   ├── controllers/
 │   │   ├── auth/            # auth + self-service (login, logout, refresh, me, edit username, email change)
 │   │   ├── users/           # account routes (register, email verification, password reset, email-change confirm, admin list/edit)
-│   │   ├── gyms/            # gym routes + controllers
+│   │   ├── gyms/            # gym routes + controllers (create, edit, search, nearby)
 │   │   ├── check-ins/       # check-in routes + controllers
 │   │   └── health/          # healthcheck (/hello)
 │   ├── middlewares/
