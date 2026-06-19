@@ -8,3 +8,15 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: docker123
             MYSQL_DATABASE: gympass-db
+        # Lets `docker compose up -d --wait` block until MySQL actually accepts
+        # connections (the container "started" well before that). Used by db:fresh.
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'mysqladmin ping -h 127.0.0.1 -uroot -p"$$MYSQL_ROOT_PASSWORD" --silent',
+                ]
+            interval: 3s
+            timeout: 3s
+            retries: 20
+            start_period: 5s
