@@ -83,30 +83,30 @@ pnpm dev              # start dev server
 Copy `.env.example` to `.env` and fill in the values. The app **fails fast** at
 boot if any variable is invalid (Zod validation in `src/env`).
 
-| Variable                     | Required | Default                    | Description                                                                                  |
-| ---------------------------- | -------- | -------------------------- | -------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                   | yes      | –                          | `development` \| `test` \| `production`                                                      |
-| `PORT`                       | no       | `3333`                     | HTTP port                                                                                    |
-| `JWT_SECRET`                 | yes      | –                          | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod)                       |
-| `DATABASE_URL`               | yes      | –                          | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                      |
-| `CORS_ORIGIN`                | no       | –                          | Comma-separated allowed origins (production only)                                            |
-| `PASSWORD_MIN_LENGTH`        | no       | `8`                        | Minimum register/reset password length (8–72)                                                |
-| `PASSWORD_PATTERN`           | no       | upper/lower/number/special | Password complexity regex for register/reset; see `.env.example` for the literal             |
-| `MIN_TEXT_LENGTH`            | no       | `3`                        | Minimum length for text "name-of-things" fields (username, gym title, search); floor of 3    |
-| `BODY_LIMIT`                 | no       | `16384`                    | Max request body size, in bytes                                                              |
-| `LOG_LEVEL`                  | no       | `info`                     | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                     |
-| `ADMIN_USERNAME`             | yes      | –                          | Seed ADMIN username (3–30, letters/numbers/underscore, stored lowercase)                     |
-| `ADMIN_EMAIL`                | yes      | –                          | Seed ADMIN email (login)                                                                     |
-| `ADMIN_PASSWORD`             | yes      | –                          | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`) |
-| `TRUST_PROXY`                | no       | –                          | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB                       |
-| `MAX_EVENT_LOOP_DELAY`       | no       | `1000`                     | Event-loop lag threshold in ms before returning 503                                          |
-| `MAX_HEAP_USED_BYTES`        | no       | `209715200`                | Heap threshold in bytes before returning 503 (default 200 MB)                                |
-| `LOGIN_MAX_ATTEMPTS`         | no       | `5`                        | Failed login attempts before account lockout                                                 |
-| `LOGIN_LOCKOUT_MINUTES`      | no       | `15`                       | Account lockout duration in minutes                                                          |
-| `APP_URL`                    | no       | `http://localhost:3333`    | Public URL used in verification emails                                                       |
-| `VERIFICATION_EXPIRES_HOURS` | no       | `24`                       | Verification link/OTP validity in hours                                                      |
-| `REQUIRE_EMAIL_VERIFICATION` | no       | `false`                    | When `true`, unverified users are blocked on protected routes                                |
-| `RESET_EXPIRES_MINUTES`      | no       | `60`                       | Password-reset link/OTP validity in minutes                                                  |
+| Variable                     | Required | Default                    | Description                                                                                                                           |
+| ---------------------------- | -------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                   | yes      | –                          | `development` \| `test` \| `production`                                                                                               |
+| `PORT`                       | no       | `3333`                     | HTTP port                                                                                                                             |
+| `JWT_SECRET`                 | yes      | –                          | Signing secret, min 20 chars (use GitHub Secrets / a vault in CI/prod)                                                                |
+| `DATABASE_URL`               | yes      | –                          | e.g. `mysql://root:docker123@localhost:3306/gympass-db`                                                                               |
+| `CORS_ORIGIN`                | no       | –                          | Comma-separated allowed origins (production only)                                                                                     |
+| `PASSWORD_MIN_LENGTH`        | no       | `8`                        | Minimum register/reset password length (8–72)                                                                                         |
+| `PASSWORD_PATTERN`           | no       | upper/lower/number/special | Password complexity regex for register/reset; see `.env.example` for the literal                                                      |
+| `MIN_TEXT_LENGTH`            | no       | `3`                        | Minimum length for text "name-of-things" fields (username, gym title, search); floor of 3                                             |
+| `BODY_LIMIT`                 | no       | `16384`                    | Max request body size, in bytes                                                                                                       |
+| `LOG_LEVEL`                  | no       | `info`                     | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                                                              |
+| `ADMIN_USERNAME`             | yes      | –                          | Seed ADMIN username (3–30, letters/numbers/underscore, stored lowercase)                                                              |
+| `ADMIN_EMAIL`                | yes      | –                          | Seed ADMIN email (login)                                                                                                              |
+| `ADMIN_PASSWORD`             | yes      | –                          | Seed ADMIN password: min 10 chars with upper, lower, number and special (e.g. `Admin@12345`)                                          |
+| `TRUST_PROXY`                | no       | –                          | `false` \| `true` \| proxy IP; enable when behind Nginx/Cloudflare/ALB                                                                |
+| `MAX_EVENT_LOOP_DELAY`       | no       | `1000`                     | Event-loop lag threshold in ms before returning 503                                                                                   |
+| `MAX_HEAP_USED_BYTES`        | no       | `209715200`                | Heap threshold in bytes before returning 503 (default 200 MB)                                                                         |
+| `LOGIN_MAX_ATTEMPTS`         | no       | `5`                        | Failed login attempts before account lockout                                                                                          |
+| `LOGIN_LOCKOUT_MINUTES`      | no       | `15`                       | Account lockout duration in minutes                                                                                                   |
+| `APP_URL`                    | no       | `http://localhost:3333`    | Public URL used in verification emails                                                                                                |
+| `VERIFICATION_EXPIRES_HOURS` | no       | `24`                       | Verification link/OTP validity in hours                                                                                               |
+| `REQUIRE_EMAIL_VERIFICATION` | no       | `false`                    | When `true`, unverified users get `403` on `POST /gyms/:gymId/check-ins` (the only gated route — see _Email verification gate_ below) |
+| `RESET_EXPIRES_MINUTES`      | no       | `60`                       | Password-reset link/OTP validity in minutes                                                                                           |
 
 ## API routes
 
@@ -159,6 +159,64 @@ token returns `401`; a missing `ADMIN` role returns `403`.
 > schemas are the single source of truth — see **Input validation (request)** in
 > [PROJECT.md](PROJECT.md#44-input-validation-request) for the route → controller
 > index.
+
+### Email verification gate (`REQUIRE_EMAIL_VERIFICATION`)
+
+By default (`false`) verification is a **soft gate** — anyone can log in and use
+the API, and `is_verified` only matters where a route opts in. Set the flag to
+`true` to enforce it.
+
+Exactly **one** route is gated: `POST /gyms/:gymId/check-ins`. An authenticated
+but unverified user gets `403 { "message": "Email not verified." }` there; every
+other route behaves exactly as with `false`. The gate checks `is_verified` only
+(role is irrelevant — the seeded ADMIN is verified, so it is never locked out)
+and reads it **fresh from the DB**, so verifying mid-session unblocks the user
+immediately — no re-login.
+
+What an authenticated, **unverified** user can reach with the flag on:
+
+| Route                                                          | Unverified access                                   |
+| -------------------------------------------------------------- | --------------------------------------------------- |
+| `POST /gyms/:gymId/check-ins`                                  | ❌ `403 Email not verified.` — the only gated route |
+| `GET /auth/me`                                                 | ✅ returns `is_verified: false`                     |
+| `POST /auth/logout` · `PATCH /auth/refresh`                    | ✅                                                  |
+| `POST /users/send-verification` · `/users/resend-verification` | ✅ (needed to verify)                               |
+| `POST /users/verify-email/otp` · `GET /users/verify-email`     | ✅ (this is how you verify)                         |
+| `GET /gyms/search` · `/gyms/nearby`                            | ✅                                                  |
+| `GET /check-ins/history` · `/check-ins/metrics`                | ✅ (empty until a check-in exists)                  |
+| `POST /gyms`                                                   | ✅ when `ADMIN` (role ≠ verification)               |
+| `GET /hello` and public routes (login / register / reset)      | ✅                                                  |
+
+**Frontend:** read `is_verified` from `GET /auth/me`, show a "confirm your email"
+banner while it is `false`, and disable the check-in action (or handle the
+`403`). Re-fetch `/auth/me` after the user verifies — the banner clears without a
+re-login.
+
+Smoke test with the flag on (clean DB, server restarted with
+`REQUIRE_EMAIL_VERIFICATION=true`):
+
+```sh
+BASE=http://localhost:3333
+
+# register + log in an unverified user
+curl -s -X POST "$BASE/users" -H 'Content-Type: application/json' \
+  -d '{"username":"fulano","email":"fulano@example.com","password":"Fulano@123"}'
+TOKEN=$(curl -s -X POST "$BASE/auth/login" -H 'Content-Type: application/json' \
+  -d '{"identifier":"fulano@example.com","password":"Fulano@123"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+# /auth/me → is_verified:false  (frontend shows the banner)
+curl -s "$BASE/auth/me" -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+
+# check-in while unverified → 403 Email not verified.
+curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/gyms/any/check-ins" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"latitude":0,"longitude":0}'                       # expect 403
+
+# read-only routes still work unverified
+curl -s -o /dev/null -w "%{http_code}\n" "$BASE/gyms/search?q=" \
+  -H "Authorization: Bearer $TOKEN"                        # expect 200
+```
 
 ## ADMIN user
 

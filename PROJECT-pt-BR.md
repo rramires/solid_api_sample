@@ -305,6 +305,14 @@ de gym (opcional; `^\+?[\d\s().-]{7,20}$`), `query` de busca
 > no início da função de rotas. Para exigir papel: adicionar
 > `{ onRequest: [verifyUserRole(Role.ADMIN)] }` na rota específica.
 
+**Gate de verificação de e-mail.** Com `REQUIRE_EMAIL_VERIFICATION=true`,
+exatamente uma rota exige e-mail verificado — `POST /gyms/:gymId/check-ins`, via
+middleware `verifyEmailVerified` (`403 Email not verified.`). Toda outra rota
+fica inalterada. O gate independe de papel — checa só `is_verified`, lido fresh
+do banco (ver §5.1), e o ADMIN do seed já é verificado, então nunca trava. A
+matriz de acesso por rota e um smoke test com a flag ligada estão no README
+(_Gate de verificação de e-mail_).
+
 ### 5.4 Outras defesas presentes
 
 - **Helmet** (headers de segurança) registrado globalmente.

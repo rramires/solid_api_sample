@@ -304,6 +304,14 @@ mirror the `@db.VarChar(n)` column lengths (see §6.3).
 > at the start of the routes function. To require a role: add
 > `{ onRequest: [verifyUserRole(Role.ADMIN)] }` to the specific route.
 
+**Email-verification gate.** When `REQUIRE_EMAIL_VERIFICATION=true`, exactly one
+route enforces a verified email — `POST /gyms/:gymId/check-ins`, via the
+`verifyEmailVerified` middleware (`403 Email not verified.`). Every other route
+is unchanged. The gate is role-independent — it checks `is_verified` only, read
+fresh from the DB (see §5.1), and the seeded ADMIN is already verified so it is
+never locked out. The per-route access matrix and a flag-on smoke test live in
+the README (_Email verification gate_).
+
 ### 5.4 Other defenses in place
 
 - **Helmet** (security headers) registered globally.

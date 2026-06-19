@@ -84,30 +84,30 @@ Copie `.env.example` para `.env` e preencha os valores. A aplicação **falha
 imediatamente** no boot se alguma variável for inválida (validação Zod em
 `src/env`).
 
-| Variável                     | Obrigatória | Padrão                              | Descrição                                                                                     |
-| ---------------------------- | ----------- | ----------------------------------- | --------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                   | sim         | –                                   | `development` \| `test` \| `production`                                                       |
-| `PORT`                       | não         | `3333`                              | Porta HTTP                                                                                    |
-| `JWT_SECRET`                 | sim         | –                                   | Segredo de assinatura, mín. 20 chars (use GitHub Secrets / cofre em CI/produção)              |
-| `DATABASE_URL`               | sim         | –                                   | ex. `mysql://root:docker123@localhost:3306/gympass-db`                                        |
-| `CORS_ORIGIN`                | não         | –                                   | Origens permitidas separadas por vírgula (somente produção)                                   |
-| `PASSWORD_MIN_LENGTH`        | não         | `8`                                 | Tamanho mínimo de senha no cadastro/reset (8–72)                                              |
-| `PASSWORD_PATTERN`           | não         | maiúscula/minúscula/número/especial | Regex de complexidade de senha no cadastro/reset; veja `.env.example` para o literal          |
-| `MIN_TEXT_LENGTH`            | não         | `3`                                 | Tamanho mínimo de campos de texto "nome das coisas" (username, título de gym, busca); piso 3  |
-| `BODY_LIMIT`                 | não         | `16384`                             | Tamanho máximo do body da requisição, em bytes                                                |
-| `LOG_LEVEL`                  | não         | `info`                              | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                      |
-| `ADMIN_USERNAME`             | sim         | –                                   | Username do ADMIN seed (3–30, letras/números/underscore, gravado lowercase)                   |
-| `ADMIN_EMAIL`                | sim         | –                                   | Email do ADMIN (login)                                                                        |
-| `ADMIN_PASSWORD`             | sim         | –                                   | Senha do ADMIN: mín. 10 chars com maiúscula, minúscula, número e especial (ex. `Admin@12345`) |
-| `TRUST_PROXY`                | não         | –                                   | `false` \| `true` \| IP do proxy; ative atrás de Nginx/Cloudflare/ALB                         |
-| `MAX_EVENT_LOOP_DELAY`       | não         | `1000`                              | Limiar de lag do event loop em ms antes de retornar 503                                       |
-| `MAX_HEAP_USED_BYTES`        | não         | `209715200`                         | Limiar de heap em bytes antes de retornar 503 (padrão 200 MB)                                 |
-| `LOGIN_MAX_ATTEMPTS`         | não         | `5`                                 | Tentativas falhas antes do bloqueio de conta                                                  |
-| `LOGIN_LOCKOUT_MINUTES`      | não         | `15`                                | Duração do bloqueio em minutos                                                                |
-| `APP_URL`                    | não         | `http://localhost:3333`             | URL pública usada nos e-mails de verificação                                                  |
-| `VERIFICATION_EXPIRES_HOURS` | não         | `24`                                | Validade do link/OTP de verificação em horas                                                  |
-| `REQUIRE_EMAIL_VERIFICATION` | não         | `false`                             | Quando `true`, bloqueia usuários não verificados em rotas protegidas                          |
-| `RESET_EXPIRES_MINUTES`      | não         | `60`                                | Validade do link/OTP de redefinição de senha em minutos                                       |
+| Variável                     | Obrigatória | Padrão                              | Descrição                                                                                                                                                     |
+| ---------------------------- | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                   | sim         | –                                   | `development` \| `test` \| `production`                                                                                                                       |
+| `PORT`                       | não         | `3333`                              | Porta HTTP                                                                                                                                                    |
+| `JWT_SECRET`                 | sim         | –                                   | Segredo de assinatura, mín. 20 chars (use GitHub Secrets / cofre em CI/produção)                                                                              |
+| `DATABASE_URL`               | sim         | –                                   | ex. `mysql://root:docker123@localhost:3306/gympass-db`                                                                                                        |
+| `CORS_ORIGIN`                | não         | –                                   | Origens permitidas separadas por vírgula (somente produção)                                                                                                   |
+| `PASSWORD_MIN_LENGTH`        | não         | `8`                                 | Tamanho mínimo de senha no cadastro/reset (8–72)                                                                                                              |
+| `PASSWORD_PATTERN`           | não         | maiúscula/minúscula/número/especial | Regex de complexidade de senha no cadastro/reset; veja `.env.example` para o literal                                                                          |
+| `MIN_TEXT_LENGTH`            | não         | `3`                                 | Tamanho mínimo de campos de texto "nome das coisas" (username, título de gym, busca); piso 3                                                                  |
+| `BODY_LIMIT`                 | não         | `16384`                             | Tamanho máximo do body da requisição, em bytes                                                                                                                |
+| `LOG_LEVEL`                  | não         | `info`                              | `fatal` \| `error` \| `warn` \| `info` \| `debug` \| `trace` \| `silent`                                                                                      |
+| `ADMIN_USERNAME`             | sim         | –                                   | Username do ADMIN seed (3–30, letras/números/underscore, gravado lowercase)                                                                                   |
+| `ADMIN_EMAIL`                | sim         | –                                   | Email do ADMIN (login)                                                                                                                                        |
+| `ADMIN_PASSWORD`             | sim         | –                                   | Senha do ADMIN: mín. 10 chars com maiúscula, minúscula, número e especial (ex. `Admin@12345`)                                                                 |
+| `TRUST_PROXY`                | não         | –                                   | `false` \| `true` \| IP do proxy; ative atrás de Nginx/Cloudflare/ALB                                                                                         |
+| `MAX_EVENT_LOOP_DELAY`       | não         | `1000`                              | Limiar de lag do event loop em ms antes de retornar 503                                                                                                       |
+| `MAX_HEAP_USED_BYTES`        | não         | `209715200`                         | Limiar de heap em bytes antes de retornar 503 (padrão 200 MB)                                                                                                 |
+| `LOGIN_MAX_ATTEMPTS`         | não         | `5`                                 | Tentativas falhas antes do bloqueio de conta                                                                                                                  |
+| `LOGIN_LOCKOUT_MINUTES`      | não         | `15`                                | Duração do bloqueio em minutos                                                                                                                                |
+| `APP_URL`                    | não         | `http://localhost:3333`             | URL pública usada nos e-mails de verificação                                                                                                                  |
+| `VERIFICATION_EXPIRES_HOURS` | não         | `24`                                | Validade do link/OTP de verificação em horas                                                                                                                  |
+| `REQUIRE_EMAIL_VERIFICATION` | não         | `false`                             | Quando `true`, usuários não verificados recebem `403` em `POST /gyms/:gymId/check-ins` (a única rota bloqueada — veja _Gate de verificação de e-mail_ abaixo) |
+| `RESET_EXPIRES_MINUTES`      | não         | `60`                                | Validade do link/OTP de redefinição de senha em minutos                                                                                                       |
 
 ## Rotas da API
 
@@ -160,6 +160,64 @@ revogado retorna `401`; a ausência do papel `ADMIN` retorna `403`.
 > Os schemas Zod são a fonte única de verdade — veja **Regras de validação
 > (entrada)** em [PROJECT-pt-BR.md](PROJECT-pt-BR.md#44-regras-de-validação-entrada)
 > para o índice rota → controller.
+
+### Gate de verificação de e-mail (`REQUIRE_EMAIL_VERIFICATION`)
+
+Por padrão (`false`) a verificação é um **soft gate** — qualquer um loga e usa a
+API, e `is_verified` só importa onde uma rota exige. Defina a flag como `true`
+para forçar.
+
+Exatamente **uma** rota é bloqueada: `POST /gyms/:gymId/check-ins`. Um usuário
+autenticado mas não verificado recebe `403 { "message": "Email not verified." }`
+ali; toda outra rota se comporta igual a `false`. O gate checa só `is_verified`
+(papel é irrelevante — o ADMIN do seed é verificado, então nunca trava) e o lê
+**fresh do banco**, então verificar no meio da sessão libera o usuário na hora —
+sem relogar.
+
+O que um usuário autenticado e **não verificado** acessa com a flag ligada:
+
+| Rota                                                           | Acesso não verificado                                 |
+| -------------------------------------------------------------- | ----------------------------------------------------- |
+| `POST /gyms/:gymId/check-ins`                                  | ❌ `403 Email not verified.` — a única rota bloqueada |
+| `GET /auth/me`                                                 | ✅ retorna `is_verified: false`                       |
+| `POST /auth/logout` · `PATCH /auth/refresh`                    | ✅                                                    |
+| `POST /users/send-verification` · `/users/resend-verification` | ✅ (necessário para verificar)                        |
+| `POST /users/verify-email/otp` · `GET /users/verify-email`     | ✅ (é como se verifica)                               |
+| `GET /gyms/search` · `/gyms/nearby`                            | ✅                                                    |
+| `GET /check-ins/history` · `/check-ins/metrics`                | ✅ (vazio até existir um check-in)                    |
+| `POST /gyms`                                                   | ✅ se `ADMIN` (papel ≠ verificação)                   |
+| `GET /hello` e rotas públicas (login / cadastro / reset)       | ✅                                                    |
+
+**Frontend:** leia `is_verified` do `GET /auth/me`, mostre um banner "confirme
+seu e-mail" enquanto for `false`, e desabilite a ação de check-in (ou trate o
+`403`). Refaça o fetch de `/auth/me` após o usuário verificar — o banner some sem
+relogar.
+
+Smoke test com a flag ligada (DB limpa, servidor reiniciado com
+`REQUIRE_EMAIL_VERIFICATION=true`):
+
+```sh
+BASE=http://localhost:3333
+
+# cadastra + loga um usuário não verificado
+curl -s -X POST "$BASE/users" -H 'Content-Type: application/json' \
+  -d '{"username":"fulano","email":"fulano@example.com","password":"Fulano@123"}'
+TOKEN=$(curl -s -X POST "$BASE/auth/login" -H 'Content-Type: application/json' \
+  -d '{"identifier":"fulano@example.com","password":"Fulano@123"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+# /auth/me → is_verified:false  (frontend mostra o banner)
+curl -s "$BASE/auth/me" -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+
+# check-in sem verificar → 403 Email not verified.
+curl -s -o /dev/null -w "%{http_code}\n" -X POST "$BASE/gyms/any/check-ins" \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"latitude":0,"longitude":0}'                       # espera 403
+
+# rotas de leitura seguem funcionando sem verificar
+curl -s -o /dev/null -w "%{http_code}\n" "$BASE/gyms/search?q=" \
+  -H "Authorization: Bearer $TOKEN"                        # espera 200
+```
 
 ## Usuário ADMIN
 
