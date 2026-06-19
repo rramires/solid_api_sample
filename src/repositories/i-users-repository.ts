@@ -8,6 +8,7 @@ export interface IUsersRepository {
 	findById(id: string): Promise<User | null>
 	findByEmail(email: string): Promise<User | null>
 	findByUsername(username: string): Promise<User | null>
+	findMany(page: number): Promise<PublicUser[]>
 	update(
 		id: string,
 		data: {

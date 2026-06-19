@@ -5,6 +5,8 @@ import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-err
 
 import { IUsersRepository, PublicUser } from '../i-users-repository'
 
+const PAGE_SIZE = 20
+
 export class InMemoryUsersRepository implements IUsersRepository {
 	// in-memory mock database
 	public items: User[] = []
@@ -57,6 +59,23 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		)
 
 		return user || null
+	}
+
+	async findMany(page: number): Promise<PublicUser[]> {
+		// Newest first, 20 per page — mirrors the prisma repository.
+		return this.items
+			.slice()
+			.sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
+			.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+			.map((user) => ({
+				id: user.id,
+				username: user.username,
+				email: user.email,
+				role: user.role,
+				is_verified: user.is_verified,
+				created_at: user.created_at,
+				password_changed_at: user.password_changed_at,
+			}))
 	}
 
 	async update(

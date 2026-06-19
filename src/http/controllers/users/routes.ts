@@ -2,8 +2,11 @@ import { FastifyInstance } from 'fastify'
 
 import { strictAuthLimit } from '@/http/middlewares/rate-limit'
 import { verifyJwtMiddleware } from '@/http/middlewares/verify-jwt-middleware'
+import { verifyUserRole } from '@/http/middlewares/verify-user-role'
+import { Role } from '@/prisma-client'
 
 import { forgotPasswordController } from './forgot-password-controller'
+import { listController } from './list-controller'
 import { registerController } from './register-controller'
 import { resendVerificationController } from './resend-verification-controller'
 import { resetPasswordController } from './reset-password-controller'
@@ -17,6 +20,13 @@ export async function usersRoutes(app: FastifyInstance) {
 	/**
 	 * Account management. Auth (login/logout/refresh/me) lives in auth/routes.ts.
 	 */
+	// Admin-only — list users (paginated). Role guard runs in onRequest, so a
+	// non-admin gets 403 regardless of query.
+	app.get(
+		'/users',
+		{ onRequest: [verifyJwtMiddleware, verifyUserRole(Role.ADMIN)] },
+		listController,
+	)
 	// Public — registration and password reset, all rate-limited.
 	app.post(
 		'/users',
