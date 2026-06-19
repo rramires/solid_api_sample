@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@/prisma-client'
+import { Prisma, Role } from '@/prisma-client'
 
 import { IUsersRepository } from '../i-users-repository'
 
@@ -68,6 +68,8 @@ export class PrismaUsersRepository implements IUsersRepository {
 		id: string,
 		data: {
 			username?: string
+			email?: string
+			role?: Role
 			is_verified?: boolean
 			password_hash?: string
 			password_changed_at?: Date

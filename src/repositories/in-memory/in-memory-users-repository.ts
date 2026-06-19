@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
-import { Prisma, User } from '@/prisma-client'
+import { Prisma, Role, User } from '@/prisma-client'
 import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 
 import { IUsersRepository, PublicUser } from '../i-users-repository'
@@ -82,6 +82,8 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		id: string,
 		data: {
 			username?: string
+			email?: string
+			role?: Role
 			is_verified?: boolean
 			password_hash?: string
 			password_changed_at?: Date
@@ -94,6 +96,12 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		}
 		if (data.username !== undefined) {
 			user.username = data.username
+		}
+		if (data.email !== undefined) {
+			user.email = data.email
+		}
+		if (data.role !== undefined) {
+			user.role = data.role
 		}
 		if (data.is_verified !== undefined) {
 			user.is_verified = data.is_verified

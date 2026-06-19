@@ -11,6 +11,7 @@ import { registerController } from './register-controller'
 import { resendVerificationController } from './resend-verification-controller'
 import { resetPasswordController } from './reset-password-controller'
 import { sendVerificationController } from './send-verification-controller'
+import { updateController } from './update-controller'
 import {
 	verifyEmailByLinkController,
 	verifyEmailByOtpController,
@@ -26,6 +27,14 @@ export async function usersRoutes(app: FastifyInstance) {
 		'/users',
 		{ onRequest: [verifyJwtMiddleware, verifyUserRole(Role.ADMIN)] },
 		listController,
+	)
+	// Admin-only — edit a user (username/email/role/is_verified). Changing the
+	// email unverifies the account and triggers a password reset to the new
+	// address; an admin cannot demote themselves.
+	app.patch(
+		'/users/:userId',
+		{ onRequest: [verifyJwtMiddleware, verifyUserRole(Role.ADMIN)] },
+		updateController,
 	)
 	// Public — registration and password reset, all rate-limited.
 	app.post(

@@ -1,4 +1,4 @@
-import { Prisma, User } from '@/prisma-client'
+import { Prisma, Role, User } from '@/prisma-client'
 
 // User shape safe to expose in responses (never includes password_hash)
 export type PublicUser = Omit<User, 'password_hash'>
@@ -13,6 +13,8 @@ export interface IUsersRepository {
 		id: string,
 		data: {
 			username?: string
+			email?: string
+			role?: Role
 			is_verified?: boolean
 			password_hash?: string
 			password_changed_at?: Date
