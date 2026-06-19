@@ -64,25 +64,25 @@ cp .env.example .env  # then fill in the values (see Environment variables)
 pnpm install
 pnpm compose:up       # start MySQL in Docker
 pnpm migrate          # run migrations
-pnpm seed-adm-role    # create the ADMIN user from ADMIN_* env vars
+pnpm seeddb    # create the ADMIN user from ADMIN_* env vars
 pnpm dev              # start dev server
 ```
 
 ## Scripts
 
-| Command              | Description                      |
-| -------------------- | -------------------------------- |
-| `pnpm dev`           | Start dev server with hot-reload |
-| `pnpm build`         | Production build (tsup)          |
-| `pnpm start`         | Run production build             |
-| `pnpm migrate`       | Run/create Prisma migrations     |
-| `pnpm seed-adm-role` | Seed the ADMIN user (idempotent) |
-| `pnpm test`          | Unit tests                       |
-| `pnpm test:e2e`      | E2E tests (requires MySQL)       |
-| `pnpm lint`          | Run ESLint                       |
-| `pnpm lint:fix`      | Fix lint errors                  |
-| `pnpm compile`       | TypeScript type-check            |
-| `pnpm showdb`        | Open Prisma Studio (port 5555)   |
+| Command         | Description                      |
+| --------------- | -------------------------------- |
+| `pnpm dev`      | Start dev server with hot-reload |
+| `pnpm build`    | Production build (tsup)          |
+| `pnpm start`    | Run production build             |
+| `pnpm migrate`  | Run/create Prisma migrations     |
+| `pnpm seeddb`   | Seed the ADMIN user (idempotent) |
+| `pnpm test`     | Unit tests                       |
+| `pnpm test:e2e` | E2E tests (requires MySQL)       |
+| `pnpm lint`     | Run ESLint                       |
+| `pnpm lint:fix` | Fix lint errors                  |
+| `pnpm compile`  | TypeScript type-check            |
+| `pnpm showdb`   | Open Prisma Studio (port 5555)   |
 
 ## Environment variables
 
@@ -245,7 +245,7 @@ There is no endpoint to create admins. The single ADMIN is provisioned by the
 **idempotent** (re-running it never resets an existing admin):
 
 ```sh
-pnpm seed-adm-role
+pnpm seeddb
 ```
 
 ## Tests
@@ -266,7 +266,7 @@ pnpm test:e2e  # e2e suite (MySQL up)
 ### Manual route smoke test
 
 With the server running (`pnpm dev`) and the ADMIN seeded
-(`pnpm seed-adm-role`), run the block below. It walks every route group —
+(`pnpm seeddb`), run the block below. It walks every route group —
 public routes, RBAC, gym search/nearby, check-ins (create/history/metrics/
 validate), account management (profile, email change, admin list/edit), token
 refresh and revocation. Steps that need a one-time token/OTP (email

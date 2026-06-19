@@ -491,12 +491,12 @@ Os tamanhos de coluna são fixados com Prisma `@db.VarChar(n)` para casar com o
 
 ### 6.5 Seed controlado de ADMIN
 
-- `prisma/seed-adm-role.ts`: `upsert` **idempotente** do usuário `ADMIN`
+- `prisma/seed.ts`: `upsert` **idempotente** do usuário `ADMIN`
   (`update: {}` → nunca reseta a senha de um admin já existente).
 - Credenciais **só via env** (`ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
   validadas no Zod global (fail-fast); senha com bcrypt 12 rounds.
 - Registrado em `prisma.config.ts` (`migrations.seed`) e no script
-  `pnpm seed-adm-role` (`prisma db seed`). O `migrate deploy` usado nos testes
+  `pnpm seeddb` (`prisma db seed`). O `migrate deploy` usado nos testes
   **não** dispara o seed.
 
 ---

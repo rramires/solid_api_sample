@@ -498,12 +498,12 @@ Column lengths are pinned via Prisma `@db.VarChar(n)` so each matches its Zod
 
 ### 6.5 Controlled ADMIN seed
 
-- `prisma/seed-adm-role.ts`: **idempotent** `upsert` of the `ADMIN` user
+- `prisma/seed.ts`: **idempotent** `upsert` of the `ADMIN` user
   (`update: {}` → never resets the password of an already existing admin).
 - Credentials **only via env** (`ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`),
   validated by global Zod (fail-fast); password with bcrypt 12 rounds.
 - Registered in `prisma.config.ts` (`migrations.seed`) and in the
-  `pnpm seed-adm-role` script (`prisma db seed`). The `migrate deploy` used in
+  `pnpm seeddb` script (`prisma db seed`). The `migrate deploy` used in
   tests does **not** trigger the seed.
 
 ---

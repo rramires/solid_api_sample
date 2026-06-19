@@ -27,27 +27,27 @@ requests, no GitHub merge step.**
 
 1. **Local branch per task**, off `master`. **Never commit code directly to
    `master`** — always branch first. Branches stay local until the user pushes.
-   - **Exception — docs-only changes** (`README*`, `PROJECT*`, `CLAUDE.md`, with
-     **no code**) may be committed **straight to `master`**, no branch. The
-     push is still the user's.
+    - **Exception — docs-only changes** (`README*`, `PROJECT*`, `CLAUDE.md`, with
+      **no code**) may be committed **straight to `master`**, no branch. The
+      push is still the user's.
 2. **Commit per phase** — one commit per finished, coherent step (a phase commit),
    created **right after its gate passes**. Conventional Commits. Never batch
    unrelated work into one commit; never leave a finished phase uncommitted.
 3. **Gate before every commit** (must be green):
-   ```sh
-   pnpm lint && pnpm compile && pnpm test
-   ```
-   Changes that touch HTTP/routes also run the e2e suite (MySQL up:
-   `pnpm compose:up`):
-   ```sh
-   pnpm test:e2e
-   ```
+    ```sh
+    pnpm lint && pnpm compile && pnpm test
+    ```
+    Changes that touch HTTP/routes also run the e2e suite (MySQL up:
+    `pnpm compose:up`):
+    ```sh
+    pnpm test:e2e
+    ```
 4. **When the task is done, STOP and wait for the user.** The user tests the
    branch (and, for route-adding changes, runs the clean-DB walkthrough below).
-   - The user **explicitly authorizes the merge**; only then merge the branch
-     into `master` **locally** (`git checkout master && git merge <branch>`).
-   - **Only the user pushes.** Never run `git push`. After the user pushes and
-     confirms, delete the local branch (`git branch -d <branch>`).
+    - The user **explicitly authorizes the merge**; only then merge the branch
+      into `master` **locally** (`git checkout master && git merge <branch>`).
+    - **Only the user pushes.** Never run `git push`. After the user pushes and
+      confirms, delete the local branch (`git branch -d <branch>`).
 
 > `master` is no longer protected on GitHub, so the user can push it directly.
 > CI still runs on push — keep the gate green locally so push stays clean.
@@ -107,7 +107,7 @@ status codes — new routes are only "done" after passing here:
 ```sh
 pnpm compose:down && pnpm compose:up      # destroy + recreate MySQL
 pnpm exec prisma migrate deploy
-pnpm seed-adm-role
+pnpm seeddb
 pnpm dev                                  # then curl each route
 ```
 

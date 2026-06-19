@@ -64,25 +64,25 @@ cp .env.example .env  # preencha os valores (veja Variáveis de ambiente)
 pnpm install
 pnpm compose:up       # inicia o MySQL no Docker
 pnpm migrate          # executa as migrations
-pnpm seed-adm-role    # cria o usuário ADMIN com as vars ADMIN_*
+pnpm seeddb    # cria o usuário ADMIN com as vars ADMIN_*
 pnpm dev              # inicia o servidor em modo dev
 ```
 
 ## Scripts
 
-| Comando              | Descrição                            |
-| -------------------- | ------------------------------------ |
-| `pnpm dev`           | Inicia o servidor dev com hot-reload |
-| `pnpm build`         | Build de produção (tsup)             |
-| `pnpm start`         | Executa o build de produção          |
-| `pnpm migrate`       | Cria/executa migrations do Prisma    |
-| `pnpm seed-adm-role` | Cria o usuário ADMIN (idempotente)   |
-| `pnpm test`          | Testes unitários                     |
-| `pnpm test:e2e`      | Testes e2e (requer MySQL)            |
-| `pnpm lint`          | Executa o ESLint                     |
-| `pnpm lint:fix`      | Corrige erros de lint                |
-| `pnpm compile`       | Type-check do TypeScript             |
-| `pnpm showdb`        | Abre o Prisma Studio (porta 5555)    |
+| Comando         | Descrição                            |
+| --------------- | ------------------------------------ |
+| `pnpm dev`      | Inicia o servidor dev com hot-reload |
+| `pnpm build`    | Build de produção (tsup)             |
+| `pnpm start`    | Executa o build de produção          |
+| `pnpm migrate`  | Cria/executa migrations do Prisma    |
+| `pnpm seeddb`   | Cria o usuário ADMIN (idempotente)   |
+| `pnpm test`     | Testes unitários                     |
+| `pnpm test:e2e` | Testes e2e (requer MySQL)            |
+| `pnpm lint`     | Executa o ESLint                     |
+| `pnpm lint:fix` | Corrige erros de lint                |
+| `pnpm compile`  | Type-check do TypeScript             |
+| `pnpm showdb`   | Abre o Prisma Studio (porta 5555)    |
 
 ## Variáveis de ambiente
 
@@ -247,7 +247,7 @@ Não existe endpoint para criar admins. O ADMIN único é provisionado pelo
 **idempotente** (executar novamente nunca sobrescreve um admin existente):
 
 ```sh
-pnpm seed-adm-role
+pnpm seeddb
 ```
 
 ## Testes
@@ -267,7 +267,7 @@ pnpm test:e2e  # suite e2e (MySQL rodando)
 
 ### Smoke test manual das rotas
 
-Com o servidor rodando (`pnpm dev`) e o ADMIN criado (`pnpm seed-adm-role`),
+Com o servidor rodando (`pnpm dev`) e o ADMIN criado (`pnpm seeddb`),
 execute o bloco abaixo. Ele percorre todos os grupos de rotas — rotas públicas,
 RBAC, busca/proximidade de academias, check-ins (criar/histórico/métricas/
 validar), gestão de conta (perfil, troca de e-mail, listar/editar admin), refresh
