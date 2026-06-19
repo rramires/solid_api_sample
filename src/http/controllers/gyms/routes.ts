@@ -7,6 +7,7 @@ import { Role } from '@/prisma-client'
 import { createController } from './create-controller'
 import { nearbyController } from './nearby-controller'
 import { searchController } from './search-controller'
+import { updateController } from './update-controller'
 
 export async function gymsRoutes(app: FastifyInstance) {
 	/**
@@ -21,5 +22,11 @@ export async function gymsRoutes(app: FastifyInstance) {
 		'/gyms',
 		{ onRequest: [verifyUserRole(Role.ADMIN)] },
 		createController,
+	)
+	//
+	app.patch(
+		'/gyms/:gymId',
+		{ onRequest: [verifyUserRole(Role.ADMIN)] },
+		updateController,
 	)
 }

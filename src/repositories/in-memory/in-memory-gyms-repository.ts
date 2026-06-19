@@ -4,7 +4,11 @@ import { Gym, Prisma } from '@/prisma-client'
 import { GymCreateInput } from '@/prisma-client/models'
 import { getDistanceBetweenCoordinates } from '@/utils/get-distance-between-coordinates'
 
-import { IFindManyNearbyParams, IGymsRepository } from '../i-gyms-repository'
+import {
+	IFindManyNearbyParams,
+	IGymsRepository,
+	IGymUpdateInput,
+} from '../i-gyms-repository'
 
 const PAGE_SIZE = 20
 const DISTANCE_IN_KILOMETERS = 10
@@ -34,6 +38,24 @@ export class InMemoryGymsRepository implements IGymsRepository {
 		const gym = this.items.find((item) => item.id === id)
 
 		return gym || null
+	}
+
+	async update(id: string, data: IGymUpdateInput) {
+		// Use-case guards existence; mutate only the provided fields.
+		const gym = this.items.find((item) => item.id === id)
+		if (!gym) {
+			throw new Error('Gym not found')
+		}
+		if (data.title !== undefined) {
+			gym.title = data.title
+		}
+		if (data.description !== undefined) {
+			gym.description = data.description
+		}
+		if (data.phone !== undefined) {
+			gym.phone = data.phone
+		}
+		return gym
 	}
 
 	async searchMany(query: string, page: number) {

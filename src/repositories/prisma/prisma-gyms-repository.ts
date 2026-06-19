@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma'
 import { Gym, Prisma } from '@/prisma-client'
 import { GymCreateInput } from '@/prisma-client/models'
 
-import { IFindManyNearbyParams, IGymsRepository } from '../i-gyms-repository'
+import {
+	IFindManyNearbyParams,
+	IGymsRepository,
+	IGymUpdateInput,
+} from '../i-gyms-repository'
 
 const PAGE_SIZE = 20
 const DISTANCE_IN_KILOMETERS = 10
@@ -20,6 +24,18 @@ export class PrismaGymsRepository implements IGymsRepository {
 			where: {
 				id,
 			},
+		})
+		return gym
+	}
+
+	async update(id: string, data: IGymUpdateInput) {
+		// Existence is guaranteed by the use-case (findById first); `undefined`
+		// keys are ignored by Prisma, so only provided fields change.
+		const gym = await prisma.gym.update({
+			where: {
+				id,
+			},
+			data,
 		})
 		return gym
 	}
