@@ -47,6 +47,12 @@ de segurança, camada de dados, CI/CD e observabilidade) consulte:
   `202`) mais `reset-password` por link ou OTP; tokens armazenados como hashes
   SHA-256, de uso único e com limite de tentativas; um reset bem-sucedido dispara
   logout global.
+- **Gestão de conta** — admins listam e editam usuários
+  (`username`/`email`/`role`/`is_verified`) e editam academias; o usuário edita o
+  próprio `username` e troca o próprio e-mail com confirmação (**pattern A**: o
+  endereço comprovado permanece até o novo ser confirmado por link/OTP). Uma troca
+  de e-mail feita pelo admin desverifica a conta e envia um reset de senha ao novo
+  endereço; um admin nunca consegue se rebaixar (sempre ≥1 admin).
 - **Proteção do event loop** — `@fastify/under-pressure` retorna `503`
   automaticamente quando o lag do event loop ou o uso de heap ultrapassa os limites.
 - **Testado** — suite unitária (sem banco) e suite e2e com banco isolado, ambas no CI.
@@ -119,9 +125,13 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `PATCH` | `/auth/refresh`                  | refresh cookie | –       | Rotacionar o access token                             |
 | `GET`   | `/auth/me`                       | Bearer         | –       | Perfil do usuário autenticado                         |
 | `POST`  | `/auth/logout`                   | Bearer         | –       | Revogar o token atual (denylist)                      |
+| `PATCH` | `/auth/me`                       | Bearer         | –       | Editar o próprio username                             |
+| `POST`  | `/auth/me/email`                 | Bearer         | –       | Solicitar troca do próprio e-mail (confirma no novo)  |
+| `POST`  | `/auth/me/email/confirm`         | Bearer         | –       | Confirmar troca do próprio e-mail via OTP             |
 | `GET`   | `/gyms/search`                   | Bearer         | –       | Buscar academias por nome                             |
 | `GET`   | `/gyms/nearby`                   | Bearer         | –       | Academias próximas a uma coordenada                   |
 | `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Cadastrar academia                                    |
+| `PATCH` | `/gyms/:gymId`                   | Bearer         | `ADMIN` | Editar academia (título/descrição/telefone)           |
 | `GET`   | `/check-ins/history`             | Bearer         | –       | Histórico de check-ins paginado                       |
 | `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total de check-ins                                    |
 | `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Fazer check-in                                        |
@@ -129,9 +139,12 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `POST`  | `/users/send-verification`       | Bearer         | –       | Enviar e-mail de verificação (link + OTP)             |
 | `GET`   | `/users/verify-email`            | –              | –       | Verificar e-mail via link token (`?token=`)           |
 | `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verificar e-mail via código OTP                       |
+| `GET`   | `/users/confirm-email-change`    | –              | –       | Confirmar troca de e-mail via link token (`?token=`)  |
 | `POST`  | `/users/resend-verification`     | Bearer         | –       | Reenviar e-mail de verificação                        |
 | `POST`  | `/users/forgot-password`         | –              | –       | Solicitar reset; sempre `202` (rate limit)            |
 | `POST`  | `/users/reset-password`          | –              | –       | Resetar via link token ou email + OTP (rate limit)    |
+| `GET`   | `/users`                         | Bearer         | `ADMIN` | Listar usuários (paginado, 20/página)                 |
+| `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Editar usuário (username/email/role/is_verified)      |
 
 > O `role` (`MEMBER` \| `ADMIN`) é incorporado ao JWT no momento do login.
 > Promover um usuário **não** afeta tokens já emitidos — é necessário um novo
@@ -269,8 +282,10 @@ echo "=== 1. GET /hello ===" && curl -s "$BASE/hello" && echo
 
 # 2. Cadastrar um MEMBER normal (username 3-30 [a-z0-9_]; senha: mín 8 + maiúscula/minúscula/número/especial)
 echo -e "\n=== 2. POST /users ===" && \
-curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
-  -d '{"username":"fulano","email":"fulano@email.com","password":"Fulano@123"}' | python3 -m json.tool
+MEMBER_ID=$(curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
+  -d '{"username":"fulano","email":"fulano@email.com","password":"Fulano@123"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['user']['id'])") && \
+echo "Member id: $MEMBER_ID"
 
 # 2b. Login para obter um token, enviar e-mail de verificação e então verificar via link/OTP impresso no log do servidor
 echo -e "\n=== 2b. POST /users/send-verification (veja o link + OTP no log do servidor) ===" && \
@@ -335,10 +350,11 @@ echo "Admin token: ${ADMIN_TOKEN:0:40}..."
 
 # 10. Criar academia como ADMIN -> esperado 201
 echo -e "\n=== 10. POST /gyms (ADMIN - esperado 201) ===" && \
-curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
+GYM_ID=$(curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -d '{"title":"Academia SOLID","description":"Treino funcional","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
-  python3 -m json.tool
+  python3 -c "import sys,json; print(json.load(sys.stdin)['gym']['id'])") && \
+echo "Gym id: $GYM_ID"
 
 # 11. Redefinição de senha: solicite um reset (sempre 202, mesmo para emails
 #     desconhecidos), copie o token impresso no log do servidor e redefina.
@@ -349,6 +365,40 @@ curl -s -o /dev/null -w "status: %{http_code}\n" \
 echo "(copie o token de reset do log do servidor e rode:)" && \
 echo "  curl -X POST '$BASE/users/reset-password' -H 'Content-Type: application/json' \\" && \
 echo "    -d '{\"token\":\"<cole-o-token>\",\"newPassword\":\"Newpass@1\"}'"
+
+# 12. Admin edita a academia (PATCH /gyms/:gymId) -> esperado 200
+echo -e "\n=== 12. PATCH /gyms/:gymId (ADMIN - esperado 200) ===" && \
+curl -s -X PATCH "$BASE/gyms/$GYM_ID" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"title":"Academia SOLID (renomeada)","phone":"1111-2222"}' | python3 -m json.tool
+
+# 13. Admin lista usuários (GET /users) -> esperado 200
+echo -e "\n=== 13. GET /users (ADMIN - esperado 200) ===" && \
+curl -s "$BASE/users?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 14. Editar o próprio username (PATCH /auth/me) -> esperado 200
+echo -e "\n=== 14. PATCH /auth/me (próprio - esperado 200) ===" && \
+curl -s -X PATCH "$BASE/auth/me" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"username":"admin_renomeado"}' | python3 -m json.tool
+
+# 15. Admin promove o member a ADMIN (PATCH /users/:userId) -> esperado 200
+echo -e "\n=== 15. PATCH /users/:userId (ADMIN promove member - esperado 200) ===" && \
+curl -s -X PATCH "$BASE/users/$MEMBER_ID" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"role":"ADMIN"}' | python3 -m json.tool
+
+# 16. Troca do próprio e-mail (pattern A): solicita uma confirmação ao NOVO
+#     endereço. O endereço ANTIGO segue válido até confirmar; nada muda ainda.
+echo -e "\n=== 16. POST /auth/me/email (próprio - esperado 204) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/auth/me/email" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"email":"admin-novo@example.com"}' && \
+echo "(copie o link token / OTP do log do servidor e confirme com um dos dois:)" && \
+echo "  curl '$BASE/users/confirm-email-change?token=<cole-o-token>'        # link público" && \
+echo "  curl -X POST '$BASE/auth/me/email/confirm' -H 'Content-Type: application/json' \\" && \
+echo "    -H 'Authorization: Bearer \$ADMIN_TOKEN' -d '{\"code\":\"<cole-o-otp>\"}'  # OTP"
 ```
 
 ## Licença

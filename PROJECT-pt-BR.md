@@ -91,8 +91,8 @@ src/
 ├── prisma-client/           # CLIENTE GERADO pelo Prisma 7 (output custom)
 ├── http/
 │   ├── controllers/
-│   │   ├── auth/            # rotas + controllers de auth (login, logout, refresh, me)
-│   │   ├── users/           # rotas de conta (cadastro, verificação de e-mail, reset de senha)
+│   │   ├── auth/            # auth + self-service (login, logout, refresh, me, editar username, troca de e-mail)
+│   │   ├── users/           # rotas de conta (cadastro, verificação de e-mail, reset de senha, confirmar troca de e-mail, listar/editar admin)
 │   │   ├── gyms/            # rotas + controllers de academias
 │   │   ├── check-ins/       # rotas + controllers de check-ins
 │   │   └── health/          # healthcheck (/hello)
@@ -218,20 +218,28 @@ regras de entrada — tamanhos, formatos, charset, nulabilidade — e são
 doc **não** repete os valores literais (eles driftariam). Leia as regras na
 fonte via este índice rota → controller:
 
-| Rota                                     | Controller (schema Zod)                                    |
-| ---------------------------------------- | ---------------------------------------------------------- |
-| `POST /users`                            | `src/http/controllers/users/register-controller.ts`        |
-| `POST /auth/login`                       | `src/http/controllers/auth/authenticate-controller.ts`     |
-| `POST /gyms`                             | `src/http/controllers/gyms/create-controller.ts`           |
-| `GET /gyms/search`                       | `src/http/controllers/gyms/search-controller.ts`           |
-| `GET /gyms/nearby`                       | `src/http/controllers/gyms/nearby-controller.ts`           |
-| `POST /gyms/:gymId/check-ins`            | `src/http/controllers/check-ins/check-in-controller.ts`    |
-| `GET` / `POST /users/verify-email[/otp]` | `src/http/controllers/users/verify-email-controller.ts`    |
-| `POST /users/forgot-password`            | `src/http/controllers/users/forgot-password-controller.ts` |
-| `POST /users/reset-password`             | `src/http/controllers/users/reset-password-controller.ts`  |
+| Rota                                     | Controller (schema Zod)                                                 |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| `POST /users`                            | `src/http/controllers/users/register-controller.ts`                     |
+| `POST /auth/login`                       | `src/http/controllers/auth/authenticate-controller.ts`                  |
+| `POST /gyms`                             | `src/http/controllers/gyms/create-controller.ts`                        |
+| `GET /gyms/search`                       | `src/http/controllers/gyms/search-controller.ts`                        |
+| `GET /gyms/nearby`                       | `src/http/controllers/gyms/nearby-controller.ts`                        |
+| `POST /gyms/:gymId/check-ins`            | `src/http/controllers/check-ins/check-in-controller.ts`                 |
+| `GET` / `POST /users/verify-email[/otp]` | `src/http/controllers/users/verify-email-controller.ts`                 |
+| `POST /users/forgot-password`            | `src/http/controllers/users/forgot-password-controller.ts`              |
+| `POST /users/reset-password`             | `src/http/controllers/users/reset-password-controller.ts`               |
+| `PATCH /gyms/:gymId`                     | `src/http/controllers/gyms/update-controller.ts`                        |
+| `PATCH /auth/me`                         | `src/http/controllers/auth/update-profile-controller.ts`                |
+| `POST /auth/me/email`                    | `src/http/controllers/auth/request-email-change-controller.ts`          |
+| `POST /auth/me/email/confirm`            | `src/http/controllers/auth/confirm-email-change-by-otp-controller.ts`   |
+| `GET /users/confirm-email-change`        | `src/http/controllers/users/confirm-email-change-by-link-controller.ts` |
+| `GET /users`                             | `src/http/controllers/users/list-controller.ts`                         |
+| `PATCH /users/:userId`                   | `src/http/controllers/users/update-controller.ts`                       |
 
 Formatos notáveis: `username` (piso `MIN_TEXT_LENGTH` … 30, `[a-zA-Z0-9_]`,
-gravado lowercase), `identifier` de login (e-mail ou username), `password`
+gravado lowercase — mesma regra no cadastro **e** nas edições de perfil/admin),
+`identifier` de login (e-mail ou username), `password`
 (cadastro + reset, schema compartilhado: ≥ `PASSWORD_MIN_LENGTH`, ≤ 72,
 complexidade `PASSWORD_PATTERN`), `title` de gym (≥ `MIN_TEXT_LENGTH`), `phone`
 de gym (opcional; `^\+?[\d\s().-]{7,20}$`), `query` de busca
@@ -280,27 +288,34 @@ de gym (opcional; `^\+?[\d\s().-]{7,20}$`), `query` de busca
 
 ### 5.3 Mapa de rotas × proteção
 
-| Método | Rota                             | Auth (JWT) | Papel exigido | Observação                                      |
-| ------ | -------------------------------- | :--------: | :-----------: | ----------------------------------------------- |
-| GET    | `/hello`                         |     ❌     |       —       | health/teste                                    |
-| POST   | `/users`                         |     ❌     |       —       | registro (público)                              |
-| POST   | `/auth/login`                    |     ❌     |       —       | login                                           |
-| PATCH  | `/auth/refresh`                  |   cookie   |       —       | rotação de token                                |
-| GET    | `/auth/me`                       |     ✅     |       —       | perfil próprio                                  |
-| POST   | `/auth/logout`                   |     ✅     |       —       | revoga o token atual (denylist) + limpa cookie  |
-| GET    | `/gyms/search`                   |     ✅     |       —       | busca por título                                |
-| GET    | `/gyms/nearby`                   |     ✅     |       —       | busca por proximidade                           |
-| POST   | `/gyms`                          |     ✅     |   **ADMIN**   | cadastrar academia                              |
-| GET    | `/check-ins/history`             |     ✅     |       —       | histórico próprio                               |
-| GET    | `/check-ins/metrics`             |     ✅     |       —       | total próprio                                   |
-| POST   | `/gyms/:gymId/check-ins`         |     ✅     |       —       | check-in (e-mail verificado se flag ligada)     |
-| PATCH  | `/check-ins/:checkInId/validate` |     ✅     |   **ADMIN**   | validar check-in                                |
-| POST   | `/users/send-verification`       |     ✅     |       —       | enviar e-mail de verificação (link + OTP)       |
-| GET    | `/users/verify-email`            |     ❌     |       —       | verificar e-mail via link token (`?token=`)     |
-| POST   | `/users/verify-email/otp`        |     ✅     |       —       | verificar e-mail via código OTP                 |
-| POST   | `/users/resend-verification`     |     ✅     |       —       | reenviar e-mail de verificação                  |
-| POST   | `/users/forgot-password`         |     ❌     |       —       | solicitar reset; sempre `202` (anti-enumeração) |
-| POST   | `/users/reset-password`          |     ❌     |       —       | resetar via link token ou email + OTP           |
+| Método | Rota                             | Auth (JWT) | Papel exigido | Observação                                       |
+| ------ | -------------------------------- | :--------: | :-----------: | ------------------------------------------------ |
+| GET    | `/hello`                         |     ❌     |       —       | health/teste                                     |
+| POST   | `/users`                         |     ❌     |       —       | registro (público)                               |
+| POST   | `/auth/login`                    |     ❌     |       —       | login                                            |
+| PATCH  | `/auth/refresh`                  |   cookie   |       —       | rotação de token                                 |
+| GET    | `/auth/me`                       |     ✅     |       —       | perfil próprio                                   |
+| POST   | `/auth/logout`                   |     ✅     |       —       | revoga o token atual (denylist) + limpa cookie   |
+| PATCH  | `/auth/me`                       |     ✅     |       —       | self: editar o próprio username                  |
+| POST   | `/auth/me/email`                 |     ✅     |       —       | self: solicitar troca de e-mail (confirma novo)  |
+| POST   | `/auth/me/email/confirm`         |     ✅     |       —       | self: confirmar troca de e-mail via OTP          |
+| GET    | `/gyms/search`                   |     ✅     |       —       | busca por título                                 |
+| GET    | `/gyms/nearby`                   |     ✅     |       —       | busca por proximidade                            |
+| POST   | `/gyms`                          |     ✅     |   **ADMIN**   | cadastrar academia                               |
+| PATCH  | `/gyms/:gymId`                   |     ✅     |   **ADMIN**   | editar academia (título/descrição/telefone)      |
+| GET    | `/check-ins/history`             |     ✅     |       —       | histórico próprio                                |
+| GET    | `/check-ins/metrics`             |     ✅     |       —       | total próprio                                    |
+| POST   | `/gyms/:gymId/check-ins`         |     ✅     |       —       | check-in (e-mail verificado se flag ligada)      |
+| PATCH  | `/check-ins/:checkInId/validate` |     ✅     |   **ADMIN**   | validar check-in                                 |
+| POST   | `/users/send-verification`       |     ✅     |       —       | enviar e-mail de verificação (link + OTP)        |
+| GET    | `/users/verify-email`            |     ❌     |       —       | verificar e-mail via link token (`?token=`)      |
+| POST   | `/users/verify-email/otp`        |     ✅     |       —       | verificar e-mail via código OTP                  |
+| POST   | `/users/resend-verification`     |     ✅     |       —       | reenviar e-mail de verificação                   |
+| POST   | `/users/forgot-password`         |     ❌     |       —       | solicitar reset; sempre `202` (anti-enumeração)  |
+| POST   | `/users/reset-password`          |     ❌     |       —       | resetar via link token ou email + OTP            |
+| GET    | `/users/confirm-email-change`    |     ❌     |       —       | confirmar troca de e-mail via link (`?token=`)   |
+| GET    | `/users`                         |     ✅     |   **ADMIN**   | listar usuários (paginado, 20/página)            |
+| PATCH  | `/users/:userId`                 |     ✅     |   **ADMIN**   | editar usuário (username/email/role/is_verified) |
 
 > Padrão para proteger um grupo: `app.addHook('onRequest', verifyJwtMiddleware)`
 > no início da função de rotas. Para exigir papel: adicionar
@@ -351,6 +366,33 @@ matriz de acesso por rota e um smoke test com a flag ligada estão no README
   falhas a conta é bloqueada por `LOGIN_LOCKOUT_MINUTES`. `Map` in-memory hoje;
   troca por Redis substituindo `src/lib/login-attempt-tracker.ts` (mesma interface
   assíncrona). Retorna `429 Too Many Requests`.
+- **Defesa contra mass-assignment nas edições:** toda rota de edição valida um
+  **whitelist `.strict()`** — `PATCH /auth/me` aceita só `username` (nunca
+  `role`/`is_verified`/`email`/`password`); `PATCH /users/:userId` aceita só
+  `username`/`email`/`role`/`is_verified`. Chave desconhecida vira `400`, então um
+  member não escala injetando campos.
+- **Um modelo de autoridade por handler (self vs admin):** o self-service age sobre
+  `request.user.sub` e mora em `/auth/me` (sem id na URL); as edições administrativas
+  pegam o id da URL e são guardadas por `verifyUserRole(ADMIN)` em `/users/:userId`.
+  Cada handler tem um único modelo de autoridade, sem ramo "self-ou-admin" para
+  errar. Como `verifyUserRole` roda no `onRequest`, um não-admin leva `403` mesmo
+  para id inexistente (sem vazar existência — `403` antes de `404`).
+- **Sem auto-rebaixamento (invariante ≥1 admin):** `PATCH /users/:userId` rejeita
+  `role: MEMBER` quando o alvo é o próprio ator (`400 CannotChangeOwnRoleError`).
+  Como só admins chegam à rota, rebaixar _outros_ nunca remove o último admin, então
+  bloquear só o auto-rebaixamento garante ≥1 admin sempre — sem query de "contar
+  admins".
+- **Troca de e-mail é prova-gated:**
+    - _Self (pattern A):_ `POST /auth/me/email` nunca sobrescreve o endereço comprovado;
+      grava um `EmailChange` pendente e envia confirmação ao **novo** endereço mais um
+      alerta anti-sequestro ao **antigo**. Só ao confirmar (link ou OTP) o e-mail é
+      trocado e `is_verified` volta a `true`. Unicidade rechecada no confirm (TOCTOU);
+      cooldown de 60s; tentativas de OTP limitadas a 5.
+    - _Admin:_ trocar o e-mail de um usuário não é prova, então seta `is_verified=false`
+      e envia um **reset de senha ao novo endereço** (inline). Mandar `email` e
+      `is_verified:true` na mesma request é `400` (contradição).
+    - Qualquer um dos caminhos invalida a entrada do usuário no verified-cache (§5.1)
+      para o gate reler o banco.
 - **`@fastify/under-pressure`**: monitora lag do event loop e uso de heap; retorna
   `503 Service Unavailable` automaticamente quando os limiares são excedidos —
   circuit breaker contra DoS por queries lentas.
@@ -433,10 +475,18 @@ Os tamanhos de coluna são fixados com Prisma `@db.VarChar(n)` para casar com o
   `otp_code_hash`, `attempts`, `expires_at`, `used_at?`, `created_at`) — tokens
   de reset são armazenados **com hash** (SHA-256), então um vazamento do banco
   não revela link/código utilizável (tabela `password_resets`).
+- `EmailChange` (`id` uuid, `user_id` FK, `new_email`, `link_token` uuid único,
+  `otp_code` string de 6 dígitos, `attempts`, `expires_at`, `used_at?`,
+  `created_at`) — troca de e-mail self-service pendente (pattern A): o `new_email`
+  fica aqui até ser confirmado, então é trocado em `User.email`. Espelha
+  `EmailVerification` (token/OTP **crus**, `onDelete: Cascade`); tabela
+  `email_changes`.
 
 ### 6.4 Paginação
 
-- Tamanho fixo `PAGE_SIZE = 20`, via `take`/`skip` (`(page-1)*PAGE_SIZE`).
+- Tamanho fixo `PAGE_SIZE = 20`, via `take`/`skip` (`(page-1)*PAGE_SIZE`). A
+  listagem de usuários admin (`GET /users`) ordena por mais recentes
+  (`created_at desc`).
 - `findManyNearby` usa `ORDER BY distance ASC` (MySQL não garante ordem de inserção).
 
 ### 6.5 Seed controlado de ADMIN

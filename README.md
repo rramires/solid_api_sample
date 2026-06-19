@@ -47,6 +47,12 @@ layer, CI/CD and operational concerns) see:
   `202`) plus link- or OTP-based `reset-password`; tokens are stored as SHA-256
   hashes, single-use and attempt-capped, and a successful reset triggers a
   global logout.
+- **Account management** — admins list and edit users
+  (`username`/`email`/`role`/`is_verified`) and edit gyms; a user edits their own
+  `username` and changes their own email with confirmation (**pattern A**: the
+  proven address stays until the new one is confirmed by link/OTP). An admin
+  email change unverifies the account and sends a password reset to the new
+  address; an admin can never demote themselves (always ≥1 admin).
 - **Event-loop protection** — `@fastify/under-pressure` returns `503`
   automatically when event-loop lag or heap usage exceeds configured thresholds.
 - **Tested** — unit suite (no DB) and isolated-database e2e suite, both in CI.
@@ -118,9 +124,13 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `PATCH` | `/auth/refresh`                  | refresh cookie | –       | Rotate the access token                              |
 | `GET`   | `/auth/me`                       | Bearer         | –       | Authenticated user profile                           |
 | `POST`  | `/auth/logout`                   | Bearer         | –       | Revoke the current token (denylist)                  |
+| `PATCH` | `/auth/me`                       | Bearer         | –       | Edit own username                                    |
+| `POST`  | `/auth/me/email`                 | Bearer         | –       | Request own email change (confirmation to new email) |
+| `POST`  | `/auth/me/email/confirm`         | Bearer         | –       | Confirm own email change via OTP                     |
 | `GET`   | `/gyms/search`                   | Bearer         | –       | Search gyms by title                                 |
 | `GET`   | `/gyms/nearby`                   | Bearer         | –       | Gyms near a coordinate                               |
 | `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Create a gym                                         |
+| `PATCH` | `/gyms/:gymId`                   | Bearer         | `ADMIN` | Edit a gym (title/description/phone)                 |
 | `GET`   | `/check-ins/history`             | Bearer         | –       | Paginated check-in history                           |
 | `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total check-ins count                                |
 | `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Create a check-in                                    |
@@ -128,9 +138,12 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `POST`  | `/users/send-verification`       | Bearer         | –       | Send verification email (link + OTP)                 |
 | `GET`   | `/users/verify-email`            | –              | –       | Verify email via link token (`?token=`)              |
 | `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verify email via OTP code                            |
+| `GET`   | `/users/confirm-email-change`    | –              | –       | Confirm an email change via link token (`?token=`)   |
 | `POST`  | `/users/resend-verification`     | Bearer         | –       | Resend verification email                            |
 | `POST`  | `/users/forgot-password`         | –              | –       | Request a reset; always `202` (rate-limited)         |
 | `POST`  | `/users/reset-password`          | –              | –       | Reset via link token or email + OTP (rate-limited)   |
+| `GET`   | `/users`                         | Bearer         | `ADMIN` | List users (paginated, 20/page)                      |
+| `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Edit a user (username/email/role/is_verified)        |
 
 > The `role` (`MEMBER` \| `ADMIN`) is embedded in the JWT at login time.
 > Promoting a user does **not** affect tokens already issued — a new login is
@@ -266,8 +279,10 @@ echo "=== 1. GET /hello ===" && curl -s "$BASE/hello" && echo
 
 # 2. Register a regular MEMBER (username 3-30 [a-z0-9_]; password: min 8 + upper/lower/number/special)
 echo -e "\n=== 2. POST /users ===" && \
-curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
-  -d '{"username":"fulano","email":"fulano@email.com","password":"Fulano@123"}' | python3 -m json.tool
+MEMBER_ID=$(curl -s -X POST "$BASE/users" -H "Content-Type: application/json" \
+  -d '{"username":"fulano","email":"fulano@email.com","password":"Fulano@123"}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['user']['id'])") && \
+echo "Member id: $MEMBER_ID"
 
 # 2b. Login to get a token, send verification email, then verify via the link/OTP printed to the server log
 echo -e "\n=== 2b. POST /users/send-verification (check server log for link + OTP) ===" && \
@@ -332,10 +347,11 @@ echo "Admin token: ${ADMIN_TOKEN:0:40}..."
 
 # 10. Create a gym as ADMIN -> expected 201
 echo -e "\n=== 10. POST /gyms (ADMIN - expected 201) ===" && \
-curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
+GYM_ID=$(curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -d '{"title":"Academia SOLID","description":"Treino funcional","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
-  python3 -m json.tool
+  python3 -c "import sys,json; print(json.load(sys.stdin)['gym']['id'])") && \
+echo "Gym id: $GYM_ID"
 
 # 11. Password reset: request a reset (always 202, even for unknown emails),
 #     then copy the token printed to the server log and reset the password.
@@ -346,6 +362,40 @@ curl -s -o /dev/null -w "status: %{http_code}\n" \
 echo "(copy the reset token from the server log and run:)" && \
 echo "  curl -X POST '$BASE/users/reset-password' -H 'Content-Type: application/json' \\" && \
 echo "    -d '{\"token\":\"<paste-token>\",\"newPassword\":\"Newpass@1\"}'"
+
+# 12. Admin edits the gym (PATCH /gyms/:gymId) -> expected 200
+echo -e "\n=== 12. PATCH /gyms/:gymId (ADMIN - expected 200) ===" && \
+curl -s -X PATCH "$BASE/gyms/$GYM_ID" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"title":"Academia SOLID (renamed)","phone":"1111-2222"}' | python3 -m json.tool
+
+# 13. Admin lists users (GET /users) -> expected 200
+echo -e "\n=== 13. GET /users (ADMIN - expected 200) ===" && \
+curl -s "$BASE/users?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 14. Self edits own username (PATCH /auth/me) -> expected 200
+echo -e "\n=== 14. PATCH /auth/me (self - expected 200) ===" && \
+curl -s -X PATCH "$BASE/auth/me" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"username":"admin_renamed"}' | python3 -m json.tool
+
+# 15. Admin promotes the member to ADMIN (PATCH /users/:userId) -> expected 200
+echo -e "\n=== 15. PATCH /users/:userId (ADMIN promotes member - expected 200) ===" && \
+curl -s -X PATCH "$BASE/users/$MEMBER_ID" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"role":"ADMIN"}' | python3 -m json.tool
+
+# 16. Self email change (pattern A): request a confirmation to the NEW address.
+#     The OLD address stays valid until you confirm; nothing changes yet.
+echo -e "\n=== 16. POST /auth/me/email (self - expected 204) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/auth/me/email" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"email":"admin-new@example.com"}' && \
+echo "(copy the link token / OTP from the server log, then confirm with either:)" && \
+echo "  curl '$BASE/users/confirm-email-change?token=<paste-token>'        # public link" && \
+echo "  curl -X POST '$BASE/auth/me/email/confirm' -H 'Content-Type: application/json' \\" && \
+echo "    -H 'Authorization: Bearer \$ADMIN_TOKEN' -d '{\"code\":\"<paste-otp>\"}'  # OTP"
 ```
 
 ## License
