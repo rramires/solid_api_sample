@@ -268,11 +268,15 @@ pnpm test:e2e  # suite e2e (MySQL rodando)
 ### Smoke test manual das rotas
 
 Com o servidor rodando (`pnpm dev`) e o ADMIN criado (`pnpm seed-adm-role`),
-execute o bloco abaixo. Ele exercita as rotas públicas, RBAC, refresh de token e
-revogação de token. As senhas de cadastro/reset devem atender ao
-`PASSWORD_MIN_LENGTH` (padrão 8) **e** à política de complexidade
-`PASSWORD_PATTERN` (padrão: uma maiúscula, uma minúscula, um número e um
-caractere especial).
+execute o bloco abaixo. Ele percorre todos os grupos de rotas — rotas públicas,
+RBAC, busca/proximidade de academias, check-ins (criar/histórico/métricas/
+validar), gestão de conta (perfil, troca de e-mail, listar/editar admin), refresh
+e revogação de token. Os passos que precisam de um token/OTP de uso único
+(verificação de e-mail, reset de senha, confirmação de troca de e-mail) imprimem
+o curl para rodar após copiar o valor do log do servidor. As senhas de
+cadastro/reset devem atender ao `PASSWORD_MIN_LENGTH` (padrão 8) **e** à política
+de complexidade `PASSWORD_PATTERN` (padrão: uma maiúscula, uma minúscula, um
+número e um caractere especial).
 
 ```sh
 BASE="http://127.0.0.1:3333"
@@ -355,6 +359,34 @@ GYM_ID=$(curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -d '{"title":"Academia SOLID","description":"Treino funcional","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['gym']['id'])") && \
 echo "Gym id: $GYM_ID"
+
+# 10a. Buscar academias por título (paginado, 20/página)
+echo -e "\n=== 10a. GET /gyms/search ===" && \
+curl -s "$BASE/gyms/search?query=Academia&page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 10b. Academias próximas a uma coordenada. O frontend fornece a lat/long do
+#      usuário via API de Geolocalização do navegador; raio de 10km, sem paginação.
+echo -e "\n=== 10b. GET /gyms/nearby ===" && \
+curl -s "$BASE/gyms/nearby?latitude=-25.4677004&longitude=-49.304584" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 10c. Fazer check-in na academia (precisa estar dentro do raio das coordenadas) -> 201
+echo -e "\n=== 10c. POST /gyms/:gymId/check-ins ===" && \
+CHECKIN_ID=$(curl -s -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"latitude":-25.4677004,"longitude":-49.304584}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['checkIn']['id'])") && \
+echo "Check-in id: $CHECKIN_ID"
+
+# 10d. Histórico de check-ins (paginado) + total de métricas
+echo -e "\n=== 10d. GET /check-ins/history + /check-ins/metrics ===" && \
+curl -s "$BASE/check-ins/history?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool && \
+curl -s "$BASE/check-ins/metrics" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 10e. Validar o check-in (ADMIN) -> 200
+echo -e "\n=== 10e. PATCH /check-ins/:checkInId/validate (ADMIN) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X PATCH "$BASE/check-ins/$CHECKIN_ID/validate" -H "Authorization: Bearer $ADMIN_TOKEN"
 
 # 11. Redefinição de senha: solicite um reset (sempre 202, mesmo para emails
 #     desconhecidos), copie o token impresso no log do servidor e redefina.

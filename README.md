@@ -266,8 +266,12 @@ pnpm test:e2e  # e2e suite (MySQL up)
 ### Manual route smoke test
 
 With the server running (`pnpm dev`) and the ADMIN seeded
-(`pnpm seed-adm-role`), run the block below. It exercises the public routes,
-RBAC, token refresh and token revocation. Register/reset passwords must meet
+(`pnpm seed-adm-role`), run the block below. It walks every route group —
+public routes, RBAC, gym search/nearby, check-ins (create/history/metrics/
+validate), account management (profile, email change, admin list/edit), token
+refresh and revocation. Steps that need a one-time token/OTP (email
+verification, password reset, email-change confirm) print the curl to run after
+copying the value from the server log. Register/reset passwords must meet
 `PASSWORD_MIN_LENGTH` (default 8) **and** the `PASSWORD_PATTERN` complexity
 policy (default: an uppercase, a lowercase, a number and a special character).
 
@@ -352,6 +356,34 @@ GYM_ID=$(curl -s -X POST "$BASE/gyms" -H "Content-Type: application/json" \
   -d '{"title":"Academia SOLID","description":"Treino funcional","phone":"9999-8888","latitude":-25.4677004,"longitude":-49.304584}' | \
   python3 -c "import sys,json; print(json.load(sys.stdin)['gym']['id'])") && \
 echo "Gym id: $GYM_ID"
+
+# 10a. Search gyms by title (paginated, 20/page)
+echo -e "\n=== 10a. GET /gyms/search ===" && \
+curl -s "$BASE/gyms/search?query=Academia&page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 10b. Gyms near a coordinate. The frontend supplies the user's lat/long from the
+#      browser Geolocation API; 10km radius, no pagination.
+echo -e "\n=== 10b. GET /gyms/nearby ===" && \
+curl -s "$BASE/gyms/nearby?latitude=-25.4677004&longitude=-49.304584" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 10c. Check in at the gym (must be within range of the gym's coordinates) -> 201
+echo -e "\n=== 10c. POST /gyms/:gymId/check-ins ===" && \
+CHECKIN_ID=$(curl -s -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"latitude":-25.4677004,"longitude":-49.304584}' | \
+  python3 -c "import sys,json; print(json.load(sys.stdin)['checkIn']['id'])") && \
+echo "Check-in id: $CHECKIN_ID"
+
+# 10d. Check-in history (paginated) + total metrics
+echo -e "\n=== 10d. GET /check-ins/history + /check-ins/metrics ===" && \
+curl -s "$BASE/check-ins/history?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool && \
+curl -s "$BASE/check-ins/metrics" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 10e. Validate the check-in (ADMIN) -> 200
+echo -e "\n=== 10e. PATCH /check-ins/:checkInId/validate (ADMIN) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X PATCH "$BASE/check-ins/$CHECKIN_ID/validate" -H "Authorization: Bearer $ADMIN_TOKEN"
 
 # 11. Password reset: request a reset (always 202, even for unknown emails),
 #     then copy the token printed to the server log and reset the password.
