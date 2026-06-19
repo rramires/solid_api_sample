@@ -33,6 +33,8 @@ describe('Profile (e2e)', () => {
 				// Freshly registered user is not verified yet — the frontend uses
 				// this flag to show the "confirm your email" banner.
 				is_verified: false,
+				// Default role for a new user; surfaced fresh for RBAC UI.
+				role: Role.MEMBER,
 			}),
 		)
 	})

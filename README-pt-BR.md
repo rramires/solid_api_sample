@@ -145,11 +145,19 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 { "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
 ```
 
-`GET /auth/me` → `200` (`is_verified` permite o frontend exibir um banner de
-"e-mail não verificado"):
+`GET /auth/me` → `200` (`is_verified` alimenta o banner de "e-mail não
+verificado"; `role` alimenta a UI de RBAC — ambos lidos fresh do banco, não do
+token):
 
 ```json
-{ "user": { "id": "3fa2...c9", "username": "fulano", "is_verified": false } }
+{
+	"user": {
+		"id": "3fa2...c9",
+		"username": "fulano",
+		"is_verified": false,
+		"role": "MEMBER"
+	}
+}
 ```
 
 Uma validação com falha retorna `400` com os problemas; um token inválido ou

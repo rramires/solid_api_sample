@@ -260,9 +260,10 @@ mirror the `@db.VarChar(n)` column lengths (see §6.3).
 - **`is_verified` is not a JWT claim**: `verifyEmailVerified` reads the real
   state from the database through a read-through cache (`lib/verified-cache.ts`),
   so a user who verifies mid-session is unblocked immediately. For the same
-  reason `GET /auth/me` returns `is_verified` fresh from the DB (not from the
-  token), so a frontend can show an "unverified email" banner that clears the
-  instant the user verifies.
+  reason `GET /auth/me` returns `is_verified` **and** `role` fresh from the DB
+  (not from the token), so a frontend can show an "unverified email" banner that
+  clears the instant the user verifies, and RBAC UI that reflects a promotion
+  without waiting for a re-login.
 - **Global session invalidation**: a password reset stamps `password_changed_at`;
   every token issued before that instant is rejected (see §5.5).
 

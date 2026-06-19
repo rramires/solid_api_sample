@@ -144,11 +144,18 @@ boot if any variable is invalid (Zod validation in `src/env`).
 { "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
 ```
 
-`GET /auth/me` → `200` (`is_verified` lets the frontend show an "unverified
-email" banner):
+`GET /auth/me` → `200` (`is_verified` drives an "unverified email" banner; `role`
+drives RBAC UI — both read fresh from the DB, not the token):
 
 ```json
-{ "user": { "id": "3fa2...c9", "username": "fulano", "is_verified": false } }
+{
+	"user": {
+		"id": "3fa2...c9",
+		"username": "fulano",
+		"is_verified": false,
+		"role": "MEMBER"
+	}
+}
 ```
 
 A failed validation returns `400` with the issues; an unauthorized or revoked

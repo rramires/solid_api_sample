@@ -13,16 +13,19 @@ export async function profileController(
 		const { user } = await getUserProfile.execute({
 			userId: request.user.sub,
 		})
-		const { id, username, is_verified } = user
+		const { id, username, is_verified, role } = user
 
-		// is_verified lets the frontend show an "unverified email" banner/nag.
-		// Read fresh from the DB here (not from a JWT claim) so it clears the
-		// moment the user verifies — same reason verifyEmailVerified reads the DB.
+		// is_verified and role are read fresh from the DB here (not from the JWT
+		// claims) so they reflect reality: is_verified clears the moment the user
+		// verifies, and role reflects a promotion without waiting for a re-login.
+		// The frontend uses is_verified for the "unverified email" banner and role
+		// for RBAC UI (e.g. showing ADMIN-only actions).
 		return reply.status(200).send({
 			user: {
 				id,
 				username,
 				is_verified,
+				role,
 			},
 		})
 	} catch (err) {

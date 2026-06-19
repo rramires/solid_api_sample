@@ -261,9 +261,10 @@ de gym (opcional; `^\+?[\d\s().-]{7,20}$`), `query` de busca
 - **`is_verified` não é claim do JWT**: o `verifyEmailVerified` lê o estado real
   do banco via cache read-through (`lib/verified-cache.ts`), então um usuário que
   verifica no meio da sessão é liberado na hora. Pelo mesmo motivo, o
-  `GET /auth/me` retorna `is_verified` fresh do banco (não do token), para um
-  frontend exibir um banner de "e-mail não verificado" que some no instante em
-  que o usuário verifica.
+  `GET /auth/me` retorna `is_verified` **e** `role` fresh do banco (não do
+  token), para um frontend exibir um banner de "e-mail não verificado" que some
+  no instante em que o usuário verifica, e UI de RBAC que reflete uma promoção
+  sem esperar um novo login.
 - **Invalidação global de sessão**: um reset de senha grava `password_changed_at`;
   todo token emitido antes desse instante é rejeitado (veja §5.5).
 
