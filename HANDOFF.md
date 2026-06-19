@@ -1,6 +1,6 @@
 # HANDOFF — solid_api_sample
 
-_Atualizado: 2026-06-19 @ 613e324 (branch master) — feature `account-management` ENTREGUE._
+_Atualizado: 2026-06-19 @ 5384feb (branch master) — feature `account-management` ENTREGUE._
 
 ## Resume prompt (cole em qualquer sessão / modelo)
 
@@ -14,7 +14,7 @@ _Atualizado: 2026-06-19 @ 613e324 (branch master) — feature `account-managemen
 
 ## Estado atual
 
-- Branch / commit: `master` @ `613e324` (2026-06-19); árvore limpa; em sync com `origin`.
+- Branch / commit: `master` @ `5384feb` (2026-06-19); árvore limpa; **à frente do `origin`** (push pendente do usuário).
 - **Entregue** (mergeado FF + pushado; branch `feat/account-management` apagada): rotas de
   gestão de conta + edição.
     - `PATCH /gyms/:gymId` — admin edita academia (title/description/phone).
@@ -27,6 +27,10 @@ _Atualizado: 2026-06-19 @ 613e324 (branch master) — feature `account-managemen
     - Verificação: gate verde (unit 93 + e2e 53), coverage 88% linhas / 92% funcs, **smoke
       manual de TODAS as rotas** (incl. nearby) passou em DB limpa. Docs nas 4 línguas
       (README + PROJECT) atualizadas e auditadas (rotas/matriz/árvore/models coerentes).
+- **Dev tooling** (commits `acf8139` + `5384feb`): `pnpm db:fresh` (zera + recria o banco:
+  compose down/up `--wait` + migrate deploy + seed) · `pnpm killapp` (libera 3333/5555 + mata
+  server) · healthcheck no MySQL (compose). Seed renomeado: script `seed-adm-role` → **`seeddb`**,
+  arquivo `prisma/seed-adm-role.ts` → **`prisma/seed.ts`**.
 - **Próximo passo:** nenhum pendente.
 
 ## Threads abertas
