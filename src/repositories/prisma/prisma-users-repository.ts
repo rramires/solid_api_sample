@@ -51,14 +51,27 @@ export class PrismaUsersRepository implements IUsersRepository {
 	async update(
 		id: string,
 		data: {
+			username?: string
 			is_verified?: boolean
 			password_hash?: string
 			password_changed_at?: Date
 		},
-	): Promise<void> {
-		await prisma.user.update({
+	) {
+		// Returns the updated public user (never password_hash). Existing callers
+		// that ignore the return value are unaffected.
+		const user = await prisma.user.update({
 			where: { id },
 			data,
+			select: {
+				id: true,
+				username: true,
+				email: true,
+				role: true,
+				is_verified: true,
+				created_at: true,
+				password_changed_at: true,
+			},
 		})
+		return user
 	}
 }

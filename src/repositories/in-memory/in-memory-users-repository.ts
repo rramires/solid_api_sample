@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto'
 
 import { Prisma, User } from '@/prisma-client'
+import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 
-import { IUsersRepository } from '../i-users-repository'
+import { IUsersRepository, PublicUser } from '../i-users-repository'
 
 export class InMemoryUsersRepository implements IUsersRepository {
 	// in-memory mock database
@@ -61,14 +62,19 @@ export class InMemoryUsersRepository implements IUsersRepository {
 	async update(
 		id: string,
 		data: {
+			username?: string
 			is_verified?: boolean
 			password_hash?: string
 			password_changed_at?: Date
 		},
-	): Promise<void> {
+	): Promise<PublicUser> {
 		const user = this.items.find((item) => item.id === id)
 		if (!user) {
-			return
+			// Mirror Prisma (P2025): updating a missing row is an error.
+			throw new ResourceNotFoundError()
+		}
+		if (data.username !== undefined) {
+			user.username = data.username
 		}
 		if (data.is_verified !== undefined) {
 			user.is_verified = data.is_verified
@@ -78,6 +84,17 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		}
 		if (data.password_changed_at !== undefined) {
 			user.password_changed_at = data.password_changed_at
+		}
+
+		// Mirror the prisma repository: never expose password_hash
+		return {
+			id: user.id,
+			username: user.username,
+			email: user.email,
+			role: user.role,
+			is_verified: user.is_verified,
+			created_at: user.created_at,
+			password_changed_at: user.password_changed_at,
 		}
 	}
 }

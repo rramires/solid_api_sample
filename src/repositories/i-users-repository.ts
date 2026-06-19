@@ -11,9 +11,10 @@ export interface IUsersRepository {
 	update(
 		id: string,
 		data: {
+			username?: string
 			is_verified?: boolean
 			password_hash?: string
 			password_changed_at?: Date
 		},
-	): Promise<void>
+	): Promise<PublicUser>
 }
