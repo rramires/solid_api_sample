@@ -121,34 +121,34 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 
 ## Rotas da API
 
-| Método  | Rota                             | Auth           | Papel   | Descrição                                             |
-| ------- | -------------------------------- | -------------- | ------- | ----------------------------------------------------- |
-| `GET`   | `/hello`                         | –              | –       | Healthcheck                                           |
-| `POST`  | `/users`                         | –              | –       | Cadastrar usuário (com rate limit)                    |
-| `POST`  | `/auth/login`                    | –              | –       | Login → access token + cookie de refresh (rate limit) |
-| `PATCH` | `/auth/refresh`                  | refresh cookie | –       | Rotacionar o access token                             |
-| `GET`   | `/auth/me`                       | Bearer         | –       | Perfil do usuário autenticado                         |
-| `POST`  | `/auth/logout`                   | Bearer         | –       | Revogar o token atual (denylist)                      |
-| `PATCH` | `/auth/me`                       | Bearer         | –       | Editar o próprio username                             |
-| `POST`  | `/auth/me/email`                 | Bearer         | –       | Solicitar troca do próprio e-mail (confirma no novo)  |
-| `POST`  | `/auth/me/email/confirm`         | Bearer         | –       | Confirmar troca do próprio e-mail via OTP             |
-| `GET`   | `/gyms/search`                   | Bearer         | –       | Buscar academias por nome                             |
-| `GET`   | `/gyms/nearby`                   | Bearer         | –       | Academias próximas a uma coordenada                   |
-| `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Cadastrar academia                                    |
-| `PATCH` | `/gyms/:gymId`                   | Bearer         | `ADMIN` | Editar academia (título/descrição/telefone)           |
-| `GET`   | `/check-ins/history`             | Bearer         | –       | Histórico de check-ins paginado                       |
-| `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total de check-ins                                    |
-| `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Fazer check-in                                        |
-| `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validar check-in                                      |
-| `POST`  | `/users/send-verification`       | Bearer         | –       | Enviar e-mail de verificação (link + OTP)             |
-| `GET`   | `/users/verify-email`            | –              | –       | Verificar e-mail via link token (`?token=`)           |
-| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verificar e-mail via código OTP                       |
-| `GET`   | `/users/confirm-email-change`    | –              | –       | Confirmar troca de e-mail via link token (`?token=`)  |
-| `POST`  | `/users/resend-verification`     | Bearer         | –       | Reenviar e-mail de verificação                        |
-| `POST`  | `/users/forgot-password`         | –              | –       | Solicitar reset; sempre `202` (rate limit)            |
-| `POST`  | `/users/reset-password`          | –              | –       | Resetar via link token ou email + OTP (rate limit)    |
-| `GET`   | `/users`                         | Bearer         | `ADMIN` | Listar usuários (paginado, 20/página)                 |
-| `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Editar usuário (username/email/role/is_verified)      |
+| Método  | Rota                             | Auth           | Papel   | Descrição                                               |
+| ------- | -------------------------------- | -------------- | ------- | ------------------------------------------------------- |
+| `GET`   | `/hello`                         | –              | –       | Healthcheck                                             |
+| `POST`  | `/users`                         | –              | –       | Cadastrar usuário (com rate limit)                      |
+| `POST`  | `/auth/login`                    | –              | –       | Login → access token + cookie de refresh (rate limit)   |
+| `PATCH` | `/auth/refresh`                  | refresh cookie | –       | Rotacionar o access token                               |
+| `GET`   | `/auth/me`                       | Bearer         | –       | Perfil do usuário autenticado                           |
+| `POST`  | `/auth/logout`                   | Bearer         | –       | Revogar o token atual (denylist)                        |
+| `PATCH` | `/auth/me`                       | Bearer         | –       | Editar o próprio username                               |
+| `POST`  | `/auth/me/email`                 | Bearer         | –       | Solicitar troca do próprio e-mail (confirma no novo)    |
+| `POST`  | `/auth/me/email/confirm`         | Bearer         | –       | Confirmar troca do próprio e-mail via OTP               |
+| `GET`   | `/gyms/search`                   | Bearer         | –       | Buscar academias por nome                               |
+| `GET`   | `/gyms/nearby`                   | Bearer         | –       | Academias próximas a uma coordenada                     |
+| `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Cadastrar academia                                      |
+| `PATCH` | `/gyms/:gymId`                   | Bearer         | `ADMIN` | Editar academia (título/descrição/telefone)             |
+| `GET`   | `/check-ins/history`             | Bearer         | –       | Histórico de check-ins paginado                         |
+| `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total de check-ins                                      |
+| `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Fazer check-in (`400` longe demais · `409` já fez hoje) |
+| `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validar check-in (`409` fora da janela de 20 min)       |
+| `POST`  | `/users/send-verification`       | Bearer         | –       | Enviar e-mail de verificação (link + OTP)               |
+| `GET`   | `/users/verify-email`            | –              | –       | Verificar e-mail via link token (`?token=`)             |
+| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verificar e-mail via código OTP                         |
+| `GET`   | `/users/confirm-email-change`    | –              | –       | Confirmar troca de e-mail via link token (`?token=`)    |
+| `POST`  | `/users/resend-verification`     | Bearer         | –       | Reenviar e-mail de verificação                          |
+| `POST`  | `/users/forgot-password`         | –              | –       | Solicitar reset; sempre `202` (rate limit)              |
+| `POST`  | `/users/reset-password`          | –              | –       | Resetar via link token ou email + OTP (rate limit)      |
+| `GET`   | `/users`                         | Bearer         | `ADMIN` | Listar usuários (paginado, 20/página)                   |
+| `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Editar usuário (username/email/role/is_verified)        |
 
 > O JWT carrega um claim `role`, mas a **autorização lê o papel do banco** (por
 > id do usuário), não do token. Promover ou rebaixar passa a valer já na próxima

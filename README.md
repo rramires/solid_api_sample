@@ -120,34 +120,34 @@ boot if any variable is invalid (Zod validation in `src/env`).
 
 ## API routes
 
-| Method  | Route                            | Auth           | Role    | Description                                          |
-| ------- | -------------------------------- | -------------- | ------- | ---------------------------------------------------- |
-| `GET`   | `/hello`                         | –              | –       | Healthcheck                                          |
-| `POST`  | `/users`                         | –              | –       | Register a user (rate-limited)                       |
-| `POST`  | `/auth/login`                    | –              | –       | Login → access token + refresh cookie (rate-limited) |
-| `PATCH` | `/auth/refresh`                  | refresh cookie | –       | Rotate the access token                              |
-| `GET`   | `/auth/me`                       | Bearer         | –       | Authenticated user profile                           |
-| `POST`  | `/auth/logout`                   | Bearer         | –       | Revoke the current token (denylist)                  |
-| `PATCH` | `/auth/me`                       | Bearer         | –       | Edit own username                                    |
-| `POST`  | `/auth/me/email`                 | Bearer         | –       | Request own email change (confirmation to new email) |
-| `POST`  | `/auth/me/email/confirm`         | Bearer         | –       | Confirm own email change via OTP                     |
-| `GET`   | `/gyms/search`                   | Bearer         | –       | Search gyms by title                                 |
-| `GET`   | `/gyms/nearby`                   | Bearer         | –       | Gyms near a coordinate                               |
-| `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Create a gym                                         |
-| `PATCH` | `/gyms/:gymId`                   | Bearer         | `ADMIN` | Edit a gym (title/description/phone)                 |
-| `GET`   | `/check-ins/history`             | Bearer         | –       | Paginated check-in history                           |
-| `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total check-ins count                                |
-| `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Create a check-in                                    |
-| `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validate a check-in                                  |
-| `POST`  | `/users/send-verification`       | Bearer         | –       | Send verification email (link + OTP)                 |
-| `GET`   | `/users/verify-email`            | –              | –       | Verify email via link token (`?token=`)              |
-| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verify email via OTP code                            |
-| `GET`   | `/users/confirm-email-change`    | –              | –       | Confirm an email change via link token (`?token=`)   |
-| `POST`  | `/users/resend-verification`     | Bearer         | –       | Resend verification email                            |
-| `POST`  | `/users/forgot-password`         | –              | –       | Request a reset; always `202` (rate-limited)         |
-| `POST`  | `/users/reset-password`          | –              | –       | Reset via link token or email + OTP (rate-limited)   |
-| `GET`   | `/users`                         | Bearer         | `ADMIN` | List users (paginated, 20/page)                      |
-| `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Edit a user (username/email/role/is_verified)        |
+| Method  | Route                            | Auth           | Role    | Description                                                        |
+| ------- | -------------------------------- | -------------- | ------- | ------------------------------------------------------------------ |
+| `GET`   | `/hello`                         | –              | –       | Healthcheck                                                        |
+| `POST`  | `/users`                         | –              | –       | Register a user (rate-limited)                                     |
+| `POST`  | `/auth/login`                    | –              | –       | Login → access token + refresh cookie (rate-limited)               |
+| `PATCH` | `/auth/refresh`                  | refresh cookie | –       | Rotate the access token                                            |
+| `GET`   | `/auth/me`                       | Bearer         | –       | Authenticated user profile                                         |
+| `POST`  | `/auth/logout`                   | Bearer         | –       | Revoke the current token (denylist)                                |
+| `PATCH` | `/auth/me`                       | Bearer         | –       | Edit own username                                                  |
+| `POST`  | `/auth/me/email`                 | Bearer         | –       | Request own email change (confirmation to new email)               |
+| `POST`  | `/auth/me/email/confirm`         | Bearer         | –       | Confirm own email change via OTP                                   |
+| `GET`   | `/gyms/search`                   | Bearer         | –       | Search gyms by title                                               |
+| `GET`   | `/gyms/nearby`                   | Bearer         | –       | Gyms near a coordinate                                             |
+| `POST`  | `/gyms`                          | Bearer         | `ADMIN` | Create a gym                                                       |
+| `PATCH` | `/gyms/:gymId`                   | Bearer         | `ADMIN` | Edit a gym (title/description/phone)                               |
+| `GET`   | `/check-ins/history`             | Bearer         | –       | Paginated check-in history                                         |
+| `GET`   | `/check-ins/metrics`             | Bearer         | –       | Total check-ins count                                              |
+| `POST`  | `/gyms/:gymId/check-ins`         | Bearer         | –       | Create a check-in (`400` too far · `409` already checked in today) |
+| `PATCH` | `/check-ins/:checkInId/validate` | Bearer         | `ADMIN` | Validate a check-in (`409` past the 20-min window)                 |
+| `POST`  | `/users/send-verification`       | Bearer         | –       | Send verification email (link + OTP)                               |
+| `GET`   | `/users/verify-email`            | –              | –       | Verify email via link token (`?token=`)                            |
+| `POST`  | `/users/verify-email/otp`        | Bearer         | –       | Verify email via OTP code                                          |
+| `GET`   | `/users/confirm-email-change`    | –              | –       | Confirm an email change via link token (`?token=`)                 |
+| `POST`  | `/users/resend-verification`     | Bearer         | –       | Resend verification email                                          |
+| `POST`  | `/users/forgot-password`         | –              | –       | Request a reset; always `202` (rate-limited)                       |
+| `POST`  | `/users/reset-password`          | –              | –       | Reset via link token or email + OTP (rate-limited)                 |
+| `GET`   | `/users`                         | Bearer         | `ADMIN` | List users (paginated, 20/page)                                    |
+| `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Edit a user (username/email/role/is_verified)                      |
 
 > The JWT carries a `role` claim, but **authorization reads the role from the
 > database** (by user id), not from the token. A promotion or demotion takes

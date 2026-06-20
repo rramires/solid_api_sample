@@ -207,6 +207,13 @@ Exemplo: **`POST /auth/login`** (login) e **`POST /gyms/:gymId/check-ins`** (rot
     - Já existe check-in **no mesmo dia**? então `MaxCheckInsReachedError`.
     - Caso ok → cria o check-in.
 5. Resposta `201` com o check-in criado.
+6. **Erros** — mapeados nos controllers via `instanceof` (o padrão da casa, como
+   `ResourceNotFoundError`/`UserAlreadyExistsError` nos demais), então esses
+   resultados de negócio esperados retornam `4xx` e **nunca** caem no `500`
+   global: `ResourceNotFoundError` → `404`, `MaxDistanceError` → `400`,
+   `MaxCheckInsReachedError` → `409`. Validar um check-in após a janela de
+   **20 minutos** (`validate-controller.ts`) → `LateCheckInValidationError` →
+   `409`. Cada resposta carrega a `message` do erro.
 
 ### 4.4 Regras de validação (entrada)
 
