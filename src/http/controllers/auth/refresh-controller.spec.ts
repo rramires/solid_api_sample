@@ -2,6 +2,8 @@ import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '@/app'
+import { prisma } from '@/lib/prisma'
+import { Role } from '@/prisma-client/enums'
 
 const user = {
 	username: 'johndoe',
@@ -77,5 +79,40 @@ describe('Refresh Token (e2e)', () => {
 			.set('Cookie', oldCookies)
 			.send()
 		expect(reuse.status).toEqual(401)
+	})
+
+	it('signs the current DB role on refresh, not the stale token claim', async () => {
+		const email = 'refresh-role@example.com'
+		const reg = await request(app.server)
+			.post('/users')
+			.send({ ...user, username: 'refreshrole', email })
+		const userId = reg.body.user.id
+
+		const authResponse = await request(app.server)
+			.post('/auth/login')
+			.send({ identifier: email, password: user.password })
+		const cookies = authResponse.get('Set-Cookie') || []
+
+		// Promote in the DB AFTER the refresh token (claiming MEMBER) was issued.
+		await prisma.user.update({
+			where: { id: userId },
+			data: { role: Role.ADMIN },
+		})
+
+		const response = await request(app.server)
+			.patch('/auth/refresh')
+			.set('Cookie', cookies)
+			.send()
+		expect(response.status).toEqual(200)
+
+		// The rotated access token must carry the fresh DB role (ADMIN), not the
+		// stale MEMBER claim copied from the presented refresh token.
+		const payload = JSON.parse(
+			Buffer.from(
+				response.body.token.split('.')[1],
+				'base64url',
+			).toString(),
+		)
+		expect(payload.role).toEqual(Role.ADMIN)
 	})
 })

@@ -3,6 +3,9 @@ import { randomUUID } from 'node:crypto'
 import { FastifyReply, FastifyRequest } from 'fastify'
 
 import { tokenDenylist } from '@/lib/token-denylist'
+import { Role } from '@/prisma-client/enums'
+import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
+import { makeGetUserProfileUseCase } from '@/use-cases/factories/make-get-user-profile-use-case'
 
 export async function refreshController(
 	request: FastifyRequest,
@@ -22,7 +25,23 @@ export async function refreshController(
 		new Date(request.user.exp * 1000),
 	)
 
-	const { role } = request.user
+	// Re-read the role from the DB (not the stale refresh-token claim) so the
+	// rotated tokens carry the user's current role — consistent with login and
+	// with verifyUserRole's DB-backed authorization. The claim is never trusted
+	// for access control, but keeping it fresh avoids a stale lie in the token.
+	let role: Role
+	try {
+		const { user } = await makeGetUserProfileUseCase().execute({
+			userId: request.user.sub,
+		})
+		role = user.role
+	} catch (err) {
+		if (err instanceof ResourceNotFoundError) {
+			// Valid refresh cookie but the user no longer exists: force re-auth.
+			return reply.status(401).send({ message: 'Unauthorized.' })
+		}
+		throw err
+	}
 
 	// JWT
 	const token = await reply.jwtSign(
