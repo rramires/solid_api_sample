@@ -24,7 +24,8 @@ layer, CI/CD and operational concerns) see:
   interfaces with both Prisma and in-memory implementations.
 - **JWT auth with refresh tokens** — short-lived access token plus an
   httpOnly refresh cookie.
-- **RBAC** — `MEMBER` / `ADMIN` roles enforced per route.
+- **RBAC** — `MEMBER` / `ADMIN` roles enforced per route; the role is read from
+  the database at check time, never trusted from the JWT claim.
 - **Token revocation & rotation** — logout revokes both the access and the
   refresh token; refresh tokens are single-use (rotated on every refresh) via a
   hybrid (in-memory + database) `jti` denylist.
@@ -148,9 +149,10 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `GET`   | `/users`                         | Bearer         | `ADMIN` | List users (paginated, 20/page)                      |
 | `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Edit a user (username/email/role/is_verified)        |
 
-> The `role` (`MEMBER` \| `ADMIN`) is embedded in the JWT at login time.
-> Promoting a user does **not** affect tokens already issued — a new login is
-> required to obtain a token carrying the new role.
+> The JWT carries a `role` claim, but **authorization reads the role from the
+> database** (by user id), not from the token. A promotion or demotion takes
+> effect on the very next request — no re-login needed. `GET /auth/me` likewise
+> returns the `role` read fresh from the DB.
 
 ### Example responses
 

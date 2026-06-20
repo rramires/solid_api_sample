@@ -279,8 +279,11 @@ de gym (opcional; `^\+?[\d\s().-]{7,20}$`), `query` de busca
 ### 5.2 Autorização (o que o usuário pode fazer) — RBAC
 
 - Papéis no enum `Role`: `MEMBER` (padrão) e `ADMIN`.
-- `verifyUserRole(role)` é um _middleware factory_ que compara `request.user.role`
-  com o papel exigido. Usado nas rotas administrativas.
+- `verifyUserRole(role)` é um _middleware factory_ que lê o **papel do banco**
+  (por `request.user.sub`, via o mesmo use-case do `GET /auth/me`) e compara com o
+  papel exigido — o claim `role` assinado nunca é confiado para autorização, então
+  um rebaixamento passa a valer na próxima requisição. Usado nas rotas
+  administrativas; roda depois do `verifyJwtMiddleware`.
 - **Por que `403` e não `401`:** o usuário está **autenticado** (token válido), mas
   **sem permissão** → `403 Forbidden`. O `401 Unauthorized` fica reservado para
   falha de **autenticação** (token ausente/inválido/revogado). Misturar os dois
@@ -537,7 +540,7 @@ Os tamanhos de coluna são fixados com Prisma `@db.VarChar(n)` para casar com o
 
 Tudo que muda entre ambientes é **env validado no boot** (`src/env/index.ts`); o
 app **não sobe** com config inválida. Variáveis: `NODE_ENV`, `PORT`, `JWT_SECRET`
-(≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `PASSWORD_PATTERN`,
+(≥20), `DATABASE_URL`, `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`, `PASSWORD_PATTERN`,
 `MIN_TEXT_LENGTH` (piso 3),
 `BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`, `MAX_EVENT_LOOP_DELAY`,
 `MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCKOUT_MINUTES`, `APP_URL`,

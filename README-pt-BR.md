@@ -24,7 +24,8 @@ de segurança, camada de dados, CI/CD e observabilidade) consulte:
   repositório com implementações Prisma e in-memory.
 - **Autenticação JWT com refresh tokens** — access token de curta duração mais
   um cookie httpOnly de refresh.
-- **RBAC** — papéis `MEMBER` / `ADMIN` aplicados por rota.
+- **RBAC** — papéis `MEMBER` / `ADMIN` aplicados por rota; o papel é lido do
+  banco na checagem, nunca confiado do claim JWT.
 - **Revogação e rotação de token** — logout revoga tanto o access quanto o
   refresh token; refresh tokens são de uso único (rotacionados a cada refresh)
   via denylist híbrida (memória + banco) por `jti`.
@@ -149,9 +150,10 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `GET`   | `/users`                         | Bearer         | `ADMIN` | Listar usuários (paginado, 20/página)                 |
 | `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Editar usuário (username/email/role/is_verified)      |
 
-> O `role` (`MEMBER` \| `ADMIN`) é incorporado ao JWT no momento do login.
-> Promover um usuário **não** afeta tokens já emitidos — é necessário um novo
-> login para obter um token com o novo papel.
+> O JWT carrega um claim `role`, mas a **autorização lê o papel do banco** (por
+> id do usuário), não do token. Promover ou rebaixar passa a valer já na próxima
+> requisição — sem novo login. O `GET /auth/me` também retorna o `role` lido
+> fresh do banco.
 
 ### Exemplos de resposta
 

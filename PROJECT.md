@@ -278,8 +278,11 @@ mirror the `@db.VarChar(n)` column lengths (see §6.3).
 ### 5.2 Authorization (what the user can do) — RBAC
 
 - Roles in the `Role` enum: `MEMBER` (default) and `ADMIN`.
-- `verifyUserRole(role)` is a _middleware factory_ that compares `request.user.role`
-  with the required role. Used on administrative routes.
+- `verifyUserRole(role)` is a _middleware factory_ that reads the authenticated
+  user's **role from the database** (by `request.user.sub`, via the same use-case
+  as `GET /auth/me`) and compares it with the required role — the signed `role`
+  claim is never trusted for access control, so a demotion takes effect on the
+  next request. Used on administrative routes; runs after `verifyJwtMiddleware`.
 - **Why `403` and not `401`:** the user is **authenticated** (valid token), but
   **has no permission** → `403 Forbidden`. `401 Unauthorized` is reserved for
   **authentication** failures (missing/invalid/revoked token). Mixing them masks
@@ -545,7 +548,7 @@ Column lengths are pinned via Prisma `@db.VarChar(n)` so each matches its Zod
 
 Everything that changes between environments is an **env var validated on boot**
 (`src/env/index.ts`); the app **does not start** with invalid config. Variables:
-`NODE_ENV`, `PORT`, `JWT_SECRET` (≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`,
+`NODE_ENV`, `PORT`, `JWT_SECRET` (≥20), `DATABASE_URL`, `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`,
 `PASSWORD_PATTERN`, `MIN_TEXT_LENGTH` (floor 3), `BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`,
 `MAX_EVENT_LOOP_DELAY`, `MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`,
 `LOGIN_LOCKOUT_MINUTES`, `APP_URL`, `VERIFICATION_EXPIRES_HOURS`, `RESET_EXPIRES_MINUTES`,
