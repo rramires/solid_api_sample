@@ -396,6 +396,14 @@ matriz de acesso por rota e um smoke test com a flag ligada estão no README
       `is_verified:true` na mesma request é `400` (contradição).
     - Qualquer um dos caminhos invalida a entrada do usuário no verified-cache (§5.1)
       para o gate reler o banco.
+    - _Trade-off conhecido (enumeração):_ o pedido self retorna `409` quando o novo
+      endereço já pertence a uma conta — um oráculo de enumeração **autenticado** (quem
+      está logado consegue sondar se um e-mail existe; o caminho `409` não manda e-mail
+      nem sofre cooldown, só vale o limite global de 100/min). Mantido de propósito sobre
+      a alternativa anti-enumeração (sempre `204`, adiando a unicidade pro confirm) pela
+      UX imediata de "endereço já em uso"; o oráculo é fraco (autenticado, rate-limited,
+      rastreável). As superfícies não autenticadas (`forgot-password`, login) seguem
+      estritamente anti-enumeração.
 - **`@fastify/under-pressure`**: monitora lag do event loop e uso de heap; retorna
   `503 Service Unavailable` automaticamente quando os limiares são excedidos —
   circuit breaker contra DoS por queries lentas.

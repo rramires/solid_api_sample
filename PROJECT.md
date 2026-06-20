@@ -403,6 +403,14 @@ the README (_Email verification gate_).
       and `is_verified:true` in the same request is a `400` (contradiction).
     - Either path drops the user's entry from the verified-cache (§5.1) so the gate
       re-reads the DB.
+    - _Known trade-off (enumeration):_ the self request returns `409` when the new
+      address already belongs to an account — an **authenticated** user-enumeration
+      oracle (a logged-in caller can probe whether an email is registered; the `409`
+      path sends no mail and isn't cooldown-throttled, only the global 100/min limit
+      applies). Kept deliberately over the anti-enumeration alternative (always `204`,
+      deferring uniqueness to confirm time) for the immediate "address in use" UX
+      feedback; the oracle is weak (authenticated, rate-limited, traceable). The
+      unauthenticated surfaces (`forgot-password`, login) stay strictly anti-enumeration.
 - **`@fastify/under-pressure`**: monitors event-loop lag and heap size; returns
   `503 Service Unavailable` automatically when thresholds are exceeded — circuit
   breaker against slow-query DoS.
