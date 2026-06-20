@@ -5,7 +5,7 @@ import { env } from '@/env'
 import { PrismaClient } from '../prisma-client'
 
 function createAdapter() {
-	const url = new URL(process.env.DATABASE_URL!)
+	const url = new URL(env.DATABASE_URL)
 	return new PrismaMariaDb({
 		host: url.hostname,
 		port: Number(url.port) || 3306,

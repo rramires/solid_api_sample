@@ -6,6 +6,8 @@ const envSchema = z.object({
 	NODE_ENV: z.enum(['development', 'test', 'production']),
 	PORT: z.coerce.number().default(3333),
 	JWT_SECRET: z.string().min(20, 'Minimum 20 characters'),
+	// MySQL connection string consumed by the Prisma adapter (src/lib/prisma.ts).
+	DATABASE_URL: z.url('Must be a valid connection URL'),
 	CORS_ORIGIN: z.string().optional(),
 	PASSWORD_MIN_LENGTH: z.coerce.number().int().min(8).max(72).default(8),
 	// Password complexity regex (length comes from PASSWORD_MIN_LENGTH above).
