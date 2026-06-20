@@ -380,6 +380,21 @@ CHECKIN_ID=$(curl -s -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: ap
   python3 -c "import sys,json; print(json.load(sys.stdin)['checkIn']['id'])") && \
 echo "Check-in id: $CHECKIN_ID"
 
+# 10c-i. Second check-in the same day -> expected 409 (one check-in per day)
+echo -e "\n=== 10c-i. POST /gyms/:gymId/check-ins again (expected 409) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"latitude":-25.4677004,"longitude":-49.304584}'
+
+# 10c-ii. Check-in ~10 km away -> expected 400 (distance is checked before the
+#         per-day rule, so it is 400 even after today's check-in exists)
+echo -e "\n=== 10c-ii. POST /gyms/:gymId/check-ins too far (expected 400) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"latitude":-25.4349676,"longitude":-49.1669678}'
+
 # 10d. Check-in history (paginated) + total metrics
 echo -e "\n=== 10d. GET /check-ins/history + /check-ins/metrics ===" && \
 curl -s "$BASE/check-ins/history?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool && \
@@ -389,6 +404,10 @@ curl -s "$BASE/check-ins/metrics" -H "Authorization: Bearer $ADMIN_TOKEN" | pyth
 echo -e "\n=== 10e. PATCH /check-ins/:checkInId/validate (ADMIN) ===" && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
   -X PATCH "$BASE/check-ins/$CHECKIN_ID/validate" -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# 10e-i. Validating after the 20-minute window -> 409 (LateCheckInValidationError).
+#        Not a live curl here — it needs the check-in's created_at aged past 20 min;
+#        covered by the e2e suite (check-ins/validate-controller.spec.ts).
 
 # 11. Password reset: request a reset (always 202, even for unknown emails),
 #     then copy the token printed to the server log and reset the password.

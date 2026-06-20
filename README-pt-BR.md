@@ -383,6 +383,21 @@ CHECKIN_ID=$(curl -s -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: ap
   python3 -c "import sys,json; print(json.load(sys.stdin)['checkIn']['id'])") && \
 echo "Check-in id: $CHECKIN_ID"
 
+# 10c-i. Segundo check-in no mesmo dia -> esperado 409 (um check-in por dia)
+echo -e "\n=== 10c-i. POST /gyms/:gymId/check-ins de novo (esperado 409) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"latitude":-25.4677004,"longitude":-49.304584}'
+
+# 10c-ii. Check-in a ~10 km -> esperado 400 (a distância é checada antes da regra
+#         por dia, então é 400 mesmo já existindo o check-in de hoje)
+echo -e "\n=== 10c-ii. POST /gyms/:gymId/check-ins longe demais (esperado 400) ===" && \
+curl -s -o /dev/null -w "status: %{http_code}\n" \
+  -X POST "$BASE/gyms/$GYM_ID/check-ins" -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -d '{"latitude":-25.4349676,"longitude":-49.1669678}'
+
 # 10d. Histórico de check-ins (paginado) + total de métricas
 echo -e "\n=== 10d. GET /check-ins/history + /check-ins/metrics ===" && \
 curl -s "$BASE/check-ins/history?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool && \
@@ -392,6 +407,11 @@ curl -s "$BASE/check-ins/metrics" -H "Authorization: Bearer $ADMIN_TOKEN" | pyth
 echo -e "\n=== 10e. PATCH /check-ins/:checkInId/validate (ADMIN) ===" && \
 curl -s -o /dev/null -w "status: %{http_code}\n" \
   -X PATCH "$BASE/check-ins/$CHECKIN_ID/validate" -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# 10e-i. Validar após a janela de 20 minutos -> 409 (LateCheckInValidationError).
+#        Não vai como curl ao vivo aqui — precisa do created_at do check-in
+#        envelhecido além dos 20 min; coberto pela suíte e2e
+#        (check-ins/validate-controller.spec.ts).
 
 # 11. Redefinição de senha: solicite um reset (sempre 202, mesmo para emails
 #     desconhecidos), copie o token impresso no log do servidor e redefina.
