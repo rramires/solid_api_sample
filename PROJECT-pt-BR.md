@@ -98,7 +98,7 @@ src/
 │   │   └── health/          # healthcheck (/hello)
 │   ├── middlewares/
 │   │   ├── verify-jwt-middleware.ts   # autenticação + checagem na denylist
-│   │   ├── verify-user-role.ts        # autorização (RBAC; 403 se papel errado)
+│   │   ├── verify-user-role.ts        # autorização (RBAC; lê papel do DB; 403 se papel errado)
 │   │   ├── verify-email-verified.ts   # bloqueia não verificados (REQUIRE_EMAIL_VERIFICATION)
 │   │   └── rate-limit.ts              # limite estrito p/ rotas de auth
 │   └── schemas/
