@@ -548,7 +548,7 @@ Everything that changes between environments is an **env var validated on boot**
 `NODE_ENV`, `PORT`, `JWT_SECRET` (≥20), `CORS_ORIGIN`, `PASSWORD_MIN_LENGTH`,
 `PASSWORD_PATTERN`, `MIN_TEXT_LENGTH` (floor 3), `BODY_LIMIT`, `LOG_LEVEL`, `TRUST_PROXY`,
 `MAX_EVENT_LOOP_DELAY`, `MAX_HEAP_USED_BYTES`, `LOGIN_MAX_ATTEMPTS`,
-`LOGIN_LOCKOUT_MINUTES`, `APP_URL`, `VERIFICATION_EXPIRES_HOURS`,
+`LOGIN_LOCKOUT_MINUTES`, `APP_URL`, `VERIFICATION_EXPIRES_HOURS`, `RESET_EXPIRES_MINUTES`,
 `REQUIRE_EMAIL_VERIFICATION`,
 `ADMIN_USERNAME`/`ADMIN_EMAIL`/`ADMIN_PASSWORD`. **Every new env var must also be
 added to `.env.example`** (with a comment explaining format/example).

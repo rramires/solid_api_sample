@@ -70,19 +70,22 @@ pnpm dev              # start dev server
 
 ## Scripts
 
-| Command         | Description                      |
-| --------------- | -------------------------------- |
-| `pnpm dev`      | Start dev server with hot-reload |
-| `pnpm build`    | Production build (tsup)          |
-| `pnpm start`    | Run production build             |
-| `pnpm migrate`  | Run/create Prisma migrations     |
-| `pnpm seeddb`   | Seed the ADMIN user (idempotent) |
-| `pnpm test`     | Unit tests                       |
-| `pnpm test:e2e` | E2E tests (requires MySQL)       |
-| `pnpm lint`     | Run ESLint                       |
-| `pnpm lint:fix` | Fix lint errors                  |
-| `pnpm compile`  | TypeScript type-check            |
-| `pnpm showdb`   | Open Prisma Studio (port 5555)   |
+| Command         | Description                                                        |
+| --------------- | ------------------------------------------------------------------ |
+| `pnpm dev`      | Start dev server with hot-reload                                   |
+| `pnpm build`    | Production build (tsup)                                            |
+| `pnpm start`    | Run production build                                               |
+| `pnpm migrate`  | Run/create Prisma migrations                                       |
+| `pnpm seeddb`   | Seed the ADMIN user (idempotent)                                   |
+| `pnpm db:fresh` | Wipe + recreate the dev DB (compose down/up, migrate deploy, seed) |
+| `pnpm test`     | Unit tests                                                         |
+| `pnpm test:e2e` | E2E tests (requires MySQL)                                         |
+| `pnpm lint`     | Run ESLint                                                         |
+| `pnpm lint:fix` | Fix lint errors                                                    |
+| `pnpm compile`  | TypeScript type-check                                              |
+| `pnpm showdb`   | Open Prisma Studio (port 5555)                                     |
+| `pnpm format`   | Format `src` with Prettier (write)                                 |
+| `pnpm killapp`  | Free dev ports 3333/5555 + stop the server                         |
 
 ## Environment variables
 

@@ -70,19 +70,22 @@ pnpm dev              # inicia o servidor em modo dev
 
 ## Scripts
 
-| Comando         | Descrição                            |
-| --------------- | ------------------------------------ |
-| `pnpm dev`      | Inicia o servidor dev com hot-reload |
-| `pnpm build`    | Build de produção (tsup)             |
-| `pnpm start`    | Executa o build de produção          |
-| `pnpm migrate`  | Cria/executa migrations do Prisma    |
-| `pnpm seeddb`   | Cria o usuário ADMIN (idempotente)   |
-| `pnpm test`     | Testes unitários                     |
-| `pnpm test:e2e` | Testes e2e (requer MySQL)            |
-| `pnpm lint`     | Executa o ESLint                     |
-| `pnpm lint:fix` | Corrige erros de lint                |
-| `pnpm compile`  | Type-check do TypeScript             |
-| `pnpm showdb`   | Abre o Prisma Studio (porta 5555)    |
+| Comando         | Descrição                                                         |
+| --------------- | ----------------------------------------------------------------- |
+| `pnpm dev`      | Inicia o servidor dev com hot-reload                              |
+| `pnpm build`    | Build de produção (tsup)                                          |
+| `pnpm start`    | Executa o build de produção                                       |
+| `pnpm migrate`  | Cria/executa migrations do Prisma                                 |
+| `pnpm seeddb`   | Cria o usuário ADMIN (idempotente)                                |
+| `pnpm db:fresh` | Zera + recria o banco dev (compose down/up, migrate deploy, seed) |
+| `pnpm test`     | Testes unitários                                                  |
+| `pnpm test:e2e` | Testes e2e (requer MySQL)                                         |
+| `pnpm lint`     | Executa o ESLint                                                  |
+| `pnpm lint:fix` | Corrige erros de lint                                             |
+| `pnpm compile`  | Type-check do TypeScript                                          |
+| `pnpm showdb`   | Abre o Prisma Studio (porta 5555)                                 |
+| `pnpm format`   | Formata `src` com Prettier (write)                                |
+| `pnpm killapp`  | Libera as portas 3333/5555 + encerra o servidor                   |
 
 ## Variáveis de ambiente
 
