@@ -423,7 +423,9 @@ the README (_Email verification gate_).
 - **Flow:** `POST /auth/logout` → `revoke(jti, exp)` → subsequent requests with that
   token are rejected (`401`) in `verifyJwtMiddleware`.
 - **Single-use refresh:** `PATCH /auth/refresh` also revokes the presented
-  refresh `jti` before issuing the new pair (rotation = consumption).
+  refresh `jti` before issuing the new pair (rotation = consumption). The rotated
+  tokens carry the `role` **re-read from the DB** (like login), so the claim never
+  drifts from the user's current role.
 - **Global logout (`password_changed_at`):** a sibling hybrid RAM+DB registry
   (`password-changed-registry.ts`) records each password change; tokens whose
   `iat` predates it are rejected in `verifyJwtMiddleware`. Same Redis-swap seam

@@ -416,7 +416,9 @@ matriz de acesso por rota e um smoke test com a flag ligada estão no README
 - **Fluxo:** `POST /auth/logout` → `revoke(jti, exp)` → requests seguintes com aquele
   token são rejeitadas (`401`) no `verifyJwtMiddleware`.
 - **Refresh de uso único:** `PATCH /auth/refresh` também revoga o `jti` de
-  refresh apresentado antes de emitir o novo par (rotação = consumo).
+  refresh apresentado antes de emitir o novo par (rotação = consumo). Os tokens
+  rotacionados levam o `role` **relido do banco** (igual ao login), então o claim
+  nunca diverge do papel atual do usuário.
 - **Logout global (`password_changed_at`):** um registro híbrido RAM+DB irmão
   (`password-changed-registry.ts`) grava cada troca de senha; tokens cujo `iat`
   é anterior são rejeitados no `verifyJwtMiddleware`. Mesmo seam de troca por
