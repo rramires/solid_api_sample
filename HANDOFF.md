@@ -1,6 +1,6 @@
 # HANDOFF — solid_api_sample
 
-_Atualizado: 2026-06-19 @ 5384feb (branch master) — feature `account-management` ENTREGUE._
+_Atualizado: 2026-06-20 @ bbde272 (branch master) — RBAC autorizado pelo banco ENTREGUE._
 
 ## Resume prompt (cole em qualquer sessão / modelo)
 
@@ -14,30 +14,21 @@ _Atualizado: 2026-06-19 @ 5384feb (branch master) — feature `account-managemen
 
 ## Estado atual
 
-- Branch / commit: `master` @ `5384feb` (2026-06-19); árvore limpa; **à frente do `origin`** (push pendente do usuário).
-- **Entregue** (mergeado FF + pushado; branch `feat/account-management` apagada): rotas de
-  gestão de conta + edição.
-    - `PATCH /gyms/:gymId` — admin edita academia (title/description/phone).
-    - `PATCH /auth/me` — self edita o próprio username.
-    - `GET /users` + `PATCH /users/:userId` — admin lista/edita usuários.
-    - `POST /auth/me/email` + `POST /auth/me/email/confirm` + `GET /users/confirm-email-change`
-      — self troca de e-mail (**pattern A**: confirma no novo, alerta no antigo; só troca após
-      confirmar). Admin trocar e-mail de alguém → `is_verified=false` + reset ao novo endereço.
-    - Migration `add_email_changes` (model `EmailChange`).
-    - Verificação: gate verde (unit 93 + e2e 53), coverage 88% linhas / 92% funcs, **smoke
-      manual de TODAS as rotas** (incl. nearby) passou em DB limpa. Docs nas 4 línguas
-      (README + PROJECT) atualizadas e auditadas (rotas/matriz/árvore/models coerentes).
-- **Dev tooling** (commits `acf8139` + `5384feb`): `pnpm db:fresh` (zera + recria o banco:
-  compose down/up `--wait` + migrate deploy + seed) · `pnpm killapp` (libera 3333/5555 + mata
-  server) · healthcheck no MySQL (compose). Seed renomeado: script `seed-adm-role` → **`seeddb`**,
-  arquivo `prisma/seed-adm-role.ts` → **`prisma/seed.ts`**.
+- Branch / commit: `master` @ `bbde272` (2026-06-20); árvore limpa; origin em dia (pushado).
+- **Entregue** (mergeado FF + pushado; branch `fix/rbac-role-from-db` apagada): autorização
+  RBAC pelo **banco**, não pelo claim do JWT.
+    - `verifyUserRole` lê o `role` do DB (por `request.user.sub`) → demote/promote vale no
+      próximo request; o claim assinado nunca é confiado p/ autorização.
+    - `refreshController` assina `role` **fresco do DB** (login e refresh consistentes).
+    - `DATABASE_URL` agora validado pelo Zod (`src/env/index.ts`); `prisma.ts` lê `env.DATABASE_URL`.
+    - Verificação: gate verde (**unit 93 + e2e 55**), **smoke manual 29/29** em DB limpa
+      (incl. a prova: token de member promovido cria gym → 201). Docs nas 4 línguas atualizadas.
+- **Trade-off documentado (aceito):** `POST /auth/me/email` retorna `409` p/ e-mail já
+  cadastrado = oráculo de enumeração **autenticado** (low); mantido por UX, documentado em PROJECT §5.4.
+- **Cópia p/ monorepo:** backend copiado p/ `~/_Dev/samples/monorepo_sample/api` (sem
+  `.git`/`node_modules`; com `.env`/`.env.example`/`prisma-client`; HANDOFF/AGENTS/CLAUDE
+  adaptados + memória destilada). O front virá em `monorepo_sample/web` numa entrega separada.
 - **Próximo passo:** nenhum pendente.
-
-## Threads abertas
-
-- **Front (outra sessão):** referência consolidada de rotas já entregue (todas, incl.
-  `/gyms/nearby` com geolocation do navegador). Backend em `613e324`.
-- **DB dev:** limpo + seedado (`admin@example.com`, `is_verified=true`).
 
 ## Como trabalhamos (regras)
 
@@ -49,5 +40,5 @@ Guardrails que NÃO podem falhar: **nunca push** (é do usuário) · **nunca com
 
 Harness memory (só Claude / mesma máquina):
 `~/.claude/projects/-home-user--Dev-samples-solid-api-sample/memory/`
-Cobre: smoke de rotas (rate-limit / parar server por porta), gate de format pré-commit,
-reset/migrate Prisma, idioma pt-BR, revisar docs+rotas no fim, **não usar AskUserQuestion**.
+Cobre: smoke de rotas (rate-limit / parar server por porta / zsh UUID), gate de format
+pré-commit, reset/migrate Prisma, idioma pt-BR, revisar docs+rotas no fim, **não usar AskUserQuestion**.
