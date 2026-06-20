@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
+import { LateCheckInValidationError } from '@/use-cases/errors/late-check-in-validation-error'
 import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
 import { makeValidateCheckInUseCase } from '@/use-cases/factories/make-validate-check-in-use-case'
 
@@ -25,6 +26,11 @@ export async function validateController(
 	} catch (err) {
 		if (err instanceof ResourceNotFoundError) {
 			return reply.status(404).send({ message: err.message })
+		}
+		// Expected business outcome (not a server fault): the 20-minute
+		// validation window has elapsed → 409.
+		if (err instanceof LateCheckInValidationError) {
+			return reply.status(409).send({ message: err.message })
 		}
 		throw err
 	}
