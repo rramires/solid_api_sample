@@ -1,6 +1,6 @@
 # HANDOFF — solid_api_sample
 
-_Atualizado: 2026-06-21 @ 888a502 (branch master) — GET /users/:userId + fix(env) ENTREGUE + sincronizado p/ monorepo/api._
+_Atualizado: 2026-06-21 @ a8af349 (branch master) — GET /users/:userId + fix(env) ENTREGUE + sincronizado p/ monorepo/api._
 
 ## Resume prompt (cole em qualquer sessão / modelo)
 
@@ -9,32 +9,33 @@ _Atualizado: 2026-06-21 @ 888a502 (branch master) — GET /users/:userId + fix(e
 > Confirme antes de qualquer ação irreversível. **Nunca dê push.** Pergunte UMA coisa por
 > vez (sem caixas), em pt-BR. Caveman mode on (terse; código/commits/segurança normais).
 >
-> **Sem trabalho em aberto** — última entrega mergeada em `master` (local, **3 commits à
-> frente do origin, aguardando push do usuário**). Aguarde a próxima tarefa.
+> **Sem trabalho em aberto.** ⚠️ `origin/master` está em `b9d7d50`; os commits da última
+> entrega (GET /users/:userId + fix(env) + refresh deste HANDOFF) estão **só locais —
+> push pendente do usuário**. Aguarde a próxima tarefa.
 
 ## Estado atual
 
-- Branch / commit: `master` @ `888a502` (2026-06-21); árvore limpa; **ahead 3 do origin
-  (NÃO pushado — push é do usuário)**.
+- Branch / commit: `master` @ `a8af349` (2026-06-21); árvore limpa.
+- **Push pendente:** `origin/master` @ `b9d7d50`; tudo desde então (feature GET /users +
+  fix env + este refresh) **NÃO pushado** — push é do usuário.
 - **Última entrega (GET /users/:userId — admin):** busca 1 usuário por id; `200 { user: PublicUser }`
   com serialização byte-idêntica ao item do `GET /users` (novo `findPublicById` no repo reusa
   `PUBLIC_USER_SELECT`; `password_hash` nunca lido do banco) · `404 "Resource not found."` ·
   `400 "Validation error."` (id não-uuid) · `403`/`401` do middleware. Camadas: repo →
   `GetUserUseCase` → factory → controller fino. Junto veio **`fix(env)`**: `REQUIRE_EMAIL_VERIFICATION`
-  era `z.coerce.boolean()` → `"false"` virava `true` (qualquer string não-vazia); trocado por
-  `z.enum(['true','false']).transform(...)`. Gate verde (**95 unit / 63 e2e**), **smoke 5/5** em
-  DB limpa. Docs 4 línguas (tabela de rotas + controller-map + RBAC + árvore §3 + smoke 13b).
-- **Entrega anterior (CORS preflight):** `methods` explícito no `@fastify/cors` (`app.ts`) —
-  o default `GET,HEAD,POST` bloqueava `PATCH`/`PUT`/`DELETE` no preflight do browser.
-- **Entrega anterior (check-ins 4xx):** 3 erros de domínio dos check-ins → **4xx** via `instanceof`
-  no controller (`MaxDistanceError`→`400`, `MaxCheckInsReachedError`→`409`, `LateCheckInValidationError`→`409`).
-- **Entrega anterior (RBAC + env):** autorização lê o **papel do banco**, não do claim do JWT.
+  era `z.coerce.boolean()` → `"false"` virava `true`; trocado por `z.enum(['true','false']).transform(...)`.
+  Gate verde (**95 unit / 63 e2e**), **smoke 5/5** em DB limpa. Docs 4 línguas (rotas + controller-map
+    - RBAC + árvore §3 + smoke 13b).
+- **Entrega anterior (CORS preflight):** `methods` explícito no `@fastify/cors` (`app.ts`) — o
+  default `GET,HEAD,POST` bloqueava `PATCH`/`PUT`/`DELETE` no preflight do browser.
+- **Entregas anteriores:** check-ins 4xx (3 erros de domínio → 4xx via `instanceof`) · RBAC lê
+  papel do **banco** (não do JWT).
 - **Trade-off documentado (aceito):** `POST /auth/me/email` → `409` p/ e-mail já cadastrado =
   oráculo de enumeração autenticado (low); mantido por UX (PROJECT §5.4).
-- **Cópia p/ monorepo:** `~/_Dev/samples/monorepo_sample/api` sincronizada @ `888a502` (código +
-  PROJECT/README). Lá `HANDOFF`/`CLAUDE`/`AGENTS` são versões próprias (contexto monorepo) — **não**
-  se sobrescrevem; só código+docs migram. O front virá em `monorepo_sample/web` (sessão separada).
-- **Próximo passo:** nenhum pendente (usuário ainda vai pushar os 3 commits).
+- **Cópia p/ monorepo:** `~/_Dev/samples/monorepo_sample/api` sincronizada @ `a8af349` (código +
+  PROJECT/README; parity verificada). Lá `HANDOFF`/`CLAUDE`/`AGENTS` são versões próprias —
+  **não** se sobrescrevem; só código+docs migram. Front virá em `monorepo_sample/web` (sessão separada).
+- **Próximo passo:** usuário **pushar** os commits locais; avisar o front pra dar pull.
 
 ## Como trabalhamos (regras)
 
