@@ -59,7 +59,13 @@ const envSchema = z.object({
 		.optional()
 		.default(24),
 	// When true, protected routes return 403 for unverified users.
-	REQUIRE_EMAIL_VERIFICATION: z.coerce.boolean().optional().default(false),
+	// Env values are strings; z.coerce.boolean() treats every non-empty string
+	// (including 'false') as true. Parse the two valid tokens explicitly so
+	// REQUIRE_EMAIL_VERIFICATION=false actually disables the gate.
+	REQUIRE_EMAIL_VERIFICATION: z
+		.enum(['true', 'false'])
+		.default('false')
+		.transform((value) => value === 'true'),
 	// Password-reset token/OTP validity in minutes (default: 60).
 	RESET_EXPIRES_MINUTES: z.coerce
 		.number()
