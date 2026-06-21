@@ -1,6 +1,6 @@
 # HANDOFF — solid_api_sample
 
-_Atualizado: 2026-06-21 @ 1e161d7 (branch master) — CORS preflight ENTREGUE + sincronizado p/ monorepo/api._
+_Atualizado: 2026-06-21 @ 888a502 (branch master) — GET /users/:userId + fix(env) ENTREGUE + sincronizado p/ monorepo/api._
 
 ## Resume prompt (cole em qualquer sessão / modelo)
 
@@ -9,32 +9,32 @@ _Atualizado: 2026-06-21 @ 1e161d7 (branch master) — CORS preflight ENTREGUE + 
 > Confirme antes de qualquer ação irreversível. **Nunca dê push.** Pergunte UMA coisa por
 > vez (sem caixas), em pt-BR. Caveman mode on (terse; código/commits/segurança normais).
 >
-> **Sem trabalho em aberto** — última entrega mergeada em `master` (local, **2 commits à
+> **Sem trabalho em aberto** — última entrega mergeada em `master` (local, **3 commits à
 > frente do origin, aguardando push do usuário**). Aguarde a próxima tarefa.
 
 ## Estado atual
 
-- Branch / commit: `master` @ `1e161d7` (2026-06-21); árvore limpa; **ahead 2 do origin
+- Branch / commit: `master` @ `888a502` (2026-06-21); árvore limpa; **ahead 3 do origin
   (NÃO pushado — push é do usuário)**.
-- **Última entrega (CORS preflight):** `@fastify/cors` registrava sem `methods` e caía no
-  default `GET,HEAD,POST` → browser abortava todo `PATCH`/`PUT`/`DELETE` no preflight
-  (server respondia OPTIONS 204; quem bloqueava era o browser). Quebrava `PATCH /check-ins/
-:id/validate` e `PATCH /auth/refresh`. Fix: `methods` explícito (`GET,HEAD,POST,PUT,PATCH,
-DELETE`) em `app.ts`. Gate verde (**93 unit / 59 e2e**, +1 e2e de preflight), **prova ao
-  vivo** (Allow-Methods com PATCH). Docs: PROJECT §segurança (EN+PT). Branch
-  `fix/cors-allow-methods` mergeada (FF) + apagada.
-- **Entrega anterior (check-ins 4xx):** os 3 erros de domínio dos check-ins retornam **4xx**
-  via `instanceof` no controller: `MaxDistanceError`→`400`, `MaxCheckInsReachedError`→`409`,
-  `LateCheckInValidationError`→`409`. Docs README smoke + PROJECT §4.3.
-- **Entrega anterior (RBAC + env):** autorização lê o **papel do banco**, não do claim do JWT
-  (`verifyUserRole` consulta o DB; demote/promote vale na hora) · refresh assina `role` fresco do
-  DB · `DATABASE_URL` validado pelo Zod.
+- **Última entrega (GET /users/:userId — admin):** busca 1 usuário por id; `200 { user: PublicUser }`
+  com serialização byte-idêntica ao item do `GET /users` (novo `findPublicById` no repo reusa
+  `PUBLIC_USER_SELECT`; `password_hash` nunca lido do banco) · `404 "Resource not found."` ·
+  `400 "Validation error."` (id não-uuid) · `403`/`401` do middleware. Camadas: repo →
+  `GetUserUseCase` → factory → controller fino. Junto veio **`fix(env)`**: `REQUIRE_EMAIL_VERIFICATION`
+  era `z.coerce.boolean()` → `"false"` virava `true` (qualquer string não-vazia); trocado por
+  `z.enum(['true','false']).transform(...)`. Gate verde (**95 unit / 63 e2e**), **smoke 5/5** em
+  DB limpa. Docs 4 línguas (tabela de rotas + controller-map + RBAC + árvore §3 + smoke 13b).
+- **Entrega anterior (CORS preflight):** `methods` explícito no `@fastify/cors` (`app.ts`) —
+  o default `GET,HEAD,POST` bloqueava `PATCH`/`PUT`/`DELETE` no preflight do browser.
+- **Entrega anterior (check-ins 4xx):** 3 erros de domínio dos check-ins → **4xx** via `instanceof`
+  no controller (`MaxDistanceError`→`400`, `MaxCheckInsReachedError`→`409`, `LateCheckInValidationError`→`409`).
+- **Entrega anterior (RBAC + env):** autorização lê o **papel do banco**, não do claim do JWT.
 - **Trade-off documentado (aceito):** `POST /auth/me/email` → `409` p/ e-mail já cadastrado =
   oráculo de enumeração autenticado (low); mantido por UX (PROJECT §5.4).
-- **Cópia p/ monorepo:** `~/_Dev/samples/monorepo_sample/api` sincronizada @ `1e161d7` (código +
+- **Cópia p/ monorepo:** `~/_Dev/samples/monorepo_sample/api` sincronizada @ `888a502` (código +
   PROJECT/README). Lá `HANDOFF`/`CLAUDE`/`AGENTS` são versões próprias (contexto monorepo) — **não**
-  se sobrescrevem com as daqui; só código+docs migram. O front virá em `monorepo_sample/web` (sessão separada).
-- **Próximo passo:** nenhum pendente (usuário ainda vai pushar os 2 commits).
+  se sobrescrevem; só código+docs migram. O front virá em `monorepo_sample/web` (sessão separada).
+- **Próximo passo:** nenhum pendente (usuário ainda vai pushar os 3 commits).
 
 ## Como trabalhamos (regras)
 
