@@ -26,6 +26,15 @@ export class PrismaUsersRepository implements IUsersRepository {
 		return user
 	}
 
+	async findPublicById(id: string) {
+		// Same projection as findMany: never selects password_hash.
+		const user = await prisma.user.findUnique({
+			where: { id },
+			select: PUBLIC_USER_SELECT,
+		})
+		return user
+	}
+
 	async findByEmail(email: string) {
 		const user = await prisma.user.findUnique({
 			where: {

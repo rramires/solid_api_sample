@@ -44,6 +44,23 @@ export class InMemoryUsersRepository implements IUsersRepository {
 		return user || null
 	}
 
+	async findPublicById(id: string): Promise<PublicUser | null> {
+		// Public projection — mirrors the prisma repository: never password_hash.
+		const user = this.items.find((item) => item.id === id)
+		if (!user) {
+			return null
+		}
+		return {
+			id: user.id,
+			username: user.username,
+			email: user.email,
+			role: user.role,
+			is_verified: user.is_verified,
+			created_at: user.created_at,
+			password_changed_at: user.password_changed_at,
+		}
+	}
+
 	async findByEmail(email: string): Promise<User | null> {
 		// find by email
 		const user = this.items.find((item) => item.email === email)

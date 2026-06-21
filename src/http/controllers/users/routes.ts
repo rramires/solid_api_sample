@@ -7,6 +7,7 @@ import { Role } from '@/prisma-client'
 
 import { confirmEmailChangeByLinkController } from './confirm-email-change-by-link-controller'
 import { forgotPasswordController } from './forgot-password-controller'
+import { getUserController } from './get-user-controller'
 import { listController } from './list-controller'
 import { registerController } from './register-controller'
 import { resendVerificationController } from './resend-verification-controller'
@@ -28,6 +29,13 @@ export async function usersRoutes(app: FastifyInstance) {
 		'/users',
 		{ onRequest: [verifyJwtMiddleware, verifyUserRole(Role.ADMIN)] },
 		listController,
+	)
+	// Admin-only — fetch a single user by id (PublicUser; never password_hash).
+	// 404 when the id does not exist. Backs the admin user-detail page.
+	app.get(
+		'/users/:userId',
+		{ onRequest: [verifyJwtMiddleware, verifyUserRole(Role.ADMIN)] },
+		getUserController,
 	)
 	// Admin-only — edit a user (username/email/role/is_verified). Changing the
 	// email unverifies the account and triggers a password reset to the new
