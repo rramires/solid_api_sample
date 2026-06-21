@@ -148,6 +148,7 @@ imediatamente** no boot se alguma variável for inválida (validação Zod em
 | `POST`  | `/users/forgot-password`         | –              | –       | Solicitar reset; sempre `202` (rate limit)              |
 | `POST`  | `/users/reset-password`          | –              | –       | Resetar via link token ou email + OTP (rate limit)      |
 | `GET`   | `/users`                         | Bearer         | `ADMIN` | Listar usuários (paginado, 20/página)                   |
+| `GET`   | `/users/:userId`                 | Bearer         | `ADMIN` | Buscar um usuário por id                                |
 | `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Editar usuário (username/email/role/is_verified)        |
 
 > O JWT carrega um claim `role`, mas a **autorização lê o papel do banco** (por
@@ -432,6 +433,10 @@ curl -s -X PATCH "$BASE/gyms/$GYM_ID" -H "Content-Type: application/json" \
 # 13. Admin lista usuários (GET /users) -> esperado 200
 echo -e "\n=== 13. GET /users (ADMIN - esperado 200) ===" && \
 curl -s "$BASE/users?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 13b. Admin busca um usuário por id (GET /users/:userId) -> esperado 200
+echo -e "\n=== 13b. GET /users/:userId (ADMIN - esperado 200) ===" && \
+curl -s "$BASE/users/$MEMBER_ID" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
 
 # 14. Editar o próprio username (PATCH /auth/me) -> esperado 200
 echo -e "\n=== 14. PATCH /auth/me (próprio - esperado 200) ===" && \

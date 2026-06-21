@@ -92,7 +92,7 @@ src/
 ├── http/
 │   ├── controllers/
 │   │   ├── auth/            # auth + self-service (login, logout, refresh, me, edit username, email change)
-│   │   ├── users/           # account routes (register, email verification, password reset, email-change confirm, admin list/edit)
+│   │   ├── users/           # account routes (register, email verification, password reset, email-change confirm, admin list/fetch/edit)
 │   │   ├── gyms/            # gym routes + controllers (create, edit, search, nearby)
 │   │   ├── check-ins/       # check-in routes + controllers
 │   │   └── health/          # healthcheck (/hello)
@@ -242,6 +242,7 @@ the source via this route → controller index:
 | `POST /auth/me/email/confirm`            | `src/http/controllers/auth/confirm-email-change-by-otp-controller.ts`   |
 | `GET /users/confirm-email-change`        | `src/http/controllers/users/confirm-email-change-by-link-controller.ts` |
 | `GET /users`                             | `src/http/controllers/users/list-controller.ts`                         |
+| `GET /users/:userId`                     | `src/http/controllers/users/get-user-controller.ts`                     |
 | `PATCH /users/:userId`                   | `src/http/controllers/users/update-controller.ts`                       |
 
 Notable shapes: `username` (3–`MIN_TEXT_LENGTH` floor … 30, `[a-zA-Z0-9_]`,
@@ -324,6 +325,7 @@ mirror the `@db.VarChar(n)` column lengths (see §6.3).
 | POST   | `/users/reset-password`          |     ❌     |       —       | reset via link token or email + OTP              |
 | GET    | `/users/confirm-email-change`    |     ❌     |       —       | confirm email change via link token (`?token=`)  |
 | GET    | `/users`                         |     ✅     |   **ADMIN**   | list users (paginated, 20/page)                  |
+| GET    | `/users/:userId`                 |     ✅     |   **ADMIN**   | fetch a single user by id (PublicUser)           |
 | PATCH  | `/users/:userId`                 |     ✅     |   **ADMIN**   | edit a user (username/email/role/is_verified)    |
 
 > Pattern to protect a group: `app.addHook('onRequest', verifyJwtMiddleware)`

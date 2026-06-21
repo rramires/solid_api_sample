@@ -92,7 +92,7 @@ src/
 ├── http/
 │   ├── controllers/
 │   │   ├── auth/            # auth + self-service (login, logout, refresh, me, editar username, troca de e-mail)
-│   │   ├── users/           # rotas de conta (cadastro, verificação de e-mail, reset de senha, confirmar troca de e-mail, listar/editar admin)
+│   │   ├── users/           # rotas de conta (cadastro, verificação de e-mail, reset de senha, confirmar troca de e-mail, listar/buscar/editar admin)
 │   │   ├── gyms/            # rotas + controllers de academias (criar, editar, buscar, nearby)
 │   │   ├── check-ins/       # rotas + controllers de check-ins
 │   │   └── health/          # healthcheck (/hello)
@@ -242,6 +242,7 @@ fonte via este índice rota → controller:
 | `POST /auth/me/email/confirm`            | `src/http/controllers/auth/confirm-email-change-by-otp-controller.ts`   |
 | `GET /users/confirm-email-change`        | `src/http/controllers/users/confirm-email-change-by-link-controller.ts` |
 | `GET /users`                             | `src/http/controllers/users/list-controller.ts`                         |
+| `GET /users/:userId`                     | `src/http/controllers/users/get-user-controller.ts`                     |
 | `PATCH /users/:userId`                   | `src/http/controllers/users/update-controller.ts`                       |
 
 Formatos notáveis: `username` (piso `MIN_TEXT_LENGTH` … 30, `[a-zA-Z0-9_]`,
@@ -325,6 +326,7 @@ de gym (opcional; `^\+?[\d\s().-]{7,20}$`), `query` de busca
 | POST   | `/users/reset-password`          |     ❌     |       —       | resetar via link token ou email + OTP            |
 | GET    | `/users/confirm-email-change`    |     ❌     |       —       | confirmar troca de e-mail via link (`?token=`)   |
 | GET    | `/users`                         |     ✅     |   **ADMIN**   | listar usuários (paginado, 20/página)            |
+| GET    | `/users/:userId`                 |     ✅     |   **ADMIN**   | buscar um usuário por id (PublicUser)            |
 | PATCH  | `/users/:userId`                 |     ✅     |   **ADMIN**   | editar usuário (username/email/role/is_verified) |
 
 > Padrão para proteger um grupo: `app.addHook('onRequest', verifyJwtMiddleware)`

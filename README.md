@@ -147,6 +147,7 @@ boot if any variable is invalid (Zod validation in `src/env`).
 | `POST`  | `/users/forgot-password`         | –              | –       | Request a reset; always `202` (rate-limited)                       |
 | `POST`  | `/users/reset-password`          | –              | –       | Reset via link token or email + OTP (rate-limited)                 |
 | `GET`   | `/users`                         | Bearer         | `ADMIN` | List users (paginated, 20/page)                                    |
+| `GET`   | `/users/:userId`                 | Bearer         | `ADMIN` | Fetch a single user by id                                          |
 | `PATCH` | `/users/:userId`                 | Bearer         | `ADMIN` | Edit a user (username/email/role/is_verified)                      |
 
 > The JWT carries a `role` claim, but **authorization reads the role from the
@@ -428,6 +429,10 @@ curl -s -X PATCH "$BASE/gyms/$GYM_ID" -H "Content-Type: application/json" \
 # 13. Admin lists users (GET /users) -> expected 200
 echo -e "\n=== 13. GET /users (ADMIN - expected 200) ===" && \
 curl -s "$BASE/users?page=1" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
+
+# 13b. Admin fetches one user by id (GET /users/:userId) -> expected 200
+echo -e "\n=== 13b. GET /users/:userId (ADMIN - expected 200) ===" && \
+curl -s "$BASE/users/$MEMBER_ID" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -m json.tool
 
 # 14. Self edits own username (PATCH /auth/me) -> expected 200
 echo -e "\n=== 14. PATCH /auth/me (self - expected 200) ===" && \
