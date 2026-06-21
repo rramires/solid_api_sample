@@ -1,6 +1,6 @@
 # HANDOFF — solid_api_sample
 
-_Atualizado: 2026-06-20 @ 88c2f60 (branch master) — check-ins 4xx ENTREGUE + sincronizado p/ monorepo/api._
+_Atualizado: 2026-06-21 @ 1e161d7 (branch master) — CORS preflight ENTREGUE + sincronizado p/ monorepo/api._
 
 ## Resume prompt (cole em qualquer sessão / modelo)
 
@@ -9,25 +9,32 @@ _Atualizado: 2026-06-20 @ 88c2f60 (branch master) — check-ins 4xx ENTREGUE + s
 > Confirme antes de qualquer ação irreversível. **Nunca dê push.** Pergunte UMA coisa por
 > vez (sem caixas), em pt-BR. Caveman mode on (terse; código/commits/segurança normais).
 >
-> **Sem trabalho em aberto** — última entrega em `master` e pushada. Aguarde a próxima tarefa.
+> **Sem trabalho em aberto** — última entrega mergeada em `master` (local, **2 commits à
+> frente do origin, aguardando push do usuário**). Aguarde a próxima tarefa.
 
 ## Estado atual
 
-- Branch / commit: `master` @ `88c2f60` (2026-06-20); árvore limpa; origin em dia (pushado).
-- **Última entrega (check-ins 4xx):** os 3 erros de domínio dos check-ins retornam **4xx** (antes
-  caíam em 500), mapeados no controller via `instanceof` (padrão da casa): `MaxDistanceError`→`400`,
-  `MaxCheckInsReachedError`→`409`, `LateCheckInValidationError`→`409`. Gate verde
-  (**93 unit / 58 e2e**), **smoke ao vivo 6/6** em DB limpa. Docs nas 4 línguas (README smoke +
-  PROJECT §4.3). Branch `fix/check-in-domain-error-codes` mergeada (FF) + apagada.
+- Branch / commit: `master` @ `1e161d7` (2026-06-21); árvore limpa; **ahead 2 do origin
+  (NÃO pushado — push é do usuário)**.
+- **Última entrega (CORS preflight):** `@fastify/cors` registrava sem `methods` e caía no
+  default `GET,HEAD,POST` → browser abortava todo `PATCH`/`PUT`/`DELETE` no preflight
+  (server respondia OPTIONS 204; quem bloqueava era o browser). Quebrava `PATCH /check-ins/
+:id/validate` e `PATCH /auth/refresh`. Fix: `methods` explícito (`GET,HEAD,POST,PUT,PATCH,
+DELETE`) em `app.ts`. Gate verde (**93 unit / 59 e2e**, +1 e2e de preflight), **prova ao
+  vivo** (Allow-Methods com PATCH). Docs: PROJECT §segurança (EN+PT). Branch
+  `fix/cors-allow-methods` mergeada (FF) + apagada.
+- **Entrega anterior (check-ins 4xx):** os 3 erros de domínio dos check-ins retornam **4xx**
+  via `instanceof` no controller: `MaxDistanceError`→`400`, `MaxCheckInsReachedError`→`409`,
+  `LateCheckInValidationError`→`409`. Docs README smoke + PROJECT §4.3.
 - **Entrega anterior (RBAC + env):** autorização lê o **papel do banco**, não do claim do JWT
   (`verifyUserRole` consulta o DB; demote/promote vale na hora) · refresh assina `role` fresco do
   DB · `DATABASE_URL` validado pelo Zod.
 - **Trade-off documentado (aceito):** `POST /auth/me/email` → `409` p/ e-mail já cadastrado =
   oráculo de enumeração autenticado (low); mantido por UX (PROJECT §5.4).
-- **Cópia p/ monorepo:** `~/_Dev/samples/monorepo_sample/api` sincronizada @ `88c2f60` (código +
+- **Cópia p/ monorepo:** `~/_Dev/samples/monorepo_sample/api` sincronizada @ `1e161d7` (código +
   PROJECT/README). Lá `HANDOFF`/`CLAUDE`/`AGENTS` são versões próprias (contexto monorepo) — **não**
   se sobrescrevem com as daqui; só código+docs migram. O front virá em `monorepo_sample/web` (sessão separada).
-- **Próximo passo:** nenhum pendente.
+- **Próximo passo:** nenhum pendente (usuário ainda vai pushar os 2 commits).
 
 ## Como trabalhamos (regras)
 
