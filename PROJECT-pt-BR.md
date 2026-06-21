@@ -357,7 +357,10 @@ matriz de acesso por rota e um smoke test com a flag ligada estão no README
   brute-force de senha e abuso de cadastro/enumeração.
 - **CORS por ambiente** (`@fastify/cors`) com `credentials:true` (necessário para
   o cookie de refresh). Em produção a origem vem de `CORS_ORIGIN` (allow-list); em
-  dev é liberado. Nunca `origin:'*'` junto de credenciais.
+  dev é liberado. Nunca `origin:'*'` junto de credenciais. O `methods` é definido
+  explicitamente (`GET,HEAD,POST,PUT,PATCH,DELETE`) — o plugin usa por padrão
+  `GET,HEAD,POST`, que bloquearia todo `PATCH`/`PUT`/`DELETE` no preflight do
+  navegador.
 - **Tempo de login uniforme (anti-enumeração):** o login **sempre** roda
   `bcrypt.compare` — contra um `DUMMY_HASH` fixo quando o e-mail não existe — para
   que o tempo de resposta não revele se a conta existe.

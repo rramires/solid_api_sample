@@ -357,6 +357,9 @@ the README (_Email verification gate_).
 - **Per-environment CORS** (`@fastify/cors`) with `credentials:true` (required
   for the refresh cookie). In production the origin comes from `CORS_ORIGIN`
   (allow-list); in dev it is open. Never `origin:'*'` together with credentials.
+  `methods` is set explicitly (`GET,HEAD,POST,PUT,PATCH,DELETE`) — the plugin
+  defaults to `GET,HEAD,POST`, which would block every `PATCH`/`PUT`/`DELETE`
+  at the browser preflight.
 - **Uniform login timing (anti-enumeration):** login **always** runs
   `bcrypt.compare` — against a fixed `DUMMY_HASH` when the email does not exist —
   so response time does not reveal whether the account exists.
