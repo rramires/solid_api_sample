@@ -47,8 +47,12 @@ app.register(underPressure, {
 })
 // CORS. credentials:true is required to send the refresh-token cookie.
 // Dev allows any origin; prod restricts to the configured allow-list.
+// methods must be explicit: @fastify/cors defaults to 'GET,HEAD,POST', which
+// silently blocks every PATCH/PUT/DELETE at the browser preflight (the server
+// still answers OPTIONS 204, but the browser aborts the real request).
 app.register(fastifyCors, {
 	credentials: true,
+	methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
 	origin:
 		env.NODE_ENV === 'production'
 			? (env.CORS_ORIGIN?.split(',') ?? false)
