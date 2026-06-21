@@ -1,6 +1,6 @@
 # HANDOFF — solid_api_sample
 
-_Atualizado: 2026-06-20 @ bbde272 (branch master) — RBAC autorizado pelo banco ENTREGUE._
+_Atualizado: 2026-06-20 @ 88c2f60 (branch master) — check-ins 4xx ENTREGUE + sincronizado p/ monorepo/api._
 
 ## Resume prompt (cole em qualquer sessão / modelo)
 
@@ -9,25 +9,24 @@ _Atualizado: 2026-06-20 @ bbde272 (branch master) — RBAC autorizado pelo banco
 > Confirme antes de qualquer ação irreversível. **Nunca dê push.** Pergunte UMA coisa por
 > vez (sem caixas), em pt-BR. Caveman mode on (terse; código/commits/segurança normais).
 >
-> **Sem trabalho em aberto** — a última entrega já está em `master` e pushada. Aguarde a
-> próxima tarefa.
+> **Sem trabalho em aberto** — última entrega em `master` e pushada. Aguarde a próxima tarefa.
 
 ## Estado atual
 
-- Branch / commit: `master` @ `bbde272` (2026-06-20); árvore limpa; origin em dia (pushado).
-- **Entregue** (mergeado FF + pushado; branch `fix/rbac-role-from-db` apagada): autorização
-  RBAC pelo **banco**, não pelo claim do JWT.
-    - `verifyUserRole` lê o `role` do DB (por `request.user.sub`) → demote/promote vale no
-      próximo request; o claim assinado nunca é confiado p/ autorização.
-    - `refreshController` assina `role` **fresco do DB** (login e refresh consistentes).
-    - `DATABASE_URL` agora validado pelo Zod (`src/env/index.ts`); `prisma.ts` lê `env.DATABASE_URL`.
-    - Verificação: gate verde (**unit 93 + e2e 55**), **smoke manual 29/29** em DB limpa
-      (incl. a prova: token de member promovido cria gym → 201). Docs nas 4 línguas atualizadas.
-- **Trade-off documentado (aceito):** `POST /auth/me/email` retorna `409` p/ e-mail já
-  cadastrado = oráculo de enumeração **autenticado** (low); mantido por UX, documentado em PROJECT §5.4.
-- **Cópia p/ monorepo:** backend copiado p/ `~/_Dev/samples/monorepo_sample/api` (sem
-  `.git`/`node_modules`; com `.env`/`.env.example`/`prisma-client`; HANDOFF/AGENTS/CLAUDE
-  adaptados + memória destilada). O front virá em `monorepo_sample/web` numa entrega separada.
+- Branch / commit: `master` @ `88c2f60` (2026-06-20); árvore limpa; origin em dia (pushado).
+- **Última entrega (check-ins 4xx):** os 3 erros de domínio dos check-ins retornam **4xx** (antes
+  caíam em 500), mapeados no controller via `instanceof` (padrão da casa): `MaxDistanceError`→`400`,
+  `MaxCheckInsReachedError`→`409`, `LateCheckInValidationError`→`409`. Gate verde
+  (**93 unit / 58 e2e**), **smoke ao vivo 6/6** em DB limpa. Docs nas 4 línguas (README smoke +
+  PROJECT §4.3). Branch `fix/check-in-domain-error-codes` mergeada (FF) + apagada.
+- **Entrega anterior (RBAC + env):** autorização lê o **papel do banco**, não do claim do JWT
+  (`verifyUserRole` consulta o DB; demote/promote vale na hora) · refresh assina `role` fresco do
+  DB · `DATABASE_URL` validado pelo Zod.
+- **Trade-off documentado (aceito):** `POST /auth/me/email` → `409` p/ e-mail já cadastrado =
+  oráculo de enumeração autenticado (low); mantido por UX (PROJECT §5.4).
+- **Cópia p/ monorepo:** `~/_Dev/samples/monorepo_sample/api` sincronizada @ `88c2f60` (código +
+  PROJECT/README). Lá `HANDOFF`/`CLAUDE`/`AGENTS` são versões próprias (contexto monorepo) — **não**
+  se sobrescrevem com as daqui; só código+docs migram. O front virá em `monorepo_sample/web` (sessão separada).
 - **Próximo passo:** nenhum pendente.
 
 ## Como trabalhamos (regras)
@@ -40,5 +39,5 @@ Guardrails que NÃO podem falhar: **nunca push** (é do usuário) · **nunca com
 
 Harness memory (só Claude / mesma máquina):
 `~/.claude/projects/-home-user--Dev-samples-solid-api-sample/memory/`
-Cobre: smoke de rotas (rate-limit / parar server por porta / zsh UUID), gate de format
-pré-commit, reset/migrate Prisma, idioma pt-BR, revisar docs+rotas no fim, **não usar AskUserQuestion**.
+Cobre: smoke de rotas (rate-limit / parar server por porta / zsh sem word-split + UUID), gate de
+format pré-commit, reset/migrate Prisma, idioma pt-BR, revisar docs+rotas no fim, **não usar AskUserQuestion**.
